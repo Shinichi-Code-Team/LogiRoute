@@ -23,4 +23,7 @@ To maintain a clean, consistent, and maintainable codebase, all team members agr
 - Keep the code structure organized and easy to understand.
 
 ### Team Commitment
+- Write comments only when they add useful context.
+- Keep the code structure organized and easy to understand.
 All team members are responsible for applying these standards in every contribution to ensure a high-quality and maintainable project.
+
