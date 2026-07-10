@@ -1,4 +1,4 @@
-#Team_Charter
+#Team_Chartern Shinichi Team
 
 ## Coding Standards
 
