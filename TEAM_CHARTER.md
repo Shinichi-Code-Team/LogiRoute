@@ -14,11 +14,15 @@
 
 Our team follows a **feature branch workflow**.
 
-* The `main` branch always contains stable code.
-* Every team member creates a separate branch from `main`.
-* Branch naming format: `feature/charter-[member-name]`
-* Work is done only on the assigned branch.
-* Changes are merged into `main` only through a Pull Request after approval.
+ feature/charter-Wlaa
+- The `master` branch always contains stable code.
+- Every team member creates a separate branch from `master`.
+- Branch naming format:
+  `feature/charter-[member-name]`
+- Work is done only on the assigned branch.
+- Changes are merged into `master` only through a Pull Request after approval.
+
+
 
 ### Commit Message Rules
 
