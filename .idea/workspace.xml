@@ -18,7 +18,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="fb1a3ea695a3887edfd04e604edd5b5e6e13f299" />
+        <entry key="$PROJECT_DIR$" value="feature/charter-Wlaa" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -51,9 +51,13 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SONARLINT_PRECOMMIT_ANALYSIS": "true",
-    "git-widget-placeholder": "Cherry-picking in feature/charter-Wlaa",
+    "git-widget-placeholder": "feature/warehouses",
     "kotlin-language-version-configured": "true",
-    "onboarding.tips.debug.path": "C:/Users/wlaam/IdeaProjects/LogiRoute/src/main/kotlin/Main.kt"
+    "last_opened_file_path": "C:/Users/wlaam/IdeaProjects/LogiRoute/src/main/resources",
+    "onboarding.tips.debug.path": "C:/Users/wlaam/IdeaProjects/LogiRoute/src/main/kotlin/Main.kt",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2"
   },
   "keyToStringList": {
     "GitStage.ChangesTree.GroupingKeys": [
@@ -63,6 +67,15 @@
     ]
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\wlaam\IdeaProjects\LogiRoute\src\main\resources" />
+    </key>
+    <key name="K2MoveDeclarationsDialog.RECENT_PACKAGE_KEY">
+      <recent name="org.example.com.example.logiroute.models" />
+      <recent name="org.example.com.example.logiroute.models.models" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
