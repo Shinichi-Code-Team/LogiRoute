@@ -106,6 +106,8 @@ All team members are responsible for applying these standards in every contribut
 
 To keep the repository clean and avoid unnecessary conflicts, the following files and directories must not be tracked:
 
+   
+ 
 * **IDE Files:** Exclude `.idea/` directories and `*.iml` files.
 * **Build Files:** Exclude `build/` and `.gradle/` directories.
 * **Environment Configurations:** Exclude local JDK configurations and other machine-specific environment settings.
