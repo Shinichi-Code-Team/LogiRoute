@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fffb9a95-6248-4c81-82a7-cdfe909aa329" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/Fleet.kt" afterDir="false" />
+    <list default="true" id="fffb9a95-6248-4c81-82a7-cdfe909aa329" name="Changes" comment="hotfix:solve build conflicts on the master branch">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/warhouses.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/warhouses.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,34 +21,36 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Kotlin Class" />
-        <option value="Kotlin Data Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="feature/packages-model" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;wlaa-masri&quot;
-  }
-}</component>
+        &quot;lastFilter&quot;: {
+        &quot;state&quot;: &quot;OPEN&quot;,
+        &quot;assignee&quot;: &quot;wlaa-masri&quot;
+        }
+        }</component>
   <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Shinichi-Code-Team/LogiRoute&quot;,
-    &quot;accountId&quot;: &quot;d70b1d7d-ed69-49d8-9e29-ac6c20b5201c&quot;
-  }
-}</component>
-  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\EDUCATION\.gradle\wrapper\dists\gradle-8.14-bin\38aieal9i53h9rfe7vjup95b9\gradle-8.14" javaHome="C:\Users\EDUCATION\.jdks\ms-17.0.19" gradleVersion="8.14" />
+        &quot;selectedUrlAndAccountId&quot;: {
+        &quot;url&quot;: &quot;https://github.com/Shinichi-Code-Team/LogiRoute.git&quot;,
+        &quot;accountId&quot;: &quot;cae93053-565f-4b36-aab8-ce416a9eb18e&quot;
+        }
+        }</component>
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\wlaam\.gradle\wrapper\dists\gradle-8.14-bin\38aieal9i53h9rfe7vjup95b9\gradle-8.14" javaHome="C:\Users\wlaam\.jdks\ms-17.0.19" gradleVersion="8.14" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 6
-}</component>
+        &quot;associatedIndex&quot;: 6
+        }</component>
   <component name="ProjectId" id="3GDQMG5hZVOkZODfwIgYvNJKT2x" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -58,14 +58,14 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Gradle.LogiRoute [:org.example.MainKt.main()].executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;SONARLINT_PRECOMMIT_ANALYSIS&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/fleet-model&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/wlaam/IdeaProjects/LogiRoute/src/main/resources&quot;,
     &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/wlaam/IdeaProjects/LogiRoute/src/main/kotlin/Main.kt&quot;,
@@ -106,8 +106,21 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1783503612543</updated>
-      <workItem from="1784321377625" duration="803000" />
-      <workItem from="1784360085370" duration="4075000" />
+      <workItem from="1784354899035" duration="1255000" />
+      <workItem from="1784356176426" duration="1053000" />
+      <workItem from="1784361788839" duration="3788000" />
+      <workItem from="1784371324976" duration="7979000" />
+      <workItem from="1784381430016" duration="580000" />
+      <workItem from="1784382070645" duration="20000" />
+      <workItem from="1784382571852" duration="530000" />
+      <workItem from="1784383120624" duration="574000" />
+      <workItem from="1784383715742" duration="1004000" />
+      <workItem from="1784397403444" duration="407000" />
+      <workItem from="1784429100231" duration="1138000" />
+      <workItem from="1784430824625" duration="994000" />
+      <workItem from="1784431840883" duration="831000" />
+      <workItem from="1784449957572" duration="1096000" />
+      <workItem from="1784451477559" duration="1992000" />
     </task>
     <task id="LOCAL؜-٠٠٠٠١" summary="initial commit">
       <option name="closed" value="true" />
@@ -141,7 +154,55 @@
       <option name="project" value="LOCAL؜" />
       <updated>1783532791790</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="feat: add package model and priority enum">
+      <option name="closed" value="true" />
+      <created>1784356118272</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1784356118272</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: implement package parser with row validation">
+      <option name="closed" value="true" />
+      <created>1784379727175</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1784379727175</updated>
+    </task>
+    <task id="LOCAL-00007" summary="feat: implement package parser with row validation">
+      <option name="closed" value="true" />
+      <created>1784381491923</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1784381491923</updated>
+    </task>
+    <task id="LOCAL-00008" summary="feat: add package model and priority enum">
+      <option name="closed" value="true" />
+      <created>1784431385023</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1784431385023</updated>
+    </task>
+    <task id="LOCAL-00009" summary="chore: improve package parser validation">
+      <option name="closed" value="true" />
+      <created>1784432529944</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1784432529944</updated>
+    </task>
+    <task id="LOCAL-00010" summary="hotfix:solve build conflicts on the master branch">
+      <option name="closed" value="true" />
+      <created>1784453991696</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1784453991696</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -163,12 +224,19 @@
         <entry key="MAIN">
           <value>
             <State>
+              <option name="COLUMN_ID_WIDTH">
+                <map>
+                  <entry key="Table.Default.Author.ColumnIdWidth" value="174" />
+                  <entry key="Table.Default.Date.ColumnIdWidth" value="202" />
+                  <entry key="Table.GitHub.CommitStatus.ColumnIdWidth" value="100" />
+                </map>
+              </option>
               <option name="FILTERS">
                 <map>
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="feature/fleet-model" />
+                        <option value="origin/feature/packages-model" />
                       </list>
                     </value>
                   </entry>
@@ -183,14 +251,19 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
     <MESSAGE value="docs: add git workflow section to team charter" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: add git workflow section to team charter" />
+    <MESSAGE value="feat: implement package parser with row validation" />
+    <MESSAGE value="Revert &quot;feat: implement package parser with row validation&quot;&#10;&#10;This reverts commit 3e3a686de823e51f97ebe284c758c703d8e345d0." />
+    <MESSAGE value="feat: add package model and priority enum" />
+    <MESSAGE value="chore: improve package parser validation" />
+    <MESSAGE value="hotfix:solve build conflicts on the master branch" />
+    <option name="LAST_COMMIT_MESSAGE" value="hotfix:solve build conflicts on the master branch" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
-          <line>13</line>
+          <line>14</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>
