@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fffb9a95-6248-4c81-82a7-cdfe909aa329" name="Changes" comment="docs: add Fleet data model">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/SharedFunctions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="fffb9a95-6248-4c81-82a7-cdfe909aa329" name="Changes" comment="feat: add shared tools to read and clean csv files">
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/Fleet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/Fleet.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -49,6 +47,9 @@
   }
 }</component>
   <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\EDUCATION\.gradle\wrapper\dists\gradle-8.14-bin\38aieal9i53h9rfe7vjup95b9\gradle-8.14" javaHome="C:\Users\EDUCATION\.jdks\ms-17.0.19" gradleVersion="8.14" />
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -112,7 +113,7 @@
       <workItem from="1784360085370" duration="4867000" />
       <workItem from="1784366453497" duration="3775000" />
       <workItem from="1784397301864" duration="14000" />
-      <workItem from="1784420339411" duration="1164000" />
+      <workItem from="1784420339411" duration="1462000" />
     </task>
     <task id="LOCAL؜-٠٠٠٠١" summary="initial commit">
       <option name="closed" value="true" />
@@ -154,7 +155,15 @@
       <option name="project" value="LOCAL؜" />
       <updated>1784364866881</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL؜-٠٠٠٠٦" summary="feat: add shared tools to read and clean csv files">
+      <option name="closed" value="true" />
+      <created>1784421528234</created>
+      <option name="number" value="٠٠٠٠٦" />
+      <option name="presentableId" value="LOCAL؜-٠٠٠٠٦" />
+      <option name="project" value="LOCAL؜" />
+      <updated>1784421528234</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -197,7 +206,8 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="docs: add git workflow section to team charter" />
     <MESSAGE value="docs: add Fleet data model" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: add Fleet data model" />
+    <MESSAGE value="feat: add shared tools to read and clean csv files" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add shared tools to read and clean csv files" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
