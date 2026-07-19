@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fffb9a95-6248-4c81-82a7-cdfe909aa329" name="Changes" comment="feat: add shared tools to read and clean csv files">
+    <list default="true" id="fffb9a95-6248-4c81-82a7-cdfe909aa329" name="Changes" comment="feat: implement Fleet data model and parser">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/Fleet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/Fleet.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -60,6 +63,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Gradle.LogiRoute [:org.example.MainKt.main()].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
@@ -94,6 +98,20 @@
       <recent name="org.example.com.example.logiroute.models.models" />
     </key>
   </component>
+  <component name="RunManager">
+    <configuration name="MainKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.example.MainKt" />
+      <module name="LogiRoute.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Kotlin.MainKt" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -113,7 +131,7 @@
       <workItem from="1784360085370" duration="4867000" />
       <workItem from="1784366453497" duration="3775000" />
       <workItem from="1784397301864" duration="14000" />
-      <workItem from="1784420339411" duration="1462000" />
+      <workItem from="1784420339411" duration="2890000" />
     </task>
     <task id="LOCAL؜-٠٠٠٠١" summary="initial commit">
       <option name="closed" value="true" />
@@ -163,7 +181,15 @@
       <option name="project" value="LOCAL؜" />
       <updated>1784421528234</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL؜-٠٠٠٠٧" summary="feat: implement Fleet data model and parser">
+      <option name="closed" value="true" />
+      <created>1784422098574</created>
+      <option name="number" value="٠٠٠٠٧" />
+      <option name="presentableId" value="LOCAL؜-٠٠٠٠٧" />
+      <option name="project" value="LOCAL؜" />
+      <updated>1784422098574</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -207,16 +233,12 @@
     <MESSAGE value="docs: add git workflow section to team charter" />
     <MESSAGE value="docs: add Fleet data model" />
     <MESSAGE value="feat: add shared tools to read and clean csv files" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: add shared tools to read and clean csv files" />
+    <MESSAGE value="feat: implement Fleet data model and parser" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: implement Fleet data model and parser" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
-          <line>13</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/com/example/logiroute/models/SharedFunctions.kt</url>
           <line>4</line>

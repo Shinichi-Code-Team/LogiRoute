@@ -1,16 +1,17 @@
 package org.example
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, " + name + "!")
+import java.io.File
+import org.example.com.example.logiroute.models.parseFleet
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+fun main() {
+    val fleetFile = File("src/main/resources/fleet.csv")
+
+    val loadedFleets = parseFleet(fleetFile.name)
+
+    println("Fleets loaded: ${loadedFleets.size}")
+
+    for (i in 0 until loadedFleets.size) {
+        val f = loadedFleets[i]
+        println("Fleet ${i + 1} | ID: ${f.vehicleId} | Hub: ${f.currentHubId} | Capacity: ${f.maxCapacityKg} | Cost: ${f.costPerKm}")
     }
 }
