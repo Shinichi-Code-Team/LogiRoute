@@ -15,8 +15,6 @@ data class Package(
     val weight: Double,
     val destinationHubId: String,
     val priority: Priority
-
-
 )
 
 /**
