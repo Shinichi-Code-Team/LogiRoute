@@ -25,7 +25,6 @@ data class Package(
  */
 fun readPackageLines(): List<String> {
     val file = File("src/main/resources/packages.csv")
-
     if (!file.exists()) {
         println("File not found")
         return emptyList()
