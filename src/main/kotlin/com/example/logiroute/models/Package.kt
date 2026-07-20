@@ -15,8 +15,6 @@ data class Package(
     val weight: Double,
     val destinationHubId: String,
     val priority: Priority
-
-
 )
 
 /**
@@ -97,7 +95,9 @@ fun parsePackageRow(line: String, lineNumber: Int): Package? {
 fun parsePackages(): MutableList<Package> {
     val packages = mutableListOf<Package>()
     val lines = readPackageLines()
-
+    if (lines.isEmpty()) {
+        return packages
+    }
     for (index in 1 until lines.size) {
         val packageItem = parsePackageRow(
             line = lines[index],
