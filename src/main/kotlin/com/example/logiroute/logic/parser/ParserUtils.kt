@@ -8,9 +8,8 @@ fun readCsvLines(fileName: String): List<String> {
     return file.readLines()
 }
 
-fun getExpectedColumnCount(lines: List<String>): Int {
-    if (lines.isEmpty()) return 0
-    return lines.first().split(",").size
+fun getExpectedColumnCount(header: String): Int {
+    return header.split(",").size
 }
 
 fun skipHeader(lines: List<String>): List<String> {
