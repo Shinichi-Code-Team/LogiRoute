@@ -1,16 +1,59 @@
-package org.example
+package com.example.logiroute
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, " + name + "!")
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+import com.example.logiroute.dataholder.PackageRow
+import com.example.logiroute.logic.parser.routeParser
+import com.example.logiroute.logic.sorting.sortPackagesByPriority
+import org.example.com.example.logiroute.dataholder.RouteRow
+import packageParser
+
+fun printTopPackages(packages: List<PackageRow>) {
+
+    println("Successfully parsed packages: ${packages.size}")
+
+    for (i in 0 until minOf(3, packages.size)) {
+
+        val packageRow = packages[i]
+
+        println(
+            "ID: ${packageRow.id}, " +
+                    "Weight: ${packageRow.weight}, " +
+                    "Destination: ${packageRow.destinationHubId}, " +
+                    "Priority: ${packageRow.priority}"
+        )
     }
 }
+
+fun processPackages() {
+
+    val packages = packageParser()
+    sortPackagesByPriority(packages)
+    printTopPackages(packages)
+}
+fun printSampleRoutes(routes: List<RouteRow>) {
+
+
+    println("Successfully parsed routes: ${routes.size}")
+    for (i in 0 until minOf(3, routes.size)) {
+        val route = routes[i]
+        println(
+            "Route ID: ${route.routeId}, " +
+                    "Origin: ${route.originHubId}, " +
+                    "Destination: ${route.destinationHubId}, " +
+                    "Distance: ${route.distanceKm} km, " +
+                    "Delay: ${route.typicalDelayMin} min"
+        )
+    }
+}
+
+fun processRoutes() {
+    val routes = routeParser()
+    printSampleRoutes(routes)
+}
+fun main() {
+    processPackages()
+    processRoutes()
+
+
+}
+

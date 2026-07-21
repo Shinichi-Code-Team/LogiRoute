@@ -40,7 +40,7 @@ All commit messages must start with one of the following prefixes:
 
 * `docs: add workflow section`
 * `feat: implement route planner`
-* `fix: resolve login validation bug`
+* `fix: resolve login com.example.logiroute.logic.validation bug`
 
 ---
 
