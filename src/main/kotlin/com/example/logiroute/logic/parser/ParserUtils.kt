@@ -1,24 +1,25 @@
-import com.example.logiroute.dataholder.PriorityRow
 import java.io.File
+
 
 fun readCsvLines(fileName: String): List<String> {
     val file = File("src/main/resources/$fileName")
+    if (!file.exists()) return emptyList()
 
-    return if (file.exists()) {
-        file.readLines()
-    } else {
-        emptyList()
-    }
+    return file.readLines()
 }
+
+fun getExpectedColumnCount(lines: List<String>): Int {
+    if (lines.isEmpty()) return 0
+    return lines.first().split(",").size
+}
+
+fun skipHeader(lines: List<String>): List<String> {
+    return if (lines.size > 1) lines.drop(1) else emptyList()
+}
+
 
 fun splitAndTrim(line: String): List<String> {
     return line.split(",").map { it.trim() }
 }
 
-fun parsePriority(value: String): PriorityRow {
-    return when (value.uppercase().trim()) {
-        "URGENT" -> PriorityRow.URGENT
-        "STANDARD" -> PriorityRow.STANDARD
-        else -> PriorityRow.LOW
-    }
-}
+
