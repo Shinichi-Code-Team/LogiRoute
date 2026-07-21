@@ -7,6 +7,7 @@ fun isNotBlank(row: String): Boolean {
     return row.isNotBlank()
 }
 
+
 fun validateColumnCount(columns: List<String>, expectedCount: Int): Boolean {
     return columns.size == expectedCount
 }

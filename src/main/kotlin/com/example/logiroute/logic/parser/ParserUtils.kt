@@ -12,6 +12,7 @@ fun getExpectedColumnCount(header: String): Int {
     return header.split(",").size
 }
 
+
 fun skipHeader(lines: List<String>): List<String> {
     return if (lines.size > 1) lines.drop(1) else emptyList()
 }
@@ -20,5 +21,4 @@ fun skipHeader(lines: List<String>): List<String> {
 fun splitAndTrim(line: String): List<String> {
     return line.split(",").map { it.trim() }
 }
-
 
