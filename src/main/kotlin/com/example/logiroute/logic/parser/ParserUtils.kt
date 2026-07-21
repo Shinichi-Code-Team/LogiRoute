@@ -11,6 +11,10 @@ fun readCsvLines(fileName: String): List<String> {
     }
 }
 
+fun getExpectedColumnCount(header: String): Int {
+    return header.split(",").size
+}
+
 fun splitAndTrim(line: String): List<String> {
     return line.split(",").map { it.trim() }
 }
