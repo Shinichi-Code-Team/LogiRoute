@@ -1,19 +1,35 @@
 package org.example
 
+import com.example.logiroute.dataholder.PackageRow
+import com.example.logiroute.logic.sorting.sortPackagesByPriority
+import packageParser
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
-    val name = "Kotlin"
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    println("Hello, " + name + "!")
+fun printTopPackages(packages: List<PackageRow>) {
 
-    for (i in 1..5) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        println("i = $i")
+    println("Successfully parsed packages: ${packages.size}")
+
+    for (i in 0 until minOf(3, packages.size)) {
+
+        val packageRow = packages[i]
+
+        println(
+            "ID: ${packageRow.id}, " +
+                    "Weight: ${packageRow.weight}, " +
+                    "Destination: ${packageRow.destinationHubId}, " +
+                    "Priority: ${packageRow.priority}"
+        )
     }
+}
 
+fun processPackages() {
+
+    val packages = packageParser()
+    sortPackagesByPriority(packages)
+    printTopPackages(packages)
+}
+
+fun main() {
+    processPackages()
 
 }
+
