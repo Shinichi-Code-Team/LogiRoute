@@ -1,7 +1,10 @@
-package org.example
+package com.example.logiroute
+
 
 import com.example.logiroute.dataholder.PackageRow
+import com.example.logiroute.logic.parser.routeParser
 import com.example.logiroute.logic.sorting.sortPackagesByPriority
+import org.example.com.example.logiroute.dataholder.RouteRow
 import packageParser
 
 fun printTopPackages(packages: List<PackageRow>) {
@@ -27,9 +30,30 @@ fun processPackages() {
     sortPackagesByPriority(packages)
     printTopPackages(packages)
 }
+fun printSampleRoutes(routes: List<RouteRow>) {
 
+
+    println("Successfully parsed routes: ${routes.size}")
+    for (i in 0 until minOf(3, routes.size)) {
+        val route = routes[i]
+        println(
+            "Route ID: ${route.routeId}, " +
+                    "Origin: ${route.originHubId}, " +
+                    "Destination: ${route.destinationHubId}, " +
+                    "Distance: ${route.distanceKm} km, " +
+                    "Delay: ${route.typicalDelayMin} min"
+        )
+    }
+}
+
+fun processRoutes() {
+    val routes = routeParser()
+    printSampleRoutes(routes)
+}
 fun main() {
     processPackages()
+    processRoutes()
+
 
 }
 
