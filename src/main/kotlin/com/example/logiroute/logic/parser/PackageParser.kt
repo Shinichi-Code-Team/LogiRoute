@@ -1,6 +1,7 @@
 package com.example.logiroute.logic.parser
 
 import com.example.logiroute.dataholder.PackageRow
+import com.example.logiroute.dataholder.PriorityRow
 import com.example.logiroute.logic.validation.*
 
 fun packageParser(): MutableList<PackageRow> {
