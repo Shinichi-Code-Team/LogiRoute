@@ -1,3 +1,6 @@
+package com.example.logiroute.logic.parser
+
+import com.example.logiroute.dataholder.PriorityRow
 import java.io.File
 
 
@@ -20,5 +23,14 @@ fun skipHeader(lines: List<String>): List<String> {
 
 fun splitAndTrim(line: String): List<String> {
     return line.split(",").map { it.trim() }
+}
+
+fun parsePriority(value: String): PriorityRow {
+    return when (value.trim().uppercase()) {
+        "URGENT" -> PriorityRow.URGENT
+        "STANDARD" -> PriorityRow.STANDARD
+        "LOW" -> PriorityRow.LOW
+        else -> PriorityRow.LOW
+    }
 }
 
