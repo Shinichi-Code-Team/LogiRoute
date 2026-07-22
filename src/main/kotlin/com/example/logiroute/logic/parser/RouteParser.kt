@@ -1,8 +1,7 @@
 package com.example.logiroute.logic.parser
 
 import com.example.logiroute.logic.validation.*
-import com.example.logiroute.logic.parser.*
-import org.example.com.example.logiroute.dataholder.RouteRow
+import com.example.logiroute.dataholder.RouteRow
 
 fun routeParser(): MutableList<RouteRow> {
 
