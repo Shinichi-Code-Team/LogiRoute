@@ -1,3 +1,4 @@
+package com.example.logiroute.logic.parser
 import java.io.File
 
 
@@ -21,4 +22,22 @@ fun skipHeader(lines: List<String>): List<String> {
 fun splitAndTrim(line: String): List<String> {
     return line.split(",").map { it.trim() }
 }
+fun parsePriority(value: String): String {
+
+    val cleanValue = value.trim().uppercase()
+
+
+
+    if (cleanValue == "URGENT" || cleanValue == "STANDARD") {
+
+        return cleanValue
+
+    } else {
+
+        return "LOW"
+
+    }
+
+}
+
 
