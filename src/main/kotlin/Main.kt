@@ -1,14 +1,7 @@
-package com.example.logiroute
+import com.example.logiroute.dataholder.*
+import com.example.logiroute.logic.parser.*
+import com.example.logiroute.logic.sorting.*
 
-
-import com.example.logiroute.dataholder.FleetRow
-import com.example.logiroute.dataholder.PackageRow
-import com.example.logiroute.logic.parser.routeParser
-import com.example.logiroute.logic.sorting.sortPackagesByPriority
-import org.example.com.example.logiroute.dataholder.RouteRow
-import com.example.logiroute.logic.parser.parseFleetCsv
-
-import packageParser
 
 fun printTopPackages(packages: List<PackageRow>) {
 
@@ -33,6 +26,7 @@ fun processPackages() {
     sortPackagesByPriority(packages)
     printTopPackages(packages)
 }
+
 fun printSampleRoutes(routes: List<RouteRow>) {
 
 
@@ -54,6 +48,7 @@ fun processRoutes() {
     val routes = routeParser()
     printSampleRoutes(routes)
 }
+
 fun printSampleFleet(fleetList: List<FleetRow>) {
     println("Successfully parsed fleet records count: ${fleetList.size}")
 
@@ -68,6 +63,7 @@ fun printSampleFleet(fleetList: List<FleetRow>) {
         )
     }
 }
+
 fun processFleet() {
     val fleetList = parseFleetCsv("fleet.csv")
     printSampleFleet(fleetList)

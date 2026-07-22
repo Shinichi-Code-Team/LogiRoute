@@ -1,4 +1,4 @@
-package org.example.com.example.logiroute.dataholder
+package com.example.logiroute.dataholder
 
 data class RouteRow(
     val routeId: String,
