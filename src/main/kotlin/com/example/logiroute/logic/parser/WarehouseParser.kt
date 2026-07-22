@@ -12,10 +12,11 @@ fun warehouseParser(): MutableList<WarehouseRow> {
     }
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
+    val dataLines = skipHeader(lines)
     val warehouses = mutableListOf<WarehouseRow>()
 
 
-    for (line in lines.drop(1)) {
+    for (line in dataLines) {
 
         if (!isNotBlank(line)) {
             continue

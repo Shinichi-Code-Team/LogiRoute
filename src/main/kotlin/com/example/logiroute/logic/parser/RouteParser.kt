@@ -13,9 +13,10 @@ fun routeParser(): MutableList<RouteRow> {
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
+    val dataLines = skipHeader(lines)
     val routes = mutableListOf<RouteRow>()
 
-    for (line in lines.drop(1)) {
+    for (line in dataLines) {
 
         if (line.isBlank()) {
             continue
