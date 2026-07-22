@@ -10,7 +10,7 @@ fun printTopPackages(packages: List<PackageRow>) {
     for (i in 0 until minOf(3, packages.size)) {
 
         val packageRow = packages[i]
-
+        println("------------Top 3 Priority packages-------------")
         println(
             "ID: ${packageRow.id}, " +
                     "Weight: ${packageRow.weight}, " +
@@ -69,10 +69,36 @@ fun processFleet() {
     printSampleFleet(fleetList)
 }
 
+fun printSampleWarehouses(warehouses: List<WarehouseRow>) {
+
+
+    println("Successfully parsed routes: ${warehouses.size}")
+    for (i in 0 until minOf(3, warehouses.size)) {
+        val warehouse = warehouses[i]
+        println(
+            "warehouse ID: ${warehouse.id}, " +
+                    "warehouse name: ${warehouse.name}, " +
+                    "warehouse regionalZone: ${warehouse.regionalZone}, "
+        )
+    }
+}
+
+
+fun processWarehouses() {
+    val warehouses = warehouseParser()
+    printSampleWarehouses(warehouses)
+}
+
+
 fun main() {
+    println("------------------------Packages section------------------------")
     processPackages()
+    println("\n------------------------ Routes section-------------------------")
     processRoutes()
+    println("\n------------------------ Fleets section-------------------------")
     processFleet()
+    println("\n------------------------ Warehouses section-------------------------")
+    processWarehouses()
 
 }
 

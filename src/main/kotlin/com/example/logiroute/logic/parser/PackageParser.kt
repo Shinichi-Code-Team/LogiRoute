@@ -1,7 +1,7 @@
+package com.example.logiroute.logic.parser
+
 import com.example.logiroute.dataholder.PackageRow
-import com.example.logiroute.dataholder.PriorityRow
 import com.example.logiroute.logic.validation.*
-import com.example.logiroute.logic.parser.*
 
 fun packageParser(): MutableList<PackageRow> {
 
@@ -13,9 +13,10 @@ fun packageParser(): MutableList<PackageRow> {
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
+    val dataLines = skipHeader(lines)
     val packages = mutableListOf<PackageRow>()
 
-    for (line in lines.drop(1)) {
+    for (line in dataLines) {
 
         if (line.isBlank()) {
             continue
