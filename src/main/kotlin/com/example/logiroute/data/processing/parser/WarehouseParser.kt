@@ -1,9 +1,9 @@
-package com.example.logiroute.logic.parser
+package com.example.logiroute.data.processing.parser
 
-import com.example.logiroute.dataholder.WarehouseRow
-import com.example.logiroute.logic.validation.*
+import com.example.logiroute.data.dataholder.WarehouseRaw
+import com.example.logiroute.data.processing.validation.*
 
-fun warehouseParser(): MutableList<WarehouseRow> {
+fun warehouseParser(): MutableList<WarehouseRaw> {
 
     val lines = readCsvLines("warehouses.csv")
 
@@ -13,7 +13,7 @@ fun warehouseParser(): MutableList<WarehouseRow> {
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
     val dataLines = skipHeader(lines)
-    val warehouses = mutableListOf<WarehouseRow>()
+    val warehouses = mutableListOf<WarehouseRaw>()
 
 
     for (line in dataLines) {
@@ -40,7 +40,7 @@ fun warehouseParser(): MutableList<WarehouseRow> {
         }
 
         warehouses.add(
-            WarehouseRow(
+            WarehouseRaw(
                 id = id,
                 name = name,
                 regionalZone = regionalZone

@@ -1,10 +1,9 @@
-package com.example.logiroute.logic.parser
+package com.example.logiroute.data.processing.parser
 
-import com.example.logiroute.dataholder.PackageRow
-import com.example.logiroute.dataholder.PriorityRow
-import com.example.logiroute.logic.validation.*
+import com.example.logiroute.data.dataholder.PackageRaw
+import com.example.logiroute.data.processing.validation.*
 
-fun packageParser(): MutableList<PackageRow> {
+fun packageParser(): MutableList<PackageRaw> {
 
     val lines = readCsvLines("packages.csv")
 
@@ -15,7 +14,7 @@ fun packageParser(): MutableList<PackageRow> {
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
     val dataLines = skipHeader(lines)
-    val packages = mutableListOf<PackageRow>()
+    val packages = mutableListOf<PackageRaw>()
 
     for (line in dataLines) {
 
@@ -48,7 +47,7 @@ fun packageParser(): MutableList<PackageRow> {
         val priority = parsePriority(columns[3])
 
         packages.add(
-            PackageRow(
+            PackageRaw(
                 id = id,
                 weight = weight,
                 destinationHubId = destinationHubId,

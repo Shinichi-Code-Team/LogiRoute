@@ -1,17 +1,17 @@
-package com.example.logiroute.logic.parser
+package com.example.logiroute.data.processing.parser
 
-import com.example.logiroute.dataholder.FleetRow
-import com.example.logiroute.logic.validation.*
+import com.example.logiroute.data.dataholder.FleetRaw
+import com.example.logiroute.data.processing.validation.*
 
 
-fun parseFleetCsv(fileName: String): List<FleetRow> {
+fun parseFleetCsv(fileName: String): List<FleetRaw> {
     val lines = readCsvLines(fileName)
     if (lines.isEmpty()) return emptyList()
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
     val dataLines = skipHeader(lines)
-    val fleetList = mutableListOf<FleetRow>()
+    val fleetList = mutableListOf<FleetRaw>()
 
     for (line in dataLines) {
         if (!isNotBlank(line)) continue
@@ -38,14 +38,14 @@ fun parseFleetCsv(fileName: String): List<FleetRow> {
             continue
         }
 
-        val fleetRow = FleetRow(
+        val fleetRaw = FleetRaw(
             vehicleId = vehicleId,
             currentHubId = currentHubId,
             maxCapacityKg = maxCapacityKg,
             costPerKm = costPerKm
         )
 
-        fleetList.add(fleetRow)
+        fleetList.add(fleetRaw)
     }
 
     return fleetList

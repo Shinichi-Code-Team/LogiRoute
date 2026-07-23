@@ -1,9 +1,9 @@
-package com.example.logiroute.logic.parser
+package com.example.logiroute.data.processing.parser
 
-import com.example.logiroute.logic.validation.*
-import com.example.logiroute.dataholder.RouteRow
+import com.example.logiroute.data.processing.validation.*
+import com.example.logiroute.data.dataholder.RouteRaw
 
-fun routeParser(): MutableList<RouteRow> {
+fun routeParser(): MutableList<RouteRaw> {
 
     val lines = readCsvLines("routes.csv")
 
@@ -14,7 +14,7 @@ fun routeParser(): MutableList<RouteRow> {
     val expectedColumnCount = getExpectedColumnCount(lines.first())
 
     val dataLines = skipHeader(lines)
-    val routes = mutableListOf<RouteRow>()
+    val routes = mutableListOf<RouteRaw>()
 
     for (line in dataLines) {
 
@@ -51,7 +51,7 @@ fun routeParser(): MutableList<RouteRow> {
         }
 
         routes.add(
-            RouteRow(
+            RouteRaw(
                 routeId = routeId,
                 originHubId = originHubId,
                 destinationHubId = destinationHubId,

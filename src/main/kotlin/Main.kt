@@ -1,16 +1,16 @@
-import com.example.logiroute.dataholder.*
-import com.example.logiroute.logic.parser.*
-import com.example.logiroute.logic.sorting.*
+import com.example.logiroute.data.dataholder.*
+import com.example.logiroute.data.processing.parser.*
+import com.example.logiroute.logic.sortPackagesByPriorityConsideringWeight
 
 
-fun printTopPackages(packages: List<PackageRow>) {
+fun printTopPackages(packages: List<PackageRaw>) {
 
     println("Successfully parsed packages: ${packages.size}")
+    println("------------Top 3 Priority packages-------------")
 
     for (i in 0 until minOf(3, packages.size)) {
 
         val packageRow = packages[i]
-        println("------------Top 3 Priority packages-------------")
         println(
             "ID: ${packageRow.id}, " +
                     "Weight: ${packageRow.weight}, " +
@@ -23,11 +23,11 @@ fun printTopPackages(packages: List<PackageRow>) {
 fun processPackages() {
 
     val packages = packageParser()
-    sortPackagesByPriority(packages)
+    sortPackagesByPriorityConsideringWeight(packages)
     printTopPackages(packages)
 }
 
-fun printSampleRoutes(routes: List<RouteRow>) {
+fun printSampleRoutes(routes: List<RouteRaw>) {
 
 
     println("Successfully parsed routes: ${routes.size}")
@@ -49,7 +49,7 @@ fun processRoutes() {
     printSampleRoutes(routes)
 }
 
-fun printSampleFleet(fleetList: List<FleetRow>) {
+fun printSampleFleet(fleetList: List<FleetRaw>) {
     println("Successfully parsed fleet records count: ${fleetList.size}")
 
     for (i in 0 until minOf(3, fleetList.size)) {
@@ -69,7 +69,7 @@ fun processFleet() {
     printSampleFleet(fleetList)
 }
 
-fun printSampleWarehouses(warehouses: List<WarehouseRow>) {
+fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
 
 
     println("Successfully parsed routes: ${warehouses.size}")

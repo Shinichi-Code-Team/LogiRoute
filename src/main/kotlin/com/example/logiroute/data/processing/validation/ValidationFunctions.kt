@@ -1,4 +1,4 @@
-package com.example.logiroute.logic.validation
+package com.example.logiroute.data.processing.validation
 
 const val DEFAULT_INVALID_DOUBLE = -1.0
 const val DEFAULT_INVALID_INT = -1

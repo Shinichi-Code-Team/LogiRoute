@@ -1,6 +1,6 @@
-package com.example.logiroute.dataholder
+package com.example.logiroute.data.dataholder
 
-data class WarehouseRow(
+data class WarehouseRaw(
     val id: String,
     val name: String,
     val regionalZone: String,

@@ -1,6 +1,6 @@
-package com.example.logiroute.logic.parser
+package com.example.logiroute.data.processing.parser
 
-import com.example.logiroute.dataholder.PriorityRow
+import com.example.logiroute.data.dataholder.PriorityRaw
 import java.io.File
 
 
@@ -15,7 +15,6 @@ fun getExpectedColumnCount(header: String): Int {
     return header.split(",").size
 }
 
-
 fun skipHeader(lines: List<String>): List<String> {
     return if (lines.size > 1) lines.drop(1) else emptyList()
 }
@@ -25,12 +24,12 @@ fun splitAndTrim(line: String): List<String> {
     return line.split(",").map { it.trim() }
 }
 
-fun parsePriority(value: String): PriorityRow {
+fun parsePriority(value: String): PriorityRaw {
     return when (value.trim().uppercase()) {
-        "URGENT" -> PriorityRow.URGENT
-        "STANDARD" -> PriorityRow.STANDARD
-        "LOW" -> PriorityRow.LOW
-        else -> PriorityRow.LOW
+        "URGENT" -> PriorityRaw.URGENT
+        "STANDARD" -> PriorityRaw.STANDARD
+        "LOW" -> PriorityRaw.LOW
+        else -> PriorityRaw.LOW
     }
 }
 
