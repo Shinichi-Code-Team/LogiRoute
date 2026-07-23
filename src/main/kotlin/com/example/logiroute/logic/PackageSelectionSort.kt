@@ -13,7 +13,7 @@ fun comparePackageWeight(
     selectedPackage: PackageRaw,
     currentPackage: PackageRaw
 ): Int {
-    return selectedPackage.weight.compareTo(currentPackage.weight)
+    return selectedPackage.compareWeight(currentPackage)
 }
 
 fun swapPackages(
@@ -27,32 +27,35 @@ fun swapPackages(
 }
 
 fun sortPackagesByPriorityConsideringWeight(
-    packages: MutableList<PackageRaw>
-) {
-    for (sortedPosition in 0 until packages.lastIndex) {
+    packages: List<PackageRaw>
+): List<PackageRaw> {
+    val sortedPackages = packages.toMutableList()
+
+    for (sortedPosition in 0 until sortedPackages.lastIndex) {
         val selectedPackageIndex = findHighestPriorityPackageIndex(
-            packages,
+            sortedPackages,
             sortedPosition
         )
+
         if (selectedPackageIndex != sortedPosition) {
             swapPackages(
-                packages,
+                sortedPackages,
                 selectedPackageIndex,
                 sortedPosition
             )
         }
     }
+
+    return sortedPackages
 }
 
 fun findHighestPriorityPackageIndex(
     packages: MutableList<PackageRaw>,
     sortedPosition: Int
 ): Int {
-
     var selectedPackageIndex = sortedPosition
 
     for (currentPackageIndex in sortedPosition + 1..packages.lastIndex) {
-
         val priorityComparison = comparePackagePriority(
             packages[selectedPackageIndex],
             packages[currentPackageIndex]

@@ -21,10 +21,12 @@ fun printTopPackages(packages: List<PackageRaw>) {
 }
 
 fun processPackages() {
-
     val packages = packageParser()
-    sortPackagesByPriorityConsideringWeight(packages)
-    printTopPackages(packages)
+
+    val sortedPackages =
+        sortPackagesByPriorityConsideringWeight(packages)
+
+    printTopPackages(sortedPackages)
 }
 
 fun printSampleRoutes(routes: List<RouteRaw>) {
