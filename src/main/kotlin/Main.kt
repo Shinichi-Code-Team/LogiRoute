@@ -21,9 +21,11 @@ fun printTopPackages(packages: List<PackageRaw>) {
 }
 
 fun processPackages() {
-
     val packages = packageParser()
-    val sortedPackages = sortPackagesByPriorityConsideringWeight(packages)
+
+    val sortedPackages =
+        sortPackagesByPriorityConsideringWeight(packages)
+
     printTopPackages(sortedPackages)
 }
 

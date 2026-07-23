@@ -45,20 +45,17 @@ fun sortPackagesByPriorityConsideringWeight(
             )
         }
     }
+
     return sortedPackages
-
 }
-
 
 fun findHighestPriorityPackageIndex(
     packages: MutableList<PackageRaw>,
     sortedPosition: Int
 ): Int {
-
     var selectedPackageIndex = sortedPosition
 
     for (currentPackageIndex in sortedPosition + 1..packages.lastIndex) {
-
         val priorityComparison = comparePackagePriority(
             packages[selectedPackageIndex],
             packages[currentPackageIndex]
