@@ -1,33 +1,25 @@
-import com.example.logiroute.dataholder.*
-import com.example.logiroute.logic.parser.*
-import com.example.logiroute.logic.sorting.*
+import com.example.logiroute.data.dataholder.*
+import com.example.logiroute.data.processing.parser.*
+import com.example.logiroute.logic.sortPackagesByPriorityConsideringWeight
 
-
-fun printTopPackages(packages: List<PackageRow>) {
-
-    println("Successfully parsed packages: ${packages.size}")
-
-    for (i in 0 until minOf(3, packages.size)) {
-
-        val packageRow = packages[i]
-        println("------------Top 3 Priority packages-------------")
-        println(
-            "ID: ${packageRow.id}, " +
-                    "Weight: ${packageRow.weight}, " +
-                    "Destination: ${packageRow.destinationHubId}, " +
-                    "Priority: ${packageRow.priority}"
-        )
+const val SAMPLE_SIZE = 3
+fun printTopPackages(sortedPackages: List<PackageRaw>) {
+    println("Successfully parsed packages: ${sortedPackages.size}")
+    println("------------Top 3 Priority packages-------------")
+    for (sortedPackage in sortedPackages.take(SAMPLE_SIZE)) {
+        println(sortedPackage.toString())
     }
 }
 
-fun processPackages() {
-
-    val packages = packageParser()
-    sortPackagesByPriority(packages)
-    printTopPackages(packages)
+fun processPackages(): List<PackageRaw> {
+    val lines = readCsvLines("packages.csv")
+    val packages = parsePackages(lines)
+    val sortedPackages =
+        sortPackagesByPriorityConsideringWeight(packages)
+    return sortedPackages
 }
 
-fun printSampleRoutes(routes: List<RouteRow>) {
+fun printSampleRoutes(routes: List<RouteRaw>) {
 
 
     println("Successfully parsed routes: ${routes.size}")
@@ -45,11 +37,11 @@ fun printSampleRoutes(routes: List<RouteRow>) {
 
 
 fun processRoutes() {
-    val routes = routeParser()
+    val routes = parseRoutes()
     printSampleRoutes(routes)
 }
 
-fun printSampleFleet(fleetList: List<FleetRow>) {
+fun printSampleFleet(fleetList: List<FleetRaw>) {
     println("Successfully parsed fleet records count: ${fleetList.size}")
 
     for (i in 0 until minOf(3, fleetList.size)) {
@@ -65,11 +57,11 @@ fun printSampleFleet(fleetList: List<FleetRow>) {
 }
 
 fun processFleet() {
-    val fleetList = parseFleetCsv("fleet.csv")
+    val fleetList = parseFleets("fleet.csv")
     printSampleFleet(fleetList)
 }
 
-fun printSampleWarehouses(warehouses: List<WarehouseRow>) {
+fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
 
 
     println("Successfully parsed routes: ${warehouses.size}")
@@ -85,14 +77,15 @@ fun printSampleWarehouses(warehouses: List<WarehouseRow>) {
 
 
 fun processWarehouses() {
-    val warehouses = warehouseParser()
+    val warehouses = parseWarehouses()
     printSampleWarehouses(warehouses)
 }
 
 
 fun main() {
     println("------------------------Packages section------------------------")
-    processPackages()
+    printTopPackages(processPackages())
+
     println("\n------------------------ Routes section-------------------------")
     processRoutes()
     println("\n------------------------ Fleets section-------------------------")

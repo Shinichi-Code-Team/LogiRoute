@@ -1,6 +1,6 @@
-package com.example.logiroute.dataholder
+package com.example.logiroute.data.dataholder
 
-data class FleetRow(
+data class FleetRaw(
     val vehicleId: List<String>,
     val currentHubId: String,
     val maxCapacityKg: Double,

@@ -1,6 +1,6 @@
-package com.example.logiroute.dataholder
+package com.example.logiroute.data.dataholder
 
-data class RouteRow(
+data class RouteRaw(
     val routeId: String,
     val originHubId: String,
     val destinationHubId: String,
