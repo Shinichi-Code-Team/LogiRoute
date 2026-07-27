@@ -3,19 +3,14 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.PackageRaw
 import com.example.logiroute.data.processing.validation.*
 
-fun packageParser(): MutableList<PackageRaw> {
 
-    val lines = readCsvLines("packages.csv")
-
+fun parsePackages(lines: List<String>): MutableList<PackageRaw> {
     if (lines.isEmpty()) {
         return mutableListOf()
     }
-
     val expectedColumnCount = getExpectedColumnCount(lines.first())
-
     val dataLines = skipHeader(lines)
     val packages = mutableListOf<PackageRaw>()
-
     for (line in dataLines) {
 
         if (line.isBlank()) {
@@ -48,10 +43,7 @@ fun packageParser(): MutableList<PackageRaw> {
 
         packages.add(
             PackageRaw(
-                id = id,
-                weight = weight,
-                destinationHubId = destinationHubId,
-                priority = priority
+                id = id, weight = weight, destinationHubId = destinationHubId, priority = priority
             )
         )
     }

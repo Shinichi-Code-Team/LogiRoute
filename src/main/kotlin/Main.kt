@@ -2,31 +2,21 @@ import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.data.processing.parser.*
 import com.example.logiroute.logic.sortPackagesByPriorityConsideringWeight
 
-
-fun printTopPackages(packages: List<PackageRaw>) {
-
-    println("Successfully parsed packages: ${packages.size}")
+const val SAMPLE_SIZE = 3
+fun printTopPackages(sortedPackages: List<PackageRaw>) {
+    println("Successfully parsed packages: ${sortedPackages.size}")
     println("------------Top 3 Priority packages-------------")
-
-    for (i in 0 until minOf(3, packages.size)) {
-
-        val packageRow = packages[i]
-        println(
-            "ID: ${packageRow.id}, " +
-                    "Weight: ${packageRow.weight}, " +
-                    "Destination: ${packageRow.destinationHubId}, " +
-                    "Priority: ${packageRow.priority}"
-        )
+    for (sortedPackage in sortedPackages.take(SAMPLE_SIZE)) {
+        println(sortedPackage.toString())
     }
 }
 
-fun processPackages() {
-    val packages = packageParser()
-
+fun processPackages(): List<PackageRaw> {
+    val lines = readCsvLines("packages.csv")
+    val packages = parsePackages(lines)
     val sortedPackages =
         sortPackagesByPriorityConsideringWeight(packages)
-
-    printTopPackages(sortedPackages)
+    return sortedPackages
 }
 
 fun printSampleRoutes(routes: List<RouteRaw>) {
@@ -47,7 +37,7 @@ fun printSampleRoutes(routes: List<RouteRaw>) {
 
 
 fun processRoutes() {
-    val routes = routeParser()
+    val routes = parseRoutes()
     printSampleRoutes(routes)
 }
 
@@ -67,7 +57,7 @@ fun printSampleFleet(fleetList: List<FleetRaw>) {
 }
 
 fun processFleet() {
-    val fleetList = parseFleetCsv("fleet.csv")
+    val fleetList = parseFleets("fleet.csv")
     printSampleFleet(fleetList)
 }
 
@@ -87,14 +77,15 @@ fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
 
 
 fun processWarehouses() {
-    val warehouses = warehouseParser()
+    val warehouses = parseWarehouses()
     printSampleWarehouses(warehouses)
 }
 
 
 fun main() {
     println("------------------------Packages section------------------------")
-    processPackages()
+    printTopPackages(processPackages())
+
     println("\n------------------------ Routes section-------------------------")
     processRoutes()
     println("\n------------------------ Fleets section-------------------------")
