@@ -4,7 +4,7 @@ import com.example.logiroute.data.dataholder.FleetRaw
 import com.example.logiroute.data.processing.validation.*
 
 
-fun parseFleetCsv(fileName: String): List<FleetRaw> {
+fun parseFleets(fileName: String): List<FleetRaw> {
     val lines = readCsvLines(fileName)
     if (lines.isEmpty()) return emptyList()
 

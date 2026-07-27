@@ -3,7 +3,7 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.WarehouseRaw
 import com.example.logiroute.data.processing.validation.*
 
-fun warehouseParser(): MutableList<WarehouseRaw> {
+fun parseWarehouses(): MutableList<WarehouseRaw> {
 
     val lines = readCsvLines("warehouses.csv")
 
