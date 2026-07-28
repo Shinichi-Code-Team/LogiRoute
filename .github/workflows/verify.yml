@@ -1,0 +1,29 @@
+name: Verify Build
+# The workflow name that will appear in the PR "Checks" tab
+
+on:
+  pull_request:
+    branches: [ "master" ]
+    # Trigger this workflow only when a Pull Request targets the master branch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    # Run the job on a Windows server provided by GitHub
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        # Download the repository code into the runner environment
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: gradle
+        # Install Java JDK 21 (Temurin distribution) and enable Gradle caching for faster builds
+
+      - name: Build with Gradle
+        run: ./gradlew build
+        # Compile the project and run unit tests using Gradle
