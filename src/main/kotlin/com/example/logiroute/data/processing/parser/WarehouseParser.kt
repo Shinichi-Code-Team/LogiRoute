@@ -15,7 +15,7 @@ fun parseWarehouses(lines: List<String>): MutableList<WarehouseRaw> {
         .mapNotNull { parseWarehouseLine(it, expectedColumnCount) }.toMutableList()
 }
 
-private fun parseWarehouseLine(line: String, expectedColumnCount: Int): WarehouseRaw? {
+private fun parseWarehouseLine(line: String, expectedColumnCount: Int): WarehouseRaw?{
     if (line.isBlank()) return null
 
     val columns = splitAndTrim(line)
