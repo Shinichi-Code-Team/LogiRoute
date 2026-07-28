@@ -63,7 +63,6 @@ fun processFleet() {
 
 fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
 
-
     println("Successfully parsed routes: ${warehouses.size}")
     for (i in 0 until minOf(3, warehouses.size)) {
         val warehouse = warehouses[i]
@@ -77,14 +76,15 @@ fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
 
 
 fun processWarehouses() {
-    val warehouses = parseWarehouses()
+    val lines = readCsvLines("warehouses.csv")
+    val warehouses = parseWarehouses(lines)
     printSampleWarehouses(warehouses)
 }
 
 
 fun main() {
     println("------------------------Packages section------------------------")
-    printTopPackages(processPackages())
+   printTopPackages(processPackages())
 
     println("\n------------------------ Routes section-------------------------")
     processRoutes()
