@@ -3,9 +3,7 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.FleetRaw
 import com.example.logiroute.data.processing.validation.*
 
-
-fun parseFleets(fileName: String): List<FleetRaw> {
-    val lines = readCsvLines(fileName)
+fun parseFleets(lines: List<String>): List<FleetRaw> {
     if (lines.isEmpty()) return emptyList()
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
@@ -13,54 +11,69 @@ fun parseFleets(fileName: String): List<FleetRaw> {
     val fleetList = mutableListOf<FleetRaw>()
 
     for (line in dataLines) {
-        if (!isNotBlank(line)) continue
+        if (line.isBlank()) continue
 
-        val columns = splitAndTrim(line)
-        if (hasValidColumnCount(columns, line, expectedColumnCount)) continue
-
-        val maxCapacityKg = extractAndValidateMaxCapacity(columns, line)
-        if (maxCapacityKg == DEFAULT_INVALID_DOUBLE) continue
-
-        val costPerKm = extractAndValidateCostPerKm(columns, line)
-        if (costPerKm == DEFAULT_INVALID_DOUBLE) continue
-
-        val vehicleId = listOf(columns[0])
-        val currentHubId = columns[1]
-        val fleetRaw = createFleetObject(vehicleId, currentHubId, maxCapacityKg, costPerKm)
-        fleetList.add(fleetRaw)
+        val fleet = parseRawFleet(line, expectedColumnCount)
+        if (fleet != null) {
+            fleetList.add(fleet)
+        }
     }
 
     return fleetList
 }
 
-private fun hasValidColumnCount(columns: List<String>, line: String, expectedColumnCount: Int): Boolean {
-    if (!validateColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $line")
-        return true
+fun parseRawFleet(line: String, expectedColumnCount: Int): FleetRaw? {
+    val columns = splitAndTrim(line)
+
+    if (!hasValidFleetColumns(columns, expectedColumnCount, line)) {
+        return null
     }
-    return false
+
+    val vehicleId = listOf(columns[0])
+    val currentHubId = columns[1]
+
+    val maxCapacityKg = parseFleetCapacity(columns[2], line) ?: return null
+    val costPerKm = parseFleetCost(columns[3], line) ?: return null
+
+    return createFleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm)
 }
 
-private fun extractAndValidateMaxCapacity(columns: List<String>, line: String): Double {
-    val maxCapacityKg = isPositiveDouble(columns[2])
+fun hasValidFleetColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
+    val isValid = validateColumnCount(columns, expectedColumnCount)
+    if (!isValid) {
+        println("Warning: Invalid column count -> $line")
+    }
+    return isValid
+}
+
+fun parseFleetCapacity(capacityText: String, line: String): Double? {
+    val maxCapacityKg = isPositiveDouble(capacityText)
     if (maxCapacityKg == DEFAULT_INVALID_DOUBLE) {
         println("Warning: Invalid maxCapacityKg in row: $line")
+        return null
     }
     return maxCapacityKg
 }
 
-private fun extractAndValidateCostPerKm(columns: List<String>, line: String): Double {
-    val costPerKm = isPositiveDouble(columns[3])
+fun parseFleetCost(costText: String, line: String): Double? {
+    val costPerKm = isPositiveDouble(costText)
     if (costPerKm == DEFAULT_INVALID_DOUBLE) {
         println("Warning: Invalid costPerKm in row: $line")
+        return null
     }
     return costPerKm
 }
 
-private fun createFleetObject(
-    vehicleId: List<String>, currentHubId: String, maxCapacityKg: Double, costPerKm: Double
+fun createFleetRaw(
+    vehicleId: List<String>,
+    currentHubId: String,
+    maxCapacityKg: Double,
+    costPerKm: Double
 ): FleetRaw {
     return FleetRaw(
-        vehicleId = vehicleId, currentHubId = currentHubId, maxCapacityKg = maxCapacityKg, costPerKm = costPerKm
+        vehicleId = vehicleId,
+        currentHubId = currentHubId,
+        maxCapacityKg = maxCapacityKg,
+        costPerKm = costPerKm
     )
 }
