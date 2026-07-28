@@ -12,11 +12,4 @@ data class PackageRaw(
         return weight.compareTo(otherPackage.weight)
     }
 
-    override fun toString(): String {
-        return "ID: $id,Weight: $weight,Destination: $destinationHubId,PriorityRaw: $priority}"
-    }
-
 }
-
-
-
