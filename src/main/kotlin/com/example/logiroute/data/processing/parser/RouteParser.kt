@@ -22,7 +22,7 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
 }
 
 private fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
-    val columns = splitAndTrim(line)
+    val columns = extractCleanColumns(line)
 
     if (!hasValidRouteColumns(columns, expectedColumnCount, line)) {
         return null
@@ -44,7 +44,7 @@ private fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
 }
 
 private fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
-    val isValid = validateColumnCount(columns, expectedColumnCount)
+    val isValid = hasExpectedColumnCount(columns, expectedColumnCount)
     if (!isValid) {
         println("Warning: Invalid column count -> $line")
     }
@@ -56,8 +56,8 @@ private fun hasHubIds(routeId: String, originHubId: String, destinationHubId: St
 }
 
 private fun parseDistance(distanceText: String, line: String): Double? {
-    val distance = isPositiveDouble(distanceText)
-    if (distance == DEFAULT_INVALID_DOUBLE) {
+    val distance = parsePositiveDoubleOrInvalid(distanceText)
+    if (distance == INVALID_DOUBLE_VALUE) {
         println("Warning: Invalid distance value -> $line")
         return null
     }
@@ -65,8 +65,8 @@ private fun parseDistance(distanceText: String, line: String): Double? {
 }
 
 private fun parseDelay(delayText: String, line: String): Int? {
-    val delay = isPositiveInt(delayText)
-    if (delay == DEFAULT_INVALID_INT) {
+    val delay = parseNonNegativeIntOrInvalid(delayText)
+    if (delay == INVALID_INT_VALUE) {
         println("Warning: Invalid delay value -> $line")
         return null
     }

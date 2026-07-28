@@ -1,33 +1,32 @@
 package com.example.logiroute.data.processing.validation
 
-const val DEFAULT_INVALID_DOUBLE = -1.0
-const val DEFAULT_INVALID_INT = -1
+const val INVALID_DOUBLE_VALUE = -1.0
+const val INVALID_INT_VALUE = -1
 
-fun isNotBlank(row: String): Boolean {
-    return row.isNotBlank()
-}
-
-
-fun validateColumnCount(columns: List<String>, expectedCount: Int): Boolean {
+fun hasExpectedColumnCount(columns: List<String>, expectedCount: Int): Boolean {
     return columns.size == expectedCount
 }
 
-fun isPositiveDouble(value: String): Double {
+fun isNotBlank(value: String): Boolean {
+    return value.isNotBlank()
+}
+
+fun parsePositiveDoubleOrInvalid(value: String): Double {
     val parsedNumber = value.trim().toDoubleOrNull()
 
     return if (parsedNumber != null && parsedNumber > 0.0) {
         parsedNumber
     } else {
-        DEFAULT_INVALID_DOUBLE
+        INVALID_DOUBLE_VALUE
     }
 }
 
-fun isPositiveInt(value: String): Int {
+fun parseNonNegativeIntOrInvalid(value: String): Int {
     val parsedNumber = value.trim().toIntOrNull()
 
     return if (parsedNumber != null && parsedNumber >= 0) {
         parsedNumber
     } else {
-        DEFAULT_INVALID_INT
+        INVALID_INT_VALUE
     }
 }
