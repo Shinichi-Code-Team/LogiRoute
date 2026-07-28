@@ -69,7 +69,7 @@ private fun isValidFleetCost(cost: String): Boolean {
 
 private fun buildFleetRaw(columns: List<String>): FleetRaw {
     return FleetRaw(
-        vehicleId = listOf(columns[VEHICLE_ID_INDEX]),
+        vehicleIds = listOf(columns[VEHICLE_ID_INDEX]),
         currentHubId = columns[CURRENT_HUB_ID_INDEX],
         maxCapacityKg = parsePositiveDoubleOrInvalid(columns[MAX_CAPACITY_KG_INDEX]),
         costPerKm = parsePositiveDoubleOrInvalid(columns[COST_PER_KM_INDEX])
