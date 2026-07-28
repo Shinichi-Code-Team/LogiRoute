@@ -59,7 +59,7 @@ private fun parseRawPackage(
 
     val priority = parsePriority(columns[3])
 
-    return createPackageRaw(
+    return PackageRaw(
         id = id,
         weight = weight,
         destinationHubId = destinationHubId,
@@ -104,16 +104,4 @@ private fun parseWeight(
     return weight
 }
 
-private fun createPackageRaw(
-    id: String,
-    weight: Double,
-    destinationHubId: String,
-    priority: PriorityRaw
-): PackageRaw {
-    return PackageRaw(
-        id = id,
-        weight = weight,
-        destinationHubId = destinationHubId,
-        priority = priority
-    )
-}
+
