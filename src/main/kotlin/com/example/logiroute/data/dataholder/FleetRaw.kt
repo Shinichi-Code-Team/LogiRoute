@@ -6,6 +6,3 @@ data class FleetRaw(
     val maxCapacityKg: Double,
     val costPerKm: Double
 )
-
-
-

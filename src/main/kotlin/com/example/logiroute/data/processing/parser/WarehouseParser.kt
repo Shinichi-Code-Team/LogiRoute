@@ -3,43 +3,60 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.WarehouseRaw
 import com.example.logiroute.data.processing.validation.*
 
-fun parseWarehouses(lines: List<String>): MutableList<WarehouseRaw> {
-
-    if (lines.isEmpty()) return mutableListOf()
+fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
+    if (lines.isEmpty()) return emptyList()
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
- 
     val dataLines = skipHeader(lines)
+    val warehouses = mutableListOf<WarehouseRaw>()
 
-    return dataLines
-        .mapNotNull { parseWarehouseLine(it, expectedColumnCount) }.toMutableList()
+    for (line in dataLines) {
+        if (line.isBlank()) continue
+
+        val warehouse = parseRawWarehouse(line, expectedColumnCount)
+        if (warehouse != null) {
+            warehouses.add(warehouse)
+        }
+    }
+
+    return warehouses
 }
 
-private fun parseWarehouseLine(line: String, expectedColumnCount: Int): WarehouseRaw? {
-    if (line.isBlank()) return null
-
+fun parseRawWarehouse(line: String, expectedColumnCount: Int): WarehouseRaw? {
     val columns = splitAndTrim(line)
 
-    if (!validateColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $line")
+    if (!hasValidWarehouseColumns(columns, expectedColumnCount, line)) {
         return null
     }
-    if (!hasRequiredWarehouseFields(columns)) {
+
+    val id = columns[0]
+    val name = columns[1]
+    val regionalZone = columns[2]
+
+    if (!hasWarehouseFields(id, name, regionalZone)) {
         println("Warning: Missing required warehouse fields -> $line")
         return null
     }
 
-    return buildWarehouseRaw(columns)
+    return createWarehouseRaw(id, name, regionalZone)
 }
 
-private fun hasRequiredWarehouseFields(columns: List<String>): Boolean {
-    return isNotBlank(columns[0]) && isNotBlank(columns[1]) && isNotBlank(columns[2])
+fun hasValidWarehouseColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
+    val isValid = validateColumnCount(columns, expectedColumnCount)
+    if (!isValid) {
+        println("Warning: Invalid column count -> $line")
+    }
+    return isValid
 }
 
-private fun buildWarehouseRaw(columns: List<String>): WarehouseRaw {
+fun hasWarehouseFields(id: String, name: String, regionalZone: String): Boolean {
+    return isNotBlank(id) && isNotBlank(name) && isNotBlank(regionalZone)
+}
+
+fun createWarehouseRaw(id: String, name: String, regionalZone: String): WarehouseRaw {
     return WarehouseRaw(
-        id = columns[0],
-        name = columns[1],
-        regionalZone = columns[2]
+        id = id,
+        name = name,
+        regionalZone = regionalZone
     )
 }
