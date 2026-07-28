@@ -86,7 +86,7 @@ private fun buildPackageRaw(
 ): PackageRaw {
     return PackageRaw(
         id = columns[PACKAGE_ID_INDEX],
-        weight = columns[PACKAGE_WEIGHT_INDEX].toDouble(),
+        weight = parsePositiveDoubleOrInvalid(columns[PACKAGE_WEIGHT_INDEX]),
         destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
         priority = parsePriority(columns[PACKAGE_PRIORITY_INDEX])
     )
