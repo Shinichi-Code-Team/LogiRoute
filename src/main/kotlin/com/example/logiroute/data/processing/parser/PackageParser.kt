@@ -11,6 +11,7 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
     val dataLines = skipHeader(lines)
+
     val packages = mutableListOf<PackageRaw>()
 
     for (line in dataLines) {
