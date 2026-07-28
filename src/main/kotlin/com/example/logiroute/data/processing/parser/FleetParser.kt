@@ -3,77 +3,75 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.FleetRaw
 import com.example.logiroute.data.processing.validation.*
 
+private const val VEHICLE_ID_INDEX = 0
+private const val CURRENT_HUB_ID_INDEX = 1
+private const val MAX_CAPACITY_KG_INDEX = 2
+private const val COST_PER_KM_INDEX = 3
+
 fun parseFleets(lines: List<String>): List<FleetRaw> {
     if (lines.isEmpty()) return emptyList()
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
-    val dataLines = skipHeader(lines)
     val fleetList = mutableListOf<FleetRaw>()
 
-    for (line in dataLines) {
-        if (line.isBlank()) continue
-
-        val fleet = parseRawFleet(line, expectedColumnCount)
-        if (fleet != null) {
-            fleetList.add(fleet)
+    for (line in skipHeader(lines)) {
+        if (line.isBlank()) {
+            continue
         }
+
+        val columns = extractCleanColumns(line)
+
+        if (!isValidFleetRaw(
+                columns = columns,
+                expectedColumnCount = expectedColumnCount,
+                originalLine = line
+            )
+        ) {
+            continue
+        }
+
+        fleetList.add(buildFleetRaw(columns))
     }
 
     return fleetList
 }
 
-fun parseRawFleet(line: String, expectedColumnCount: Int): FleetRaw? {
-    val columns = extractCleanColumns(line)
-
-    if (!hasValidFleetColumns(columns, expectedColumnCount, line)) {
-        return null
+private fun isValidFleetRaw(
+    columns: List<String>,
+    expectedColumnCount: Int,
+    originalLine: String
+): Boolean {
+    if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
+        println("Warning: Invalid column count -> $originalLine")
+        return false
     }
 
-    val vehicleId = listOf(columns[0])
-    val currentHubId = columns[1]
-
-    val maxCapacityKg = parseFleetCapacity(columns[2], line) ?: return null
-    val costPerKm = parseFleetCost(columns[3], line) ?: return null
-
-    return createFleetRaw(vehicleId, currentHubId, maxCapacityKg, costPerKm)
-}
-
-fun hasValidFleetColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
-    val isValid = hasExpectedColumnCount(columns, expectedColumnCount)
-    if (!isValid) {
-        println("Warning: Invalid column count -> $line")
+    if (!isValidFleetCapacity(columns[MAX_CAPACITY_KG_INDEX])) {
+        println("Warning: Invalid maxCapacityKg in row: $originalLine")
+        return false
     }
-    return isValid
-}
 
-fun parseFleetCapacity(capacityText: String, line: String): Double? {
-    val maxCapacityKg = parsePositiveDoubleOrInvalid(capacityText)
-    if (maxCapacityKg == INVALID_DOUBLE_VALUE) {
-        println("Warning: Invalid maxCapacityKg in row: $line")
-        return null
+    if (!isValidFleetCost(columns[COST_PER_KM_INDEX])) {
+        println("Warning: Invalid costPerKm in row: $originalLine")
+        return false
     }
-    return maxCapacityKg
+
+    return true
 }
 
-fun parseFleetCost(costText: String, line: String): Double? {
-    val costPerKm = parsePositiveDoubleOrInvalid(costText)
-    if (costPerKm == INVALID_DOUBLE_VALUE) {
-        println("Warning: Invalid costPerKm in row: $line")
-        return null
-    }
-    return costPerKm
+private fun isValidFleetCapacity(capacity: String): Boolean {
+    return parsePositiveDoubleOrInvalid(capacity) != INVALID_DOUBLE_VALUE
 }
 
-fun createFleetRaw(
-    vehicleId: List<String>,
-    currentHubId: String,
-    maxCapacityKg: Double,
-    costPerKm: Double
-): FleetRaw {
+private fun isValidFleetCost(cost: String): Boolean {
+    return parsePositiveDoubleOrInvalid(cost) != INVALID_DOUBLE_VALUE
+}
+
+private fun buildFleetRaw(columns: List<String>): FleetRaw {
     return FleetRaw(
-        vehicleId = vehicleId,
-        currentHubId = currentHubId,
-        maxCapacityKg = maxCapacityKg,
-        costPerKm = costPerKm
+        vehicleId = listOf(columns[VEHICLE_ID_INDEX]),
+        currentHubId = columns[CURRENT_HUB_ID_INDEX],
+        maxCapacityKg = parsePositiveDoubleOrInvalid(columns[MAX_CAPACITY_KG_INDEX]),
+        costPerKm = parsePositiveDoubleOrInvalid(columns[COST_PER_KM_INDEX])
     )
 }
