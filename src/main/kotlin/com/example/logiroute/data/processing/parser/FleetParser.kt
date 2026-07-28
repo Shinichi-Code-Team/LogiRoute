@@ -23,7 +23,7 @@ fun parseFleets(lines: List<String>): List<FleetRaw> {
 }
 
 fun parseRawFleet(line: String, expectedColumnCount: Int): FleetRaw? {
-    val columns = splitAndTrim(line)
+    val columns = extractCleanColumns(line)
 
     if (!hasValidFleetColumns(columns, expectedColumnCount, line)) {
         return null
@@ -39,7 +39,7 @@ fun parseRawFleet(line: String, expectedColumnCount: Int): FleetRaw? {
 }
 
 fun hasValidFleetColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
-    val isValid = validateColumnCount(columns, expectedColumnCount)
+    val isValid = hasExpectedColumnCount(columns, expectedColumnCount)
     if (!isValid) {
         println("Warning: Invalid column count -> $line")
     }
@@ -47,8 +47,8 @@ fun hasValidFleetColumns(columns: List<String>, expectedColumnCount: Int, line: 
 }
 
 fun parseFleetCapacity(capacityText: String, line: String): Double? {
-    val maxCapacityKg = isPositiveDouble(capacityText)
-    if (maxCapacityKg == DEFAULT_INVALID_DOUBLE) {
+    val maxCapacityKg = parsePositiveDoubleOrInvalid(capacityText)
+    if (maxCapacityKg == INVALID_DOUBLE_VALUE) {
         println("Warning: Invalid maxCapacityKg in row: $line")
         return null
     }
@@ -56,8 +56,8 @@ fun parseFleetCapacity(capacityText: String, line: String): Double? {
 }
 
 fun parseFleetCost(costText: String, line: String): Double? {
-    val costPerKm = isPositiveDouble(costText)
-    if (costPerKm == DEFAULT_INVALID_DOUBLE) {
+    val costPerKm = parsePositiveDoubleOrInvalid(costText)
+    if (costPerKm == INVALID_DOUBLE_VALUE) {
         println("Warning: Invalid costPerKm in row: $line")
         return null
     }

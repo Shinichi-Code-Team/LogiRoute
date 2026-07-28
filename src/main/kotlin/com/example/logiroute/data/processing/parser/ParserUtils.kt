@@ -11,6 +11,10 @@ fun readCsvLines(fileName: String): List<String> {
     return file.readLines()
 }
 
+fun isNotBlank(value: String): Boolean {
+    return value.isNotBlank()
+}
+
 fun getExpectedColumnCount(header: String): Int {
     return header.split(",").size
 }
@@ -20,7 +24,7 @@ fun skipHeader(lines: List<String>): List<String> {
 }
 
 
-fun splitAndTrim(line: String): List<String> {
+fun extractCleanColumns(line: String): List<String> {
     return line.split(",").map { it.trim() }
 }
 

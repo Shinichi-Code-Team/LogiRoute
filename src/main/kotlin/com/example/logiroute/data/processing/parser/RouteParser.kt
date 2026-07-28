@@ -21,8 +21,8 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
     return routes
 }
 
-fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
-    val columns = splitAndTrim(line)
+private fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
+    val columns = extractCleanColumns(line)
 
     if (!hasValidRouteColumns(columns, expectedColumnCount, line)) {
         return null
@@ -43,42 +43,43 @@ fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
     return createRouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
 }
 
-fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
-    val isValid = validateColumnCount(columns, expectedColumnCount)
+private fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
+    val isValid = hasExpectedColumnCount(columns, expectedColumnCount)
     if (!isValid) {
         println("Warning: Invalid column count -> $line")
     }
     return isValid
 }
 
-fun hasHubIds(routeId: String, originHubId: String, destinationHubId: String): Boolean {
+private fun hasHubIds(routeId: String, originHubId: String, destinationHubId: String): Boolean {
     return isNotBlank(routeId) && isNotBlank(originHubId) && isNotBlank(destinationHubId)
 }
 
-fun parseDistance(distanceText: String, line: String): Double? {
-    val distance = isPositiveDouble(distanceText)
-    if (distance == DEFAULT_INVALID_DOUBLE) {
+private fun parseDistance(distanceText: String, line: String): Double? {
+    val distance = parsePositiveDoubleOrInvalid(distanceText)
+    if (distance == INVALID_DOUBLE_VALUE) {
         println("Warning: Invalid distance value -> $line")
         return null
     }
     return distance
 }
 
-fun parseDelay(delayText: String, line: String): Int? {
-    val delay = isPositiveInt(delayText)
-    if (delay == DEFAULT_INVALID_INT) {
+private fun parseDelay(delayText: String, line: String): Int? {
+    val delay = parseNonNegativeIntOrInvalid(delayText)
+    if (delay == INVALID_INT_VALUE) {
         println("Warning: Invalid delay value -> $line")
         return null
     }
     return delay
 }
 
-fun createRouteRaw(
+private fun createRouteRaw(
     routeId: String,
     originHubId: String,
     destinationHubId: String,
     distanceKm: Double,
-    typicalDelayMin: Int): RouteRaw {
+    typicalDelayMin: Int
+): RouteRaw {
     return RouteRaw(
         routeId = routeId,
         originHubId = originHubId,
