@@ -21,7 +21,7 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
     return routes
 }
 
-fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
+private fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
     val columns = splitAndTrim(line)
 
     if (!hasValidRouteColumns(columns, expectedColumnCount, line)) {
@@ -43,7 +43,7 @@ fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
     return createRouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
 }
 
-fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
+private fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
     val isValid = validateColumnCount(columns, expectedColumnCount)
     if (!isValid) {
         println("Warning: Invalid column count -> $line")
@@ -51,11 +51,11 @@ fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: 
     return isValid
 }
 
-fun hasHubIds(routeId: String, originHubId: String, destinationHubId: String): Boolean {
+private fun hasHubIds(routeId: String, originHubId: String, destinationHubId: String): Boolean {
     return isNotBlank(routeId) && isNotBlank(originHubId) && isNotBlank(destinationHubId)
 }
 
-fun parseDistance(distanceText: String, line: String): Double? {
+private fun parseDistance(distanceText: String, line: String): Double? {
     val distance = isPositiveDouble(distanceText)
     if (distance == DEFAULT_INVALID_DOUBLE) {
         println("Warning: Invalid distance value -> $line")
@@ -64,7 +64,7 @@ fun parseDistance(distanceText: String, line: String): Double? {
     return distance
 }
 
-fun parseDelay(delayText: String, line: String): Int? {
+private fun parseDelay(delayText: String, line: String): Int? {
     val delay = isPositiveInt(delayText)
     if (delay == DEFAULT_INVALID_INT) {
         println("Warning: Invalid delay value -> $line")
@@ -73,12 +73,13 @@ fun parseDelay(delayText: String, line: String): Int? {
     return delay
 }
 
-fun createRouteRaw(
+private fun createRouteRaw(
     routeId: String,
     originHubId: String,
     destinationHubId: String,
     distanceKm: Double,
-    typicalDelayMin: Int): RouteRaw {
+    typicalDelayMin: Int
+): RouteRaw {
     return RouteRaw(
         routeId = routeId,
         originHubId = originHubId,
