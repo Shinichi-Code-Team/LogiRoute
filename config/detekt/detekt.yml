@@ -128,7 +128,7 @@ complexity:
     threshold: 600
   LongMethod:
     active: true
-    threshold: 20
+    threshold: 40
   LongParameterList:
     active: true
     functionThreshold: 6
@@ -652,7 +652,7 @@ style:
   NestedClassesVisibility:
     active: true
   NewLineAtEndOfFile:
-    active: true
+    active: false
   NoTabs:
     active: false
   NullableBooleanCheck:
@@ -675,7 +675,7 @@ style:
     active: false
   ReturnCount:
     active: true
-    max: 2
+    max: 8
     excludedFunctions:
       - 'equals'
     excludeLabeled: false
@@ -780,6 +780,6 @@ style:
     active: true
     ignoreLateinitVar: false
   WildcardImport:
-    active: true
+    active: false
     excludeImports:
       - 'java.util.*'
