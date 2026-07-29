@@ -1,4 +1,4 @@
-name: Verify Build
+name: Shinichi Build
 # The workflow name that will appear in the PR "Checks" tab
 
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     # Run the job on a Windows server provided by GitHub
 
     steps:
