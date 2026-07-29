@@ -3,37 +3,26 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.WarehouseRaw
 import com.example.logiroute.data.processing.validation.*
 
-fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
-    if (lines.isEmpty()) return emptyList()
+fun parseWarehouses(lines: List<String>): MutableList<WarehouseRaw> {
+
+    if (lines.isEmpty()) return mutableListOf()
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
+ 
     val dataLines = skipHeader(lines)
-    val warehouses = mutableListOf<WarehouseRaw>()
 
-    for (line in dataLines) {
-        if (line.isBlank()) continue
-
-        val warehouse = parseRawWarehouse(line, expectedColumnCount)
-        if (warehouse != null) {
-            warehouses.add(warehouse)
-        }
-    }
-
-    return warehouses
+    return dataLines
+        .mapNotNull { parseWarehouseLine(it, expectedColumnCount) }.toMutableList()
 }
 
 fun parseRawWarehouse(line: String, expectedColumnCount: Int): WarehouseRaw? {
     val columns = extractCleanColumns(line)
 
-    if (!hasValidWarehouseColumns(columns, expectedColumnCount, line)) {
+    if (!validateColumnCount(columns, expectedColumnCount)) {
+        println("Warning: Invalid column count -> $line")
         return null
     }
-
-    val id = columns[0]
-    val name = columns[1]
-    val regionalZone = columns[2]
-
-    if (!hasWarehouseFields(id, name, regionalZone)) {
+    if (!hasRequiredWarehouseFields(columns)) {
         println("Warning: Missing required warehouse fields -> $line")
         return null
     }
@@ -49,14 +38,14 @@ fun hasValidWarehouseColumns(columns: List<String>, expectedColumnCount: Int, li
     return isValid
 }
 
-fun hasWarehouseFields(id: String, name: String, regionalZone: String): Boolean {
-    return isNotBlank(id) && isNotBlank(name) && isNotBlank(regionalZone)
+private fun hasRequiredWarehouseFields(columns: List<String>): Boolean {
+    return isNotBlank(columns[0]) && isNotBlank(columns[1]) && isNotBlank(columns[2])
 }
 
-fun createWarehouseRaw(id: String, name: String, regionalZone: String): WarehouseRaw {
+private fun buildWarehouseRaw(columns: List<String>): WarehouseRaw {
     return WarehouseRaw(
-        id = id,
-        name = name,
-        regionalZone = regionalZone
+        id = columns[0],
+        name = columns[1],
+        regionalZone = columns[2]
     )
 }
