@@ -56,7 +56,7 @@ fun processWarehouses(): List<WarehouseRaw> {
 
 fun main() {
     println("------------------------Packages section------------------------")
-   printTopPackages(processPackages())
+    printTopPackages(processPackages())
 
     println("\n------------------------ Routes section-------------------------")
     printSampleRoutes(processRoutes())

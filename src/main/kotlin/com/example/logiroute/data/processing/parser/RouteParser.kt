@@ -3,87 +3,90 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.RouteRaw
 import com.example.logiroute.data.processing.validation.*
 
+private const val ROUTE_ID_INDEX = 0
+private const val ORIGIN_HUB_ID_INDEX = 1
+private const val DESTINATION_HUB_ID_INDEX = 2
+private const val DISTANCE_KM_INDEX = 3
+private const val TYPICAL_DELAY_MIN_INDEX = 4
+
 fun parseRoutes(lines: List<String>): List<RouteRaw> {
     if (lines.isEmpty()) return emptyList()
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
-    val dataLines = skipHeader(lines)
     val routes = mutableListOf<RouteRaw>()
 
-    for (line in dataLines) {
-        if (line.isBlank()) continue
-
-        val route = parseRawRoute(line, expectedColumnCount)
-        if (route != null) {
-            routes.add(route)
+    for (line in skipHeader(lines)) {
+        if (line.isBlank()) {
+            continue
         }
+
+        val columns = extractCleanColumns(line)
+
+        if (!isValidRouteRaw(
+                columns = columns,
+                expectedColumnCount = expectedColumnCount,
+                originalLine = line
+            )
+        ) {
+            continue
+        }
+
+        routes.add(buildRouteRaw(columns))
     }
+
     return routes
 }
 
-fun parseRawRoute(line: String, expectedColumnCount: Int): RouteRaw? {
-    val columns = splitAndTrim(line)
-
-    if (!hasValidRouteColumns(columns, expectedColumnCount, line)) {
-        return null
+private fun isValidRouteRaw(
+    columns: List<String>,
+    expectedColumnCount: Int,
+    originalLine: String
+): Boolean {
+    if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
+        println("Warning: Invalid column count -> $originalLine")
+        return false
     }
 
-    val routeId = columns[0]
-    val originHubId = columns[1]
-    val destinationHubId = columns[2]
-
-    if (!hasHubIds(routeId, originHubId, destinationHubId)) {
-        println("Warning: Missing route ID, origin, or destination hub ID -> $line")
-        return null
+    if (!hasRequiredRouteFields(columns)) {
+        println("Warning: Missing route ID, origin, or destination hub ID -> $originalLine")
+        return false
     }
 
-    val distanceKm = parseDistance(columns[3], line) ?: return null
-    val typicalDelayMin = parseDelay(columns[4], line) ?: return null
+    if (!isValidRouteDistance(columns[DISTANCE_KM_INDEX])) {
+        println("Warning: Invalid distance value -> $originalLine")
+        return false
+    }
 
-    return createRouteRaw(routeId, originHubId, destinationHubId, distanceKm, typicalDelayMin)
+    if (!isValidRouteDelay(columns[TYPICAL_DELAY_MIN_INDEX])) {
+        println("Warning: Invalid delay value -> $originalLine")
+        return false
+    }
+
+    return true
 }
 
-fun hasValidRouteColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
-    val isValid = validateColumnCount(columns, expectedColumnCount)
-    if (!isValid) {
-        println("Warning: Invalid column count -> $line")
-    }
-    return isValid
-}
+private fun hasRequiredRouteFields(columns: List<String>): Boolean {
+    val routeId = columns[ROUTE_ID_INDEX]
+    val originHubId = columns[ORIGIN_HUB_ID_INDEX]
+    val destinationHubId = columns[DESTINATION_HUB_ID_INDEX]
 
-fun hasHubIds(routeId: String, originHubId: String, destinationHubId: String): Boolean {
     return isNotBlank(routeId) && isNotBlank(originHubId) && isNotBlank(destinationHubId)
 }
 
-fun parseDistance(distanceText: String, line: String): Double? {
-    val distance = isPositiveDouble(distanceText)
-    if (distance == DEFAULT_INVALID_DOUBLE) {
-        println("Warning: Invalid distance value -> $line")
-        return null
-    }
-    return distance
+private fun isValidRouteDistance(distanceText: String): Boolean {
+    return parsePositiveDoubleOrInvalid(distanceText) != INVALID_DOUBLE_VALUE
 }
 
-fun parseDelay(delayText: String, line: String): Int? {
-    val delay = isPositiveInt(delayText)
-    if (delay == DEFAULT_INVALID_INT) {
-        println("Warning: Invalid delay value -> $line")
-        return null
-    }
-    return delay
+private fun isValidRouteDelay(delayText: String): Boolean {
+    return parseNonNegativeIntOrInvalid(delayText) != INVALID_INT_VALUE
 }
 
-fun createRouteRaw(
-    routeId: String,
-    originHubId: String,
-    destinationHubId: String,
-    distanceKm: Double,
-    typicalDelayMin: Int): RouteRaw {
+private fun buildRouteRaw(columns: List<String>): RouteRaw {
     return RouteRaw(
-        routeId = routeId,
-        originHubId = originHubId,
-        destinationHubId = destinationHubId,
-        distanceKm = distanceKm,
-        typicalDelayMin = typicalDelayMin
+        routeId = columns[ROUTE_ID_INDEX],
+        originHubId = columns[ORIGIN_HUB_ID_INDEX],
+        destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
+        distanceKm = parsePositiveDoubleOrInvalid(columns[DISTANCE_KM_INDEX]),
+        typicalDelayMin = parseNonNegativeIntOrInvalid(columns[TYPICAL_DELAY_MIN_INDEX])
     )
 }

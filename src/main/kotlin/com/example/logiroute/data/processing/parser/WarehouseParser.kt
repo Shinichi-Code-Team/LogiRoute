@@ -23,7 +23,7 @@ fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
 }
 
 fun parseRawWarehouse(line: String, expectedColumnCount: Int): WarehouseRaw? {
-    val columns = splitAndTrim(line)
+    val columns = extractCleanColumns(line)
 
     if (!hasValidWarehouseColumns(columns, expectedColumnCount, line)) {
         return null
@@ -42,7 +42,7 @@ fun parseRawWarehouse(line: String, expectedColumnCount: Int): WarehouseRaw? {
 }
 
 fun hasValidWarehouseColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
-    val isValid = validateColumnCount(columns, expectedColumnCount)
+    val isValid = hasExpectedColumnCount(columns, expectedColumnCount)
     if (!isValid) {
         println("Warning: Invalid column count -> $line")
     }
