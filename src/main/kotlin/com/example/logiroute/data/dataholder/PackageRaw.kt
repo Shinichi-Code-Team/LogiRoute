@@ -11,5 +11,4 @@ data class PackageRaw(
     fun compareWeight(otherPackage: PackageRaw): Int {
         return weight.compareTo(otherPackage.weight)
     }
-
 }

@@ -15,10 +15,8 @@ fun parseWarehouses(lines: List<String>): MutableList<WarehouseRaw> {
         .mapNotNull { parseWarehouseLine(it, expectedColumnCount) }.toMutableList()
 }
 
-private fun parseWarehouseLine(line: String, expectedColumnCount: Int): WarehouseRaw?{
-    if (line.isBlank()) return null
-
-    val columns = splitAndTrim(line)
+fun parseRawWarehouse(line: String, expectedColumnCount: Int): WarehouseRaw? {
+    val columns = extractCleanColumns(line)
 
     if (!validateColumnCount(columns, expectedColumnCount)) {
         println("Warning: Invalid column count -> $line")
@@ -29,7 +27,15 @@ private fun parseWarehouseLine(line: String, expectedColumnCount: Int): Warehous
         return null
     }
 
-    return buildWarehouseRaw(columns)
+    return createWarehouseRaw(id, name, regionalZone)
+}
+
+fun hasValidWarehouseColumns(columns: List<String>, expectedColumnCount: Int, line: String): Boolean {
+    val isValid = hasExpectedColumnCount(columns, expectedColumnCount)
+    if (!isValid) {
+        println("Warning: Invalid column count -> $line")
+    }
+    return isValid
 }
 
 private fun hasRequiredWarehouseFields(columns: List<String>): Boolean {
