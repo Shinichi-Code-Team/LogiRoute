@@ -1,10 +1,9 @@
 package com.example.logiroute.data.processing.parser
 
-import com.example.logiroute.data.dataholder.PackageRaw
 import com.example.logiroute.data.dataholder.WarehouseRaw
 import com.example.logiroute.data.processing.validation.*
 import com.example.logiroute.data.processing.validation.INVALID_DOUBLE_VALUE
-import kotlin.Double
+
 private const val WAREHOUSE_ID_INDEX = 0
 private const val WAREHOUSE_NAME_INDEX = 1
 private const val WAREHOUSE_REGIONAL_ZONE_INDEX = 2
@@ -48,8 +47,7 @@ fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
         )
     }
 
-    return dataLines
-        .mapNotNull { parseWarehouseLine(it, expectedColumnCount) }.toMutableList()
+    return warehouses
 }
 
 private fun isValidWarehouseRaw(
@@ -95,9 +93,9 @@ private fun hasRequiredWarehouseFields(
 }
 
 private fun isValidWarehouseLatitude(latitude: String): Boolean {
-    return parsePositiveDoubleOrInvalid(latitude) != INVALID_DOUBLE_VALUE
+    return parseDoubleOrInvalid(latitude) != INVALID_DOUBLE_VALUE
 }
 
 private fun isValidWarehouseLongitude(longitude: String): Boolean {
-    return parsePositiveDoubleOrInvalid(longitude) != INVALID_DOUBLE_VALUE
+    return parseDoubleOrInvalid(longitude) != INVALID_DOUBLE_VALUE
 }
