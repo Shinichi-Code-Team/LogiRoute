@@ -1,4 +1,4 @@
-package com.example.logiroute.logic
+package com.example.logiroute.domain.logic
 
 import com.example.logiroute.data.dataholder.PackageRaw
 
