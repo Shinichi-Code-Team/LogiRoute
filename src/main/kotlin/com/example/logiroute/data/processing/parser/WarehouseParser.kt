@@ -48,7 +48,8 @@ fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
         )
     }
 
-    return warehouses
+    return dataLines
+        .mapNotNull { parseWarehouseLine(it, expectedColumnCount) }.toMutableList()
 }
 
 private fun isValidWarehouseRaw(
