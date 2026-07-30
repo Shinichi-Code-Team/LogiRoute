@@ -1,6 +1,6 @@
 import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.data.processing.parser.*
-import com.example.logiroute.logic.sortPackagesByPriorityConsideringWeight
+import com.example.logiroute.domain.logic.sortPackagesByPriorityConsideringWeight
 
 const val SAMPLE_SIZE = 3
 
