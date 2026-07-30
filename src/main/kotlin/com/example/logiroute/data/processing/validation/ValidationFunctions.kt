@@ -30,3 +30,12 @@ fun parseNonNegativeIntOrInvalid(value: String): Int {
         INVALID_INT_VALUE
     }
 }
+fun parseDoubleOrInvalid(value: String): Double {
+    val parsedNumber = value.trim().toDoubleOrNull()
+
+    return if (parsedNumber != null) {
+        parsedNumber
+    } else {
+        INVALID_DOUBLE_VALUE
+    }
+}

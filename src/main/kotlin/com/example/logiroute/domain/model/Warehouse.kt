@@ -1,6 +1,6 @@
 package com.example.logiroute.domain.model
 
-data git addclass Warehouse (
+data class Warehouse (
     val id: String,
     val name: String,
     val regionalZone: String,
