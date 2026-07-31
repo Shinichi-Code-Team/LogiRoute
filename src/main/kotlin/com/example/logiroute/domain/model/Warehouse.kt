@@ -24,7 +24,7 @@ data class Warehouse(
         mutableCargoQueue.add(packageItem)
     }
 
-    fun addOutgoingRoute(route: Route) {
+    fun addRoute(route: Route) {
         mutableOutgoingRoutes.add(route)
     }
 
