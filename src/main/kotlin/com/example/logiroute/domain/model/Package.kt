@@ -1,9 +1,11 @@
 package com.example.logiroute.domain.model
 
+import com.example.logiroute.data.dataholder.PriorityRaw
+
 data class Package(
     val id: String,
     val weight: Double,
-    val priority: Priority,
     val origin: Warehouse,
-    val destination: Warehouse
+    val destination: Warehouse,
+    val priority: PriorityRaw
 )
