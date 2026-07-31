@@ -9,9 +9,7 @@ class DomainGraphBuilder {
             val warehouseMap = buildWarehouseIndex(warehouses)
             val packages = buildPackages(input.packageRaws, warehouseMap)
             val routes = buildRoutes(input.routeRaws, warehouseMap)
-
-            // TODO: waiting on Vehicle domain class + VehicleRaw parsing from teammate
-            val vehicles = emptyList<Vehicle>()
+            val vehicles = buildVehicles(input.fleetRaws, warehouseMap)
 
             return DomainGraph(warehouses, packages, routes, vehicles)
         }
@@ -87,7 +85,32 @@ class DomainGraphBuilder {
             origin.addOutgoingRoute(routeDomain)
             return routeDomain
         }
-
-        // TODO: implement once Vehicle domain class and VehicleRaw are ready
-        // private fun buildVehicles(vehicleRaws: List<VehicleRaw>, warehouseMap: Map<String, Warehouse>): List<Vehicle> {}
+    private fun buildVehicles(
+        fleetRaws: List<FleetRaw>,
+        warehouseMap: Map<String, Warehouse>
+    ): List<Vehicle> {
+        val vehicles = mutableListOf<Vehicle>()
+        for (fleetRaw in fleetRaws) {
+            vehicles.addAll(buildVehiclesFromFleet(fleetRaw, warehouseMap))
+        }
+        return vehicles
+    }
+    private fun buildVehiclesFromFleet(
+        fleetRaw: FleetRaw,
+        warehouseMap: Map<String, Warehouse>
+    ): List<Vehicle> {
+        val currentHub = warehouseMap.getValue(fleetRaw.currentHubId)
+        val createdVehicles = mutableListOf<Vehicle>()
+        for (vId in fleetRaw.vehicleIds) {
+            val vehicleDomain = Vehicle(
+                vehicleId = vId,
+                maxCapacityKg = fleetRaw.maxCapacityKg,
+                costPerKm = fleetRaw.costPerKm,
+                currentHub = currentHub
+            )
+            currentHub.addVehicle(vehicleDomain)
+            createdVehicles.add(vehicleDomain)
+        }
+        return createdVehicles
+    }
     }
