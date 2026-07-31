@@ -4,15 +4,11 @@ import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
 
 class DomainGraphBuilder {
-    class DomainGraphBuilder {
-
         fun build(input: DomainGraphInput): DomainGraph {
             val warehouses = buildWarehouses(input.warehouseRaws)
             val warehouseMap = buildWarehouseIndex(warehouses)
             val packages = buildPackages(input.packageRaws, warehouseMap)
-
-            // TODO: waiting on Route domain class + RouteRaw parsing from teammate
-            val routes = emptyList<Route>()
+            val routes = buildRoutes(input.routeRaws, warehouseMap)
 
             // TODO: waiting on Vehicle domain class + VehicleRaw parsing from teammate
             val vehicles = emptyList<Vehicle>()
@@ -65,11 +61,33 @@ class DomainGraphBuilder {
             origin.addPackage(packageDomain)
             return packageDomain
         }
-
-        // TODO: implement once Route domain class and RouteRaw are ready
-        // private fun buildRoutes(routeRaws: List<RouteRaw>, warehouseMap: Map<String, Warehouse>): List<Route> {}
+        private fun buildRoutes(
+            routeRaws: List<RouteRaw>,
+            warehouseMap: Map<String, Warehouse>
+        ): List<Route> {
+            val routes = mutableListOf<Route>()
+            for (routeRaw in routeRaws) {
+                routes.add(buildRoute(routeRaw, warehouseMap))
+            }
+            return routes
+        }
+        private fun buildRoute(
+            routeRaw: RouteRaw,
+            warehouseMap: Map<String, Warehouse>
+        ): Route {
+            val origin = warehouseMap.getValue(routeRaw.originHubId)
+            val destination = warehouseMap.getValue(routeRaw.destinationHubId)
+            val routeDomain = Route(
+                routeId = routeRaw.routeId,
+                origin = origin,
+                destination = destination,
+                distanceKm = routeRaw.distanceKm,
+                typicalDelayMin = routeRaw.typicalDelayMin
+            )
+            origin.addOutgoingRoute(routeDomain)
+            return routeDomain
+        }
 
         // TODO: implement once Vehicle domain class and VehicleRaw are ready
         // private fun buildVehicles(vehicleRaws: List<VehicleRaw>, warehouseMap: Map<String, Warehouse>): List<Vehicle> {}
     }
-}
