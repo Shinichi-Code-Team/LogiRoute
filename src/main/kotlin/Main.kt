@@ -1,9 +1,10 @@
 import com.example.logiroute.data.dataholder.*
-import com.example.logiroute.data.processing.parser.*
+import com.example.logiroute.data.processing.loader.*
 import com.example.logiroute.domain.logic.sortPackagesByPriorityConsideringWeight
 
 const val SAMPLE_SIZE = 3
-
+val packagesRaw = loaderPackages()
+val sortedPackages = sortPackagesByPriorityConsideringWeight(packagesRaw)
 fun printTopPackages(sortedPackages: List<PackageRaw>) {
     println("Successfully parsed packages: ${sortedPackages.size}")
     println("------------Top 3 Priority packages-------------")
@@ -12,12 +13,7 @@ fun printTopPackages(sortedPackages: List<PackageRaw>) {
     }
 }
 
-fun processPackages(): List<PackageRaw> {
-    val lines = readCsvLines("packages.csv")
-    val packages = parsePackages(lines)
-    return sortPackagesByPriorityConsideringWeight(packages)
-}
-
+val routesRaw = loaderRoutes()
 fun printSampleRoutes(routes: List<RouteRaw>) {
     println("Successfully parsed routes: ${routes.size}")
     for (route in routes.take(SAMPLE_SIZE)) {
@@ -25,11 +21,8 @@ fun printSampleRoutes(routes: List<RouteRaw>) {
     }
 }
 
-fun processRoutes(): List<RouteRaw> {
-    val lines = readCsvLines("routes.csv")
-    return parseRoutes(lines)
-}
 
+val fleetsRaw = loaderFleet()
 fun printSampleFleet(fleetList: List<FleetRaw>) {
     println("Successfully parsed fleet records count: ${fleetList.size}")
     for (fleet in fleetList.take(SAMPLE_SIZE)) {
@@ -37,11 +30,7 @@ fun printSampleFleet(fleetList: List<FleetRaw>) {
     }
 }
 
-fun processFleet(): List<FleetRaw> {
-    val lines = readCsvLines("fleet.csv")
-    return parseFleets(lines)
-}
-
+val warehousesRaw = loaderWarehouses()
 fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
     println("Successfully parsed warehouses: ${warehouses.size}")
     for (warehouse in warehouses.take(SAMPLE_SIZE)) {
@@ -49,21 +38,17 @@ fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
     }
 }
 
-fun processWarehouses(): List<WarehouseRaw> {
-    val lines = readCsvLines("warehouses.csv")
-    return parseWarehouses(lines)
-}
 
 fun main() {
     println("------------------------Packages section------------------------")
-    printTopPackages(processPackages())
+    printTopPackages(sortedPackages)
 
     println("\n------------------------ Routes section-------------------------")
-    printSampleRoutes(processRoutes())
+    printSampleRoutes(routesRaw)
 
     println("\n------------------------ Fleets section-------------------------")
-    printSampleFleet(processFleet())
+    printSampleFleet(fleetsRaw)
 
     println("\n------------------------ Warehouses section-------------------------")
-    printSampleWarehouses(processWarehouses())
+    printSampleWarehouses(warehousesRaw)
 }
