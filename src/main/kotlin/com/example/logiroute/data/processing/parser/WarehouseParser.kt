@@ -46,8 +46,8 @@ fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
                 id = columns[WAREHOUSE_ID_INDEX],
                 name = columns[WAREHOUSE_NAME_INDEX],
                 regionalZone = columns[WAREHOUSE_REGIONAL_ZONE_INDEX],
-                latitude = parseDoubleOrInvalid(columns[WAREHOUSE_LATITUDE_INDEX]),
-                longitude = parseDoubleOrInvalid(columns[WAREHOUSE_LONGITUDE_INDEX])
+                latitude = parsePositiveDoubleOrInvalid(columns[WAREHOUSE_LATITUDE_INDEX]),
+                longitude = parsePositiveDoubleOrInvalid(columns[WAREHOUSE_LONGITUDE_INDEX])
             )
         )
     }
