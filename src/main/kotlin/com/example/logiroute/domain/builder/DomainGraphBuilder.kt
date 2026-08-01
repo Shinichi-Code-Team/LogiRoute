@@ -4,18 +4,12 @@ import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
 
 class DomainGraphBuilder {
-    class DomainGraphBuilder {
-
         fun build(input: DomainGraphInput): DomainGraph {
             val warehouses = buildWarehouses(input.warehouseRaws)
             val warehouseMap = buildWarehouseIndex(warehouses)
             val packages = buildPackages(input.packageRaws, warehouseMap)
-
-            // TODO: waiting on Route domain class + RouteRaw parsing from teammate
-            val routes = emptyList<Route>()
-
-            // TODO: waiting on Vehicle domain class + VehicleRaw parsing from teammate
-            val vehicles = emptyList<Vehicle>()
+            val routes = buildRoutes(input.routeRaws, warehouseMap)
+            val vehicles = buildVehicles(input.fleetRaws, warehouseMap)
 
             return DomainGraph(warehouses, packages, routes, vehicles)
         }
@@ -65,11 +59,58 @@ class DomainGraphBuilder {
             origin.addPackage(packageDomain)
             return packageDomain
         }
-
-        // TODO: implement once Route domain class and RouteRaw are ready
-        // private fun buildRoutes(routeRaws: List<RouteRaw>, warehouseMap: Map<String, Warehouse>): List<Route> {}
-
-        // TODO: implement once Vehicle domain class and VehicleRaw are ready
-        // private fun buildVehicles(vehicleRaws: List<VehicleRaw>, warehouseMap: Map<String, Warehouse>): List<Vehicle> {}
+        private fun buildRoutes(
+            routeRaws: List<RouteRaw>,
+            warehouseMap: Map<String, Warehouse>
+        ): List<Route> {
+            val routes = mutableListOf<Route>()
+            for (routeRaw in routeRaws) {
+                routes.add(buildRoute(routeRaw, warehouseMap))
+            }
+            return routes
+        }
+        private fun buildRoute(
+            routeRaw: RouteRaw,
+            warehouseMap: Map<String, Warehouse>
+        ): Route {
+            val origin = warehouseMap.getValue(routeRaw.originHubId)
+            val destination = warehouseMap.getValue(routeRaw.destinationHubId)
+            val routeDomain = Route(
+                routeId = routeRaw.routeId,
+                origin = origin,
+                destination = destination,
+                distanceKm = routeRaw.distanceKm,
+                typicalDelayMin = routeRaw.typicalDelayMin
+            )
+            origin.addOutgoingRoute(routeDomain)
+            return routeDomain
+        }
+    private fun buildVehicles(
+        fleetRaws: List<FleetRaw>,
+        warehouseMap: Map<String, Warehouse>
+    ): List<Vehicle> {
+        val vehicles = mutableListOf<Vehicle>()
+        for (fleetRaw in fleetRaws) {
+            vehicles.addAll(buildVehiclesFromFleet(fleetRaw, warehouseMap))
+        }
+        return vehicles
     }
-}
+    private fun buildVehiclesFromFleet(
+        fleetRaw: FleetRaw,
+        warehouseMap: Map<String, Warehouse>
+    ): List<Vehicle> {
+        val currentHub = warehouseMap.getValue(fleetRaw.currentHubId)
+        val createdVehicles = mutableListOf<Vehicle>()
+        for (vId in fleetRaw.vehicleIds) {
+            val vehicleDomain = Vehicle(
+                vehicleId = vId,
+                maxCapacityKg = fleetRaw.maxCapacityKg,
+                costPerKm = fleetRaw.costPerKm,
+                currentHub = currentHub
+            )
+            currentHub.addVehicle(vehicleDomain)
+            createdVehicles.add(vehicleDomain)
+        }
+        return createdVehicles
+    }
+    }
