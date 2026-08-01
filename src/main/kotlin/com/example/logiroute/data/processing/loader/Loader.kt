@@ -4,22 +4,22 @@ import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.data.processing.parser.*
 
 
-fun loaderPackages(): List<PackageRaw> {
+fun loadPackages(): List<PackageRaw> {
     val lines = readCsvLines("packages.csv")
     return parsePackages(lines)
 }
 
-fun loaderRoutes(): List<RouteRaw> {
+fun loadRoutes(): List<RouteRaw> {
     val lines = readCsvLines("routes.csv")
     return parseRoutes(lines)
 }
 
-fun loaderFleet(): List<FleetRaw> {
+fun loadFleet(): List<FleetRaw> {
     val lines = readCsvLines("fleet.csv")
     return parseFleets(lines)
 }
 
-fun loaderWarehouses(): List<WarehouseRaw> {
+fun loadWarehouses(): List<WarehouseRaw> {
     val lines = readCsvLines("warehouses.csv")
     return parseWarehouses(lines)
 }

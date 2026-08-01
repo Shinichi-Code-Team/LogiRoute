@@ -3,7 +3,7 @@ import com.example.logiroute.data.processing.loader.*
 import com.example.logiroute.domain.logic.sortPackagesByPriorityConsideringWeight
 
 const val SAMPLE_SIZE = 3
-val packagesRaw = loaderPackages()
+val packagesRaw = loadPackages()
 val sortedPackages = sortPackagesByPriorityConsideringWeight(packagesRaw)
 fun printTopPackages(sortedPackages: List<PackageRaw>) {
     println("Successfully parsed packages: ${sortedPackages.size}")
@@ -13,7 +13,7 @@ fun printTopPackages(sortedPackages: List<PackageRaw>) {
     }
 }
 
-val routesRaw = loaderRoutes()
+val routesRaw = loadRoutes()
 fun printSampleRoutes(routes: List<RouteRaw>) {
     println("Successfully parsed routes: ${routes.size}")
     for (route in routes.take(SAMPLE_SIZE)) {
@@ -22,7 +22,7 @@ fun printSampleRoutes(routes: List<RouteRaw>) {
 }
 
 
-val fleetsRaw = loaderFleet()
+val fleetsRaw = loadFleet()
 fun printSampleFleet(fleetList: List<FleetRaw>) {
     println("Successfully parsed fleet records count: ${fleetList.size}")
     for (fleet in fleetList.take(SAMPLE_SIZE)) {
@@ -30,7 +30,7 @@ fun printSampleFleet(fleetList: List<FleetRaw>) {
     }
 }
 
-val warehousesRaw = loaderWarehouses()
+val warehousesRaw = loadWarehouses()
 fun printSampleWarehouses(warehouses: List<WarehouseRaw>) {
     println("Successfully parsed warehouses: ${warehouses.size}")
     for (warehouse in warehouses.take(SAMPLE_SIZE)) {
