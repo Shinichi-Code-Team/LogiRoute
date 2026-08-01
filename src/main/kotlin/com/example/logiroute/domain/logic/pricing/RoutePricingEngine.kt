@@ -9,7 +9,7 @@ class RoutePricingEngine(private var activeStrategy: DispatchStrategy) {
 
     fun computeFinalCost(distanceKm: Double, weight: Double, priority: PriorityRaw): Double {
         val transitCost = activeStrategy.calculateTransitCost(distanceKm, weight)
-        val priorityMultiplier = activeStrategy.getPriorityMultiplier()
+        val priorityMultiplier = activeStrategy.getPriorityMultiplier(priority)
         return transitCost * priorityMultiplier
     }
 
