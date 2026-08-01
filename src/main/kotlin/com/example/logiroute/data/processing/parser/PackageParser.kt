@@ -55,19 +55,19 @@ private fun isValidPackageRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $originalLine")
+    //    println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!hasRequiredPackageFields(columns)) {
         println(
-            "Warning: Missing package ID or destination hub ID -> $originalLine"
+          //  "Warning: Missing package ID or destination hub ID -> $originalLine"
         )
         return false
     }
 
     if (!isValidPackageWeight(columns[PACKAGE_WEIGHT_INDEX])) {
-        println("Warning: Invalid package weight -> $originalLine")
+     //   println("Warning: Invalid package weight -> $originalLine")
         return false
     }
 
@@ -88,14 +88,3 @@ private fun isValidPackageWeight(weight: String): Boolean {
     return parsePositiveDoubleOrInvalid(weight) != INVALID_DOUBLE_VALUE
 }
 
-//private fun buildPackageRaw(
-//    columns: List<String>
-//): PackageRaw {
-//    return PackageRaw(
-//        id = columns[PACKAGE_ID_INDEX],
-//        weight = parsePositiveDoubleOrInvalid(columns[PACKAGE_WEIGHT_INDEX]),
-//        originHubId = columns[ORIGIN_HUB_ID_INDEX],
-//        destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
-//        priority = parsePriority(columns[PACKAGE_PRIORITY_INDEX])
-//    )
-//}

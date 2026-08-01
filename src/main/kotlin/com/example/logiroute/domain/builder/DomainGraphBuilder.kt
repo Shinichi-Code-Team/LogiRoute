@@ -5,13 +5,37 @@ import com.example.logiroute.domain.model.*
 
 class DomainGraphBuilder {
     fun build(input: DomainGraphInput): DomainGraph {
-        val warehouses = buildWarehouses(input.warehouseRaws)
-        val warehouseMap = buildWarehouseIndex(warehouses)
-        val packages = buildPackages(input.packageRaws, warehouseMap)
-        val routes = buildRoutes(input.routeRaws, warehouseMap)
-        val vehicles = buildVehicles(input.fleetRaws, warehouseMap)
 
-        return DomainGraph(warehouses, packages, routes, vehicles)
+        val warehouses = buildWarehouses(input.warehouseRaws)
+
+        val warehouseMap = buildWarehouseIndex(warehouses)
+
+        val validPackageRaws = input.packageRaws.filter { packageRaw ->
+            normalizeWarehouseId(packageRaw.originHubId) in warehouseMap &&
+                    normalizeWarehouseId(packageRaw.destinationHubId) in warehouseMap
+        }
+
+        val validRouteRaws = input.routeRaws.filter { routeRaw ->
+            normalizeWarehouseId(routeRaw.originHubId) in warehouseMap &&
+                    normalizeWarehouseId(routeRaw.destinationHubId) in warehouseMap
+        }
+
+        val validFleetRaws = input.fleetRaws.filter { fleetRaw ->
+            normalizeWarehouseId(fleetRaw.currentHubId) in warehouseMap
+        }
+
+        val packages = buildPackages(validPackageRaws, warehouseMap)
+
+        val routes = buildRoutes(validRouteRaws, warehouseMap)
+
+        val vehicles = buildVehicles(validFleetRaws, warehouseMap)
+
+        return DomainGraph(
+            warehouses,
+            packages,
+            routes,
+            vehicles
+        )
     }
 
     private fun buildWarehouses(warehouseRaws: List<WarehouseRaw>): List<Warehouse> {
@@ -27,7 +51,7 @@ class DomainGraphBuilder {
     }
 
     private fun buildWarehouseIndex(warehouses: List<Warehouse>): Map<String, Warehouse> {
-        return warehouses.associateBy { it.id }
+        return warehouses.associateBy { normalizeWarehouseId(it.id) }
     }
 
     private fun buildPackages(
@@ -45,8 +69,8 @@ class DomainGraphBuilder {
         packageRaw: PackageRaw,
         warehouseMap: Map<String, Warehouse>
     ): Package {
-        val origin = warehouseMap.getValue(packageRaw.originHubId)
-        val destination = warehouseMap.getValue(packageRaw.destinationHubId)
+        val origin = warehouseMap.getValue(normalizeWarehouseId(packageRaw.originHubId))
+        val destination = warehouseMap.getValue(normalizeWarehouseId(packageRaw.destinationHubId))
 
         val packageDomain = Package(
             id = packageRaw.id,
@@ -75,8 +99,8 @@ class DomainGraphBuilder {
         routeRaw: RouteRaw,
         warehouseMap: Map<String, Warehouse>
     ): Route {
-        val origin = warehouseMap.getValue(routeRaw.originHubId)
-        val destination = warehouseMap.getValue(routeRaw.destinationHubId)
+        val origin = warehouseMap.getValue(normalizeWarehouseId(routeRaw.originHubId))
+        val destination = warehouseMap.getValue(normalizeWarehouseId(routeRaw.destinationHubId))
         val routeDomain = Route(
             routeId = routeRaw.routeId,
             origin = origin,
@@ -103,7 +127,7 @@ class DomainGraphBuilder {
         fleetRaw: FleetRaw,
         warehouseMap: Map<String, Warehouse>
     ): List<Vehicle> {
-        val currentHub = warehouseMap.getValue(fleetRaw.currentHubId)
+        val currentHub = warehouseMap.getValue(normalizeWarehouseId(fleetRaw.currentHubId))
         val createdVehicles = mutableListOf<Vehicle>()
         for (vId in fleetRaw.vehicleIds) {
             val vehicleDomain = Vehicle(
@@ -116,5 +140,9 @@ class DomainGraphBuilder {
             createdVehicles.add(vehicleDomain)
         }
         return createdVehicles
+    }
+
+    private fun normalizeWarehouseId(id: String): String {
+        return id.trim().uppercase()
     }
 }

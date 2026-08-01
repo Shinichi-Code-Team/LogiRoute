@@ -14,7 +14,7 @@ fun loadRoutes(): List<RouteRaw> {
     return parseRoutes(lines)
 }
 
-fun loadFleet(): List<FleetRaw> {
+fun loadFleets(): List<FleetRaw> {
     val lines = readCsvLines("fleet.csv")
     return parseFleets(lines)
 }

@@ -42,17 +42,17 @@ private fun isValidFleetRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $originalLine")
+       // println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!isValidFleetCapacity(columns[MAX_CAPACITY_KG_INDEX])) {
-        println("Warning: Invalid maxCapacityKg in row: $originalLine")
+        //println("Warning: Invalid maxCapacityKg in row: $originalLine")
         return false
     }
 
     if (!isValidFleetCost(columns[COST_PER_KM_INDEX])) {
-        println("Warning: Invalid costPerKm in row: $originalLine")
+       // println("Warning: Invalid costPerKm in row: $originalLine")
         return false
     }
 

@@ -8,8 +8,4 @@ data class PackageRaw(
     val destinationHubId: String,
     val priority: PriorityRaw
 
-) {
-    fun compareWeight(otherPackage: PackageRaw): Int {
-        return weight.compareTo(otherPackage.weight)
-    }
-}
+)

@@ -31,4 +31,6 @@ data class Warehouse(
     fun addVehicle(vehicle: Vehicle) {
         mutableStationedVehicles.add(vehicle)
     }
+
+
 }

@@ -46,8 +46,16 @@ fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
                 id = columns[WAREHOUSE_ID_INDEX],
                 name = columns[WAREHOUSE_NAME_INDEX],
                 regionalZone = columns[WAREHOUSE_REGIONAL_ZONE_INDEX],
-                latitude = parsePositiveDoubleOrInvalid(columns[WAREHOUSE_LATITUDE_INDEX]),
-                longitude = parsePositiveDoubleOrInvalid(columns[WAREHOUSE_LONGITUDE_INDEX])
+                latitude = parseCoordinateOrInvalid(
+                    columns[WAREHOUSE_LATITUDE_INDEX],
+                    MIN_LATITUDE,
+                    MAX_LATITUDE
+                ),
+                longitude = parseCoordinateOrInvalid(
+                    columns[WAREHOUSE_LONGITUDE_INDEX],
+                    MIN_LONGITUDE,
+                    MAX_LONGITUDE
+                )
             )
         )
     }
@@ -61,24 +69,24 @@ private fun isValidWarehouseRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $originalLine")
+       // println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!hasRequiredWarehouseFields(columns)) {
         println(
-            "Warning: Missing warehouse ID, name or regional zone -> $originalLine"
+          //  "Warning: Missing warehouse ID, name or regional zone -> $originalLine"
         )
         return false
     }
 
     if (!isValidWarehouseLatitude(columns[WAREHOUSE_LATITUDE_INDEX])) {
-        println("Warning: Invalid latitude -> $originalLine")
+      //  println("Warning: Invalid latitude -> $originalLine")
         return false
     }
 
     if (!isValidWarehouseLongitude(columns[WAREHOUSE_LONGITUDE_INDEX])) {
-        println("Warning: Invalid longitude -> $originalLine")
+       // println("Warning: Invalid longitude -> $originalLine")
         return false
     }
 
