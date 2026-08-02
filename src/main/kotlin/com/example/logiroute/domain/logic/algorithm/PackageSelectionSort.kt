@@ -1,21 +1,23 @@
-package com.example.logiroute.domain.logic
+package com.example.logiroute.domain.logic.algorithm
 
-import com.example.logiroute.data.dataholder.PackageRaw
+import com.example.logiroute.domain.model.*
 
-fun comparePackageByPriority(
-    selectedPackage: PackageRaw,
-    currentPackage: PackageRaw): Int {
+private fun comparePackageByPriority(
+    selectedPackage: Package,
+    currentPackage: Package
+): Int {
     return selectedPackage.priority.comparePriority(currentPackage.priority)
 }
 
-fun comparePackageByWeight(
-    selectedPackage: PackageRaw,
-    currentPackage: PackageRaw): Int {
+private fun comparePackageByWeight(
+    selectedPackage: Package,
+    currentPackage: Package
+): Int {
     return selectedPackage.compareWeight(currentPackage)
 }
 
 fun swapPackages(
-    packages: MutableList<PackageRaw>,
+    packages: MutableList<Package>,
     firstPackageIndex: Int,
     secondPackageIndex: Int
 ) {
@@ -25,7 +27,8 @@ fun swapPackages(
 }
 
 fun sortPackagesByPriorityConsideringWeight(
-    packages: List<PackageRaw>): List<PackageRaw> {
+    packages: List<Package>
+): List<Package> {
     val sortedPackages = packages.toMutableList()
 
     for (sortedPosition in 0 until sortedPackages.lastIndex) {
@@ -46,9 +49,10 @@ fun sortPackagesByPriorityConsideringWeight(
     return sortedPackages
 }
 
-fun findHighestPriorityPackageIndex(
-    packages: MutableList<PackageRaw>,
-    sortedPosition: Int): Int {
+private fun findHighestPriorityPackageIndex(
+    packages: MutableList<Package>,
+    sortedPosition: Int
+): Int {
     var selectedPackageIndex = sortedPosition
 
     for (currentPackageIndex in sortedPosition + 1..packages.lastIndex) {
@@ -63,9 +67,10 @@ fun findHighestPriorityPackageIndex(
     return selectedPackageIndex
 }
 
-fun hasHigherPackagePriority(
-    selectedPackage: PackageRaw,
-    candidatePackage: PackageRaw): Boolean {
+private fun hasHigherPackagePriority(
+    selectedPackage: Package,
+    candidatePackage: Package
+): Boolean {
     val priorityComparison = comparePackageByPriority(selectedPackage, candidatePackage)
 
     if (isLowerPriority(priorityComparison)) {
@@ -79,14 +84,15 @@ fun hasHigherPackagePriority(
     return false
 }
 
-fun isLowerPriority(priorityComparison: Int): Boolean {
+private fun isLowerPriority(priorityComparison: Int): Boolean {
     return priorityComparison < 0
 }
 
-fun isSamePriorityWithLowerWeight(
+private fun isSamePriorityWithLowerWeight(
     priorityComparison: Int,
-    selectedPackage: PackageRaw,
-    candidatePackage: PackageRaw): Boolean {
+    selectedPackage: Package,
+    candidatePackage: Package
+): Boolean {
     if (priorityComparison != 0) return false
 
     val weightComparison = comparePackageByWeight(selectedPackage, candidatePackage)

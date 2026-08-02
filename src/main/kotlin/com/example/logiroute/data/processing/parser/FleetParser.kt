@@ -30,7 +30,14 @@ fun parseFleets(lines: List<String>): List<FleetRaw> {
             continue
         }
 
-        fleetList.add(buildFleetRaw(columns))
+        fleetList.add(
+            FleetRaw(
+                vehicleIds = listOf(columns[VEHICLE_ID_INDEX]),
+                currentHubId = columns[CURRENT_HUB_ID_INDEX],
+                maxCapacityKg = parsePositiveDoubleOrInvalid(columns[MAX_CAPACITY_KG_INDEX]),
+                costPerKm = parsePositiveDoubleOrInvalid(columns[COST_PER_KM_INDEX])
+            )
+        )
     }
 
     return fleetList
@@ -67,11 +74,4 @@ private fun isValidFleetCost(cost: String): Boolean {
     return parsePositiveDoubleOrInvalid(cost) != INVALID_DOUBLE_VALUE
 }
 
-private fun buildFleetRaw(columns: List<String>): FleetRaw {
-    return FleetRaw(
-        vehicleIds = listOf(columns[VEHICLE_ID_INDEX]),
-        currentHubId = columns[CURRENT_HUB_ID_INDEX],
-        maxCapacityKg = parsePositiveDoubleOrInvalid(columns[MAX_CAPACITY_KG_INDEX]),
-        costPerKm = parsePositiveDoubleOrInvalid(columns[COST_PER_KM_INDEX])
-    )
-}
+

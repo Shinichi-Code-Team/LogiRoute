@@ -1,27 +1,27 @@
 package com.example.logiroute.domain.logic.pricing
 
-import com.example.logiroute.data.dataholder.PriorityRaw
+import com.example.logiroute.domain.model.Priority
 
 class FragileStrategy : DispatchStrategy {
 
     override fun calculateTransitCost(
-        packageWeight: Double,
+        weight: Double,
         distanceKm: Double
     ): Double {
         val weightRate = 1.0
         val distanceRate = 1.3
         val safetyFee = 8.0
 
-        return (packageWeight * weightRate) +
+        return (weight * weightRate) +
                 (distanceKm * distanceRate) +
                 safetyFee
     }
 
-    override fun getPriorityMultiplier(priority: PriorityRaw): Double {
+    override fun getPriorityMultiplier(priority: Priority): Double {
         return when (priority) {
-            PriorityRaw.URGENT -> 1.5
-            PriorityRaw.STANDARD -> 1.0
-            PriorityRaw.LOW -> 0.8
+            Priority.URGENT -> 1.5
+            Priority.STANDARD -> 1.0
+            Priority.LOW -> 0.8
         }
     }
 

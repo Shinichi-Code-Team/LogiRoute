@@ -14,8 +14,7 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
         return emptyList()
     }
 
-    val expectedColumnCount =
-        getExpectedColumnCount(lines.first())
+    val expectedColumnCount = getExpectedColumnCount(lines.first())
 
     val packages = mutableListOf<PackageRaw>()
 
@@ -27,9 +26,7 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
         val columns = extractCleanColumns(line)
 
         if (!isValidPackageRaw(
-                columns = columns,
-                expectedColumnCount = expectedColumnCount,
-                originalLine = line
+                columns = columns, expectedColumnCount = expectedColumnCount, originalLine = line
             )
         ) {
             continue
@@ -50,9 +47,7 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
 }
 
 private fun isValidPackageRaw(
-    columns: List<String>,
-    expectedColumnCount: Int,
-    originalLine: String
+    columns: List<String>, expectedColumnCount: Int, originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
         println("Warning: Invalid column count -> $originalLine")
@@ -80,22 +75,10 @@ private fun hasRequiredPackageFields(
     val packageId = columns[PACKAGE_ID_INDEX]
     val destinationHubId = columns[DESTINATION_HUB_ID_INDEX]
 
-    return isNotBlank(packageId) &&
-            isNotBlank(destinationHubId)
+    return isNotBlank(packageId) && isNotBlank(destinationHubId)
 }
 
 private fun isValidPackageWeight(weight: String): Boolean {
     return parsePositiveDoubleOrInvalid(weight) != INVALID_DOUBLE_VALUE
 }
 
-//private fun buildPackageRaw(
-//    columns: List<String>
-//): PackageRaw {
-//    return PackageRaw(
-//        id = columns[PACKAGE_ID_INDEX],
-//        weight = parsePositiveDoubleOrInvalid(columns[PACKAGE_WEIGHT_INDEX]),
-//        originHubId = columns[ORIGIN_HUB_ID_INDEX],
-//        destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
-//        priority = parsePriority(columns[PACKAGE_PRIORITY_INDEX])
-//    )
-//}
