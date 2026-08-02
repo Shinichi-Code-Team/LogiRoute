@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.pricing
+package com.example.logiroute.domain.logic.pricing
 
 import com.example.logiroute.data.dataholder.PriorityRaw
 
