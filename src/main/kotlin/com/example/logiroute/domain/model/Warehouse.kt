@@ -20,17 +20,43 @@ data class Warehouse(
     val stationedVehicles: List<Vehicle>
         get() = mutableStationedVehicles
 
-    fun addPackage(packageItem: Package) {
+    fun addPackage(packageItem: Package): Boolean {
+        if (packageItem.origin !== this)
+            return false
+        if (mutableCargoQueue.any { it.id == packageItem.id }) {
+            return false
+        }
         mutableCargoQueue.add(packageItem)
+        return true
     }
 
-    fun addOutgoingRoute(route: Route) {
+    fun addOutgoingRoute(route: Route): Boolean {
+        if (route.origin !== this) {
+            return false
+        }
+
+        if (mutableOutgoingRoutes.any { it.routeId == route.routeId }) {
+            return false
+        }
+
         mutableOutgoingRoutes.add(route)
+        return true
     }
 
-    fun addVehicle(vehicle: Vehicle) {
+    fun addVehicle(vehicle: Vehicle): Boolean {
+
+        if (vehicle.currentHub !== this) {
+            return false
+        }
+
+        if (mutableStationedVehicles.any {
+                it.vehicleId == vehicle.vehicleId
+            }
+        ) {
+            return false
+        }
+
         mutableStationedVehicles.add(vehicle)
+        return true
     }
-
-
 }

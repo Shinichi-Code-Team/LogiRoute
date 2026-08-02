@@ -7,7 +7,6 @@ class DomainGraphBuilder {
     fun build(input: DomainGraphInput): DomainGraph {
 
         val warehouses = buildWarehouses(input.warehouseRaws)
-
         val warehouseMap = buildWarehouseIndex(warehouses)
 
         val validPackageRaws = input.packageRaws.filter { packageRaw ->
@@ -77,7 +76,7 @@ class DomainGraphBuilder {
             weight = packageRaw.weight,
             origin = origin,
             destination = destination,
-            priority = packageRaw.priority
+            priority = mapPriority(packageRaw.priority)
         )
 
         origin.addPackage(packageDomain)
@@ -144,5 +143,13 @@ class DomainGraphBuilder {
 
     private fun normalizeWarehouseId(id: String): String {
         return id.trim().uppercase()
+    }
+
+    private fun mapPriority(priorityRaw: PriorityRaw): Priority {
+        return when (priorityRaw) {
+            PriorityRaw.LOW -> Priority.LOW
+            PriorityRaw.STANDARD -> Priority.STANDARD
+            PriorityRaw.URGENT -> Priority.URGENT
+        }
     }
 }

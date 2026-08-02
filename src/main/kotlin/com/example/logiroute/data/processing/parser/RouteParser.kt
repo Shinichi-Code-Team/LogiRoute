@@ -31,7 +31,15 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
             continue
         }
 
-        routes.add(buildRouteRaw(columns))
+        routes.add(
+            RouteRaw(
+                routeId = columns[ROUTE_ID_INDEX],
+                originHubId = columns[ORIGIN_HUB_ID_INDEX],
+                destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
+                distanceKm = parsePositiveDoubleOrInvalid(columns[DISTANCE_KM_INDEX]),
+                typicalDelayMin = parseNonNegativeIntOrInvalid(columns[TYPICAL_DELAY_MIN_INDEX])
+            )
+        )
     }
 
     return routes
@@ -43,22 +51,22 @@ private fun isValidRouteRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-       // println("Warning: Invalid column count -> $originalLine")
+        println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!hasRequiredRouteFields(columns)) {
-       // println("Warning: Missing route ID, origin, or destination hub ID -> $originalLine")
+        println("Warning: Missing route ID, origin, or destination hub ID -> $originalLine")
         return false
     }
 
     if (!isValidRouteDistance(columns[DISTANCE_KM_INDEX])) {
-     //   println("Warning: Invalid distance value -> $originalLine")
+        println("Warning: Invalid distance value -> $originalLine")
         return false
     }
 
     if (!isValidRouteDelay(columns[TYPICAL_DELAY_MIN_INDEX])) {
-       // println("Warning: Invalid delay value -> $originalLine")
+        println("Warning: Invalid delay value -> $originalLine")
         return false
     }
 
@@ -81,12 +89,4 @@ private fun isValidRouteDelay(delayText: String): Boolean {
     return parseNonNegativeIntOrInvalid(delayText) != INVALID_INT_VALUE
 }
 
-private fun buildRouteRaw(columns: List<String>): RouteRaw {
-    return RouteRaw(
-        routeId = columns[ROUTE_ID_INDEX],
-        originHubId = columns[ORIGIN_HUB_ID_INDEX],
-        destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
-        distanceKm = parsePositiveDoubleOrInvalid(columns[DISTANCE_KM_INDEX]),
-        typicalDelayMin = parseNonNegativeIntOrInvalid(columns[TYPICAL_DELAY_MIN_INDEX])
-    )
-}
+

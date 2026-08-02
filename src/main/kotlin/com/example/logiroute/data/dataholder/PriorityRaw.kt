@@ -5,7 +5,5 @@ enum class PriorityRaw {
     STANDARD,
     URGENT;
 
-    fun comparePriority(otherPriority: PriorityRaw): Int {
-        return compareTo(otherPriority)
-    }
+
 }

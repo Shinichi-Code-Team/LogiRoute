@@ -1,6 +1,5 @@
-package com.example.logiroute.domain.logic
+package com.example.logiroute.domain.logic.algorithm
 
-import com.example.logiroute.data.dataholder.PackageRaw
 import  com.example.logiroute.domain.model.Package
 
 fun sortByWeightDescending(packages: MutableList<Package>) {
