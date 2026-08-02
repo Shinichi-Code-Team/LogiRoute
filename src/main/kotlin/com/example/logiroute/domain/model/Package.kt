@@ -9,3 +9,9 @@ data class Package(
     val destination: Warehouse,
     val priority: PriorityRaw
 )
+{
+    init {
+        require(id.isNotBlank()) { "Package id must not be blank" }
+        require(weight > 0) { "Package weight must be positive" }
+    }
+}

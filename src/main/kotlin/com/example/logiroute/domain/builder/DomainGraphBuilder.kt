@@ -17,7 +17,7 @@ class DomainGraphBuilder {
         private fun buildWarehouses(warehouseRaws: List<WarehouseRaw>): List<Warehouse> {
             return warehouseRaws.map { raw ->
                 Warehouse(
-                    id = raw.id,
+                    rawId= raw.id,
                     name = raw.name,
                     regionalZone = raw.regionalZone,
                     latitude = raw.latitude,
@@ -45,8 +45,8 @@ class DomainGraphBuilder {
             packageRaw: PackageRaw,
             warehouseMap: Map<String, Warehouse>
         ): Package {
-            val origin = warehouseMap.getValue(packageRaw.originHubId)
-            val destination = warehouseMap.getValue(packageRaw.destinationHubId)
+            val origin = warehouseMap.getValue(packageRaw.originHubId.trim().uppercase())
+            val destination = warehouseMap.getValue(packageRaw.destinationHubId.trim().uppercase())
 
             val packageDomain = Package(
                 id = packageRaw.id,
@@ -73,8 +73,8 @@ class DomainGraphBuilder {
             routeRaw: RouteRaw,
             warehouseMap: Map<String, Warehouse>
         ): Route {
-            val origin = warehouseMap.getValue(routeRaw.originHubId)
-            val destination = warehouseMap.getValue(routeRaw.destinationHubId)
+            val origin = warehouseMap.getValue(routeRaw.originHubId.trim().uppercase())
+            val destination = warehouseMap.getValue(routeRaw.destinationHubId.trim().uppercase())
             val routeDomain = Route(
                 routeId = routeRaw.routeId,
                 origin = origin,
@@ -99,7 +99,7 @@ class DomainGraphBuilder {
         fleetRaw: FleetRaw,
         warehouseMap: Map<String, Warehouse>
     ): List<Vehicle> {
-        val currentHub = warehouseMap.getValue(fleetRaw.currentHubId)
+        val currentHub = warehouseMap.getValue(fleetRaw.currentHubId.trim().uppercase())
         val createdVehicles = mutableListOf<Vehicle>()
         for (vId in fleetRaw.vehicleIds) {
             val vehicleDomain = Vehicle(

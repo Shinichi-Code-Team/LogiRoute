@@ -1,12 +1,18 @@
 package com.example.logiroute.domain.model
 
 data class Warehouse(
-    val id: String,
+    private val rawId: String,
     val name: String,
     val regionalZone: String,
     val latitude: Double,
     val longitude: Double
 ) {
+    val id: String =  rawId.trim().uppercase()
+
+    init {
+        require(this.id.isNotBlank()) { "Warehouse id must not be blank" }
+    }
+
 
     private val mutableCargoQueue = mutableListOf<Package>()
     val cargoQueue: List<Package>
