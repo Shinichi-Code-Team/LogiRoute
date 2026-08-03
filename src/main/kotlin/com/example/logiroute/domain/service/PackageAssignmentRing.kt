@@ -32,4 +32,16 @@ class PackageAssignmentRing(
         }
         return vehiclePositionsMap.getValue(sortedPositions.first())
     }
+
+    private fun moveBrokenVehiclePackages(
+        brokenVehicle: Vehicle,
+        brokenVehiclePosition: Int,
+        currentAssignments: MutableMap<Vehicle, List<Package>>
+    ) {
+        val brokenPackages = currentAssignments[brokenVehicle] ?: emptyList()
+        val nextVehicle = findNextVehicleClockwise(brokenVehiclePosition)
+        currentAssignments[nextVehicle] =
+            (currentAssignments[nextVehicle] ?: emptyList()) + brokenPackages
+        currentAssignments.remove(brokenVehicle)
+    }
 }
