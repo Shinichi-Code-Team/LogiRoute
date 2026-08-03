@@ -24,4 +24,12 @@ class PackageAssignmentRing(
     private fun calculatePackageSlot(packageId: String): Int {
         return Math.abs(packageId.hashCode() % ringSize)
     }
+
+    private fun findNextVehicleClockwise(slot: Int): Vehicle {
+        val sortedPositions = vehiclePositionsMap.keys.sorted()
+        for (position in sortedPositions) {
+            if (slot <= position) return vehiclePositionsMap.getValue(position)
+        }
+        return vehiclePositionsMap.getValue(sortedPositions.first())
+    }
 }
