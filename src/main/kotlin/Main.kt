@@ -5,6 +5,7 @@ import com.example.logiroute.domain.builder.DomainGraphInput
 import com.example.logiroute.domain.logic.algorithm.*
 import com.example.logiroute.domain.logic.pricing.*
 import com.example.logiroute.domain.model.*
+import com.example.logiroute.domain.service.PackageAssignmentRing
 
 private const val SAMPLE_SIZE = 5
 
@@ -180,4 +181,70 @@ private fun runPricingDemo(
     )
 
     println("Express Strategy cost: $expressCost")
+
+    //================================================
+
+    println("---> Test Package Assignment Ring <---")
+
+    fun runRingTestWithCsvLimited() {
+        val warehouseRaws = loadWarehouses()
+        val packageRaws = loadPackages()
+        val fleetRaws = loadFleets()
+        val routeRaws = loadRoutes()
+
+        val input = DomainGraphInput(
+            warehouseRaws = warehouseRaws,
+            packageRaws = packageRaws,
+            fleetRaws = fleetRaws,
+            routeRaws = routeRaws
+        )
+
+        val domainGraph = DomainGraphBuilder().build(input)
+        val vehicles = domainGraph.vehicles
+        val packages = domainGraph.packages
+
+        val ring = PackageAssignmentRing(vehicles)
+
+        val limitedPackages = packages.take(5)
+        val initialAssignments = ring.assignPackagesToVehicles(limitedPackages)
+        println("Initial Assignments (limited): $initialAssignments")
+
+        val updatedAssignments = ring.reassignPackagesAfterBreakdown(initialAssignments, 40)
+        println("Updated Assignments after breakdown (limited): $updatedAssignments")
+
+        val isStable = ring.assertStableAssignments(initialAssignments, updatedAssignments)
+        println("Assignments stable for other vehicles: $isStable")
+    }
+
+    println("---> Test Package Assignment Ring <---")
+    runRingTestWithCsvLimited()
+
+    // Test 2
+    fun runRingTest() {
+        val vehicles = listOf(
+            Vehicle("V1", 1000.0, 5.0, Warehouse("W1", "Main", "ZoneA", 0.0, 0.0)),
+            Vehicle("V2", 1200.0, 6.0, Warehouse("W2", "Second", "ZoneB", 0.0, 0.0)),
+            Vehicle("V3", 1500.0, 7.0, Warehouse("W3", "Third", "ZoneC", 0.0, 0.0)),
+            Vehicle("V4", 2000.0, 8.0, Warehouse("W4", "Fourth", "ZoneD", 0.0, 0.0))
+        )
+
+        val packages = listOf(
+            Package("P1", 10.0, vehicles[0].currentHub, vehicles[1].currentHub, Priority.URGENT),
+            Package("P2", 20.0, vehicles[1].currentHub, vehicles[2].currentHub, Priority.STANDARD),
+            Package("P3", 30.0, vehicles[2].currentHub, vehicles[3].currentHub, Priority.LOW)
+        )
+
+        val ring = PackageAssignmentRing(vehicles)
+
+        val initialAssignments = ring.assignPackagesToVehicles(packages)
+        println("Initial Assignments: $initialAssignments")
+
+        val updatedAssignments = ring.reassignPackagesAfterBreakdown(initialAssignments, 40)
+        println("Updated Assignments after breakdown: $updatedAssignments")
+
+        val isStable = ring.assertStableAssignments(initialAssignments, updatedAssignments)
+        println("Assignments stable for other vehicles: $isStable")
+    }
+
+    runRingTest()
 }
