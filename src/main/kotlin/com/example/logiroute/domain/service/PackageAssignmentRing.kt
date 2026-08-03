@@ -55,4 +55,18 @@ class PackageAssignmentRing(
         }
         return assignments
     }
+
+    fun reassignPackagesAfterBreakdown(
+        currentAssignments: Map<Vehicle, List<Package>>,
+        brokenVehiclePosition: Int
+    ): Map<Vehicle, List<Package>> {
+        val updatedAssignments = currentAssignments.toMutableMap()
+        val brokenVehicle = vehiclePositionsMap.remove(brokenVehiclePosition)
+
+        if (brokenVehicle != null) {
+            moveBrokenVehiclePackages(brokenVehicle, brokenVehiclePosition, updatedAssignments)
+        }
+
+        return updatedAssignments
+    }
 }
