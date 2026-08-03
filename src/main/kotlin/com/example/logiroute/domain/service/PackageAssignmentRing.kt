@@ -20,4 +20,8 @@ class PackageAssignmentRing(
         vehiclePositionsMap.values.forEach { assignments[it] = mutableListOf() }
         return assignments
     }
+
+    private fun calculatePackageSlot(packageId: String): Int {
+        return Math.abs(packageId.hashCode() % ringSize)
+    }
 }
