@@ -5,6 +5,7 @@ import com.example.logiroute.domain.builder.DomainGraphInput
 import com.example.logiroute.domain.logic.algorithm.*
 import com.example.logiroute.domain.logic.pricing.*
 import com.example.logiroute.domain.model.*
+import com.example.logiroute.domain.service.PackageAssignmentRing
 
 private const val SAMPLE_SIZE = 5
 
@@ -180,4 +181,37 @@ private fun runPricingDemo(
     )
 
     println("Express Strategy cost: $expressCost")
+
+    //================================================
+
+    fun runRingTestWithCsv() {
+        val warehouseRaws = loadWarehouses()
+        val packageRaws = loadPackages()
+        val fleetRaws = loadFleets()
+        val routeRaws = loadRoutes()
+
+        val input = DomainGraphInput(
+            warehouseRaws = warehouseRaws,
+            packageRaws = packageRaws,
+            fleetRaws = fleetRaws,
+            routeRaws = routeRaws
+        )
+
+        val domainGraph = DomainGraphBuilder().build(input)
+        val vehicles = domainGraph.vehicles
+        val packages = domainGraph.packages
+
+        val ring = PackageAssignmentRing(vehicles)
+
+        val initialAssignments = ring.assignPackagesToVehicles(packages)
+        println("Initial Assignments: $initialAssignments")
+
+        val updatedAssignments = ring.reassignPackagesAfterBreakdown(initialAssignments, 40)
+        println("Updated Assignments after breakdown: $updatedAssignments")
+
+        val isStable = ring.assertStableAssignments(initialAssignments, updatedAssignments)
+        println("Assignments stable for other vehicles: $isStable")
+    }
+
+    runRingTestWithCsv()
 }
