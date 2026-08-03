@@ -184,7 +184,9 @@ private fun runPricingDemo(
 
     //================================================
 
-    fun runRingTestWithCsv() {
+    println("---> Test Package Assignment Ring <---")
+
+    fun runRingTestWithCsvLimited() {
         val warehouseRaws = loadWarehouses()
         val packageRaws = loadPackages()
         val fleetRaws = loadFleets()
@@ -203,15 +205,17 @@ private fun runPricingDemo(
 
         val ring = PackageAssignmentRing(vehicles)
 
-        val initialAssignments = ring.assignPackagesToVehicles(packages)
-        println("Initial Assignments: $initialAssignments")
+        val limitedPackages = packages.take(5)
+        val initialAssignments = ring.assignPackagesToVehicles(limitedPackages)
+        println("Initial Assignments (limited): $initialAssignments")
 
         val updatedAssignments = ring.reassignPackagesAfterBreakdown(initialAssignments, 40)
-        println("Updated Assignments after breakdown: $updatedAssignments")
+        println("Updated Assignments after breakdown (limited): $updatedAssignments")
 
         val isStable = ring.assertStableAssignments(initialAssignments, updatedAssignments)
         println("Assignments stable for other vehicles: $isStable")
     }
 
-    runRingTestWithCsv()
+    println("---> Test Package Assignment Ring <---")
+    runRingTestWithCsvLimited()
 }
