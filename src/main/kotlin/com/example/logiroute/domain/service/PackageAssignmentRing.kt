@@ -1,5 +1,6 @@
 package com.example.logiroute.domain.service
 
+import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
 
 class PackageAssignmentRing(
@@ -43,5 +44,15 @@ class PackageAssignmentRing(
         currentAssignments[nextVehicle] =
             (currentAssignments[nextVehicle] ?: emptyList()) + brokenPackages
         currentAssignments.remove(brokenVehicle)
+    }
+
+    fun assignPackagesToVehicles(packages: List<Package>): Map<Vehicle, List<Package>> {
+        val assignments = initializeAssignments()
+        for (pkg in packages) {
+            val packageSlot = calculatePackageSlot(pkg.id)
+            val assignedVehicle = findNextVehicleClockwise(packageSlot)
+            assignments[assignedVehicle]?.add(pkg)
+        }
+        return assignments
     }
 }
