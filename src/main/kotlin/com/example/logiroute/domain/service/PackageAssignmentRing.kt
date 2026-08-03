@@ -14,4 +14,10 @@ class PackageAssignmentRing(
             vehiclePositionsMap[position] = vehicle
         }
     }
+
+    private fun initializeAssignments(): MutableMap<Vehicle, MutableList<Package>> {
+        val assignments = mutableMapOf<Vehicle, MutableList<Package>>()
+        vehiclePositionsMap.values.forEach { assignments[it] = mutableListOf() }
+        return assignments
+    }
 }
