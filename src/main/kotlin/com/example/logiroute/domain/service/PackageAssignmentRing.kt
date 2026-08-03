@@ -69,4 +69,18 @@ class PackageAssignmentRing(
 
         return updatedAssignments
     }
+
+    fun assertStableAssignments(
+        beforeBreakdownAssignments: Map<Vehicle, List<Package>>,
+        afterBreakdownAssignments: Map<Vehicle, List<Package>>
+    ): Boolean {
+        for ((vehicle, packagesBefore) in beforeBreakdownAssignments) {
+            if (afterBreakdownAssignments.containsKey(vehicle)) {
+                if (packagesBefore != afterBreakdownAssignments[vehicle]) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
 }
