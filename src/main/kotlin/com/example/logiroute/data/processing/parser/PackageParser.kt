@@ -13,25 +13,16 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
     if (lines.isEmpty()) {
         return emptyList()
     }
-
     val expectedColumnCount = getExpectedColumnCount(lines.first())
-
     val packages = mutableListOf<PackageRaw>()
-
     for (line in skipHeader(lines)) {
         if (line.isBlank()) {
             continue
         }
-
         val columns = extractCleanColumns(line)
-
-        if (!isValidPackageRaw(
-                columns = columns, expectedColumnCount = expectedColumnCount, originalLine = line
-            )
-        ) {
+        if (!isValidPackageRaw(columns = columns, expectedColumnCount = expectedColumnCount, originalLine = line)) {
             continue
         }
-
         packages.add(
             PackageRaw(
                 id = columns[PACKAGE_ID_INDEX],
@@ -42,7 +33,6 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
             )
         )
     }
-
     return packages
 }
 
