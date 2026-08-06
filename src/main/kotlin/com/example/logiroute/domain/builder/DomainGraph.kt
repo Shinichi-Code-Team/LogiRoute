@@ -1,6 +1,4 @@
 package com.example.logiroute.domain.builder
-
-import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
 
 data class DomainGraph(

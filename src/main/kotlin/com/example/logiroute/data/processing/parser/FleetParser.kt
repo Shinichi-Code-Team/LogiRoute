@@ -39,7 +39,6 @@ fun parseFleets(lines: List<String>): List<FleetRaw> {
             )
         )
     }
-
     return fleetList
 }
 
@@ -62,7 +61,6 @@ private fun isValidFleetRaw(
         println("Warning: Invalid costPerKm in row: $originalLine")
         return false
     }
-
     return true
 }
 

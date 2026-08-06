@@ -4,6 +4,4 @@ enum class PriorityRaw {
     LOW,
     STANDARD,
     URGENT;
-
-
 }

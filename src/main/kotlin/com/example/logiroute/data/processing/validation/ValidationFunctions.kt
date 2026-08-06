@@ -30,6 +30,7 @@ fun parseNonNegativeIntOrInvalid(value: String): Int {
         INVALID_INT_VALUE
     }
 }
+
 fun parseCoordinateOrInvalid(value: String, minValue: Double, maxValue: Double): Double {
     val parsedNumber = value.trim().toDoubleOrNull()
 
