@@ -10,19 +10,20 @@ private const val DESTINATION_HUB_ID_INDEX = 3
 private const val PACKAGE_PRIORITY_INDEX = 4
 
 fun parsePackages(lines: List<String>): List<PackageRaw> {
-    if (lines.isEmpty()) {
-        return emptyList()
-    }
+    if (lines.isEmpty()) return emptyList()
+
     val expectedColumnCount = getExpectedColumnCount(lines.first())
     val packages = mutableListOf<PackageRaw>()
+
     for (line in skipHeader(lines)) {
-        if (line.isBlank()) {
-            continue
-        }
+        if (line.isBlank()) continue
+
         val columns = extractCleanColumns(line)
-        if (!isValidPackageRaw(columns = columns, expectedColumnCount = expectedColumnCount, originalLine = line)) {
+
+        if (!isValidPackageRaw(columns, expectedColumnCount, line)) {
             continue
         }
+
         packages.add(
             PackageRaw(
                 id = columns[PACKAGE_ID_INDEX],
@@ -37,7 +38,9 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
 }
 
 private fun isValidPackageRaw(
-    columns: List<String>, expectedColumnCount: Int, originalLine: String
+    columns: List<String>,
+    expectedColumnCount: Int,
+    originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
         println("Warning: Invalid column count -> $originalLine")
@@ -45,9 +48,7 @@ private fun isValidPackageRaw(
     }
 
     if (!hasRequiredPackageFields(columns)) {
-        println(
-            "Warning: Missing package ID or destination hub ID -> $originalLine"
-        )
+        println("Warning: Missing package ID or destination hub ID -> $originalLine")
         return false
     }
 
@@ -59,16 +60,10 @@ private fun isValidPackageRaw(
     return true
 }
 
-private fun hasRequiredPackageFields(
-    columns: List<String>
-): Boolean {
-    val packageId = columns[PACKAGE_ID_INDEX]
-    val destinationHubId = columns[DESTINATION_HUB_ID_INDEX]
-
-    return isNotBlank(packageId) && isNotBlank(destinationHubId)
+private fun hasRequiredPackageFields(columns: List<String>): Boolean {
+    return isNotBlank(columns[PACKAGE_ID_INDEX]) && isNotBlank(columns[DESTINATION_HUB_ID_INDEX])
 }
 
 private fun isValidPackageWeight(weight: String): Boolean {
     return parsePositiveDoubleOrInvalid(weight) != INVALID_DOUBLE_VALUE
 }
-

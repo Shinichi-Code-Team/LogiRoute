@@ -15,18 +15,11 @@ fun parseFleets(lines: List<String>): List<FleetRaw> {
     val fleetList = mutableListOf<FleetRaw>()
 
     for (line in skipHeader(lines)) {
-        if (line.isBlank()) {
-            continue
-        }
+        if (line.isBlank()) continue
 
         val columns = extractCleanColumns(line)
 
-        if (!isValidFleetRaw(
-                columns = columns,
-                expectedColumnCount = expectedColumnCount,
-                originalLine = line
-            )
-        ) {
+        if (!isValidFleetRaw(columns, expectedColumnCount, line)) {
             continue
         }
 
@@ -61,6 +54,7 @@ private fun isValidFleetRaw(
         println("Warning: Invalid costPerKm in row: $originalLine")
         return false
     }
+
     return true
 }
 
@@ -71,5 +65,3 @@ private fun isValidFleetCapacity(capacity: String): Boolean {
 private fun isValidFleetCost(cost: String): Boolean {
     return parsePositiveDoubleOrInvalid(cost) != INVALID_DOUBLE_VALUE
 }
-
-

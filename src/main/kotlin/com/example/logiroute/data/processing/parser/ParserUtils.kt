@@ -3,16 +3,10 @@ package com.example.logiroute.data.processing.parser
 import com.example.logiroute.data.dataholder.PriorityRaw
 import java.io.File
 
-
 fun readCsvLines(fileName: String): List<String> {
     val file = File("src/main/resources/$fileName")
     if (!file.exists()) return emptyList()
-
     return file.readLines()
-}
-
-fun isNotBlank(value: String): Boolean {
-    return value.isNotBlank()
 }
 
 fun getExpectedColumnCount(header: String): Int {
@@ -22,7 +16,6 @@ fun getExpectedColumnCount(header: String): Int {
 fun skipHeader(lines: List<String>): List<String> {
     return if (lines.size > 1) lines.drop(1) else emptyList()
 }
-
 
 fun extractCleanColumns(line: String): List<String> {
     return line.split(",").map { it.trim() }
@@ -36,4 +29,3 @@ fun parsePriority(value: String): PriorityRaw {
         else -> PriorityRaw.LOW
     }
 }
-
