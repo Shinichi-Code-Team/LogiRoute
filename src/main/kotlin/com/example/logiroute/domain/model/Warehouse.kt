@@ -21,42 +21,38 @@ data class Warehouse(
         get() = mutableStationedVehicles
 
     fun addPackage(packageItem: Package): Boolean {
-        if (packageItem.origin !== this)
-            return false
-        if (mutableCargoQueue.any { it.id == packageItem.id }) {
-            return false
-        }
+        if (!canAddPackage(packageItem)) return false
+
         mutableCargoQueue.add(packageItem)
         return true
     }
 
-    fun addOutgoingRoute(route: Route): Boolean {
-        if (route.origin !== this) {
-            return false
-        }
+    private fun canAddPackage(packageItem: Package): Boolean {
+        return packageItem.origin === this &&
+                mutableCargoQueue.none { it.id == packageItem.id }
+    }
 
-        if (mutableOutgoingRoutes.any { it.routeId == route.routeId }) {
-            return false
-        }
+    fun addOutgoingRoute(route: Route): Boolean {
+        if (!canAddRoute(route)) return false
 
         mutableOutgoingRoutes.add(route)
         return true
     }
 
+    private fun canAddRoute(route: Route): Boolean {
+        return route.origin === this &&
+                mutableOutgoingRoutes.none { it.routeId == route.routeId }
+    }
+
     fun addVehicle(vehicle: Vehicle): Boolean {
-
-        if (vehicle.currentHub !== this) {
-            return false
-        }
-
-        if (mutableStationedVehicles.any {
-                it.vehicleId == vehicle.vehicleId
-            }
-        ) {
-            return false
-        }
+        if (!canAddVehicle(vehicle)) return false
 
         mutableStationedVehicles.add(vehicle)
         return true
+    }
+
+    private fun canAddVehicle(vehicle: Vehicle): Boolean {
+        return vehicle.currentHub === this &&
+                mutableStationedVehicles.none { it.vehicleId == vehicle.vehicleId }
     }
 }
