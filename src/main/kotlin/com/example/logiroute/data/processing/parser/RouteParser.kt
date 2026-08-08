@@ -16,18 +16,11 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
     val routes = mutableListOf<RouteRaw>()
 
     for (line in skipHeader(lines)) {
-        if (line.isBlank()) {
-            continue
-        }
+        if (line.isBlank()) continue
 
         val columns = extractCleanColumns(line)
 
-        if (!isValidRouteRaw(
-                columns = columns,
-                expectedColumnCount = expectedColumnCount,
-                originalLine = line
-            )
-        ) {
+        if (!isValidRouteRaw(columns, expectedColumnCount, line)) {
             continue
         }
 
@@ -41,7 +34,6 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
             )
         )
     }
-
     return routes
 }
 
@@ -88,5 +80,3 @@ private fun isValidRouteDistance(distanceText: String): Boolean {
 private fun isValidRouteDelay(delayText: String): Boolean {
     return parseNonNegativeIntOrInvalid(delayText) != INVALID_INT_VALUE
 }
-
-

@@ -128,7 +128,7 @@ private fun runPricingDemo(warehouse: Warehouse, sortedCargoQueue: List<Package>
     println("Package ID: ${selectedPackage.id}")
     println("Package weight: ${selectedPackage.weight}")
     println("Package priority: ${selectedPackage.priority}")
-    println("Route ID: ${selectedRoute.routeId}")
+    println("Route ID: ${selectedRoute.id}")
     println("Route distance: ${selectedRoute.distanceKm} km")
 
     val pricingEngine = RoutePricingEngine(EcoStrategy())

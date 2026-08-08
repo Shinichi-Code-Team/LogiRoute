@@ -13,7 +13,6 @@ fun isNotBlank(value: String): Boolean {
 
 fun parsePositiveDoubleOrInvalid(value: String): Double {
     val parsedNumber = value.trim().toDoubleOrNull()
-
     return if (parsedNumber != null && parsedNumber > 0.0) {
         parsedNumber
     } else {
@@ -23,7 +22,6 @@ fun parsePositiveDoubleOrInvalid(value: String): Double {
 
 fun parseNonNegativeIntOrInvalid(value: String): Int {
     val parsedNumber = value.trim().toIntOrNull()
-
     return if (parsedNumber != null && parsedNumber >= 0) {
         parsedNumber
     } else {
@@ -33,7 +31,6 @@ fun parseNonNegativeIntOrInvalid(value: String): Int {
 
 fun parseCoordinateOrInvalid(value: String, minValue: Double, maxValue: Double): Double {
     val parsedNumber = value.trim().toDoubleOrNull()
-
     return if (parsedNumber != null && parsedNumber in minValue..maxValue) {
         parsedNumber
     } else {

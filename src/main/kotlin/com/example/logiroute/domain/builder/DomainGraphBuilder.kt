@@ -9,25 +9,18 @@ class DomainGraphBuilder {
         val warehouses = buildWarehouses(input.warehouseRaws)
         val warehouseMap = buildWarehouseIndex(warehouses)
 
-        val validPackageRaws = input.packageRaws.filter { packageRaw ->
-            normalizeWarehouseId(packageRaw.originHubId) in warehouseMap &&
-                    normalizeWarehouseId(packageRaw.destinationHubId) in warehouseMap
-        }
 
-        val validRouteRaws = input.routeRaws.filter { routeRaw ->
-            normalizeWarehouseId(routeRaw.originHubId) in warehouseMap &&
-                    normalizeWarehouseId(routeRaw.destinationHubId) in warehouseMap
-        }
+        val validPackages = validatePackages(input, warehouseMap)
 
-        val validFleetRaws = input.fleetRaws.filter { fleetRaw ->
-            normalizeWarehouseId(fleetRaw.currentHubId) in warehouseMap
-        }
+        val validRoutes = validateRoutes(input, warehouseMap)
 
-        val packages = buildPackages(validPackageRaws, warehouseMap)
+        val validFleets = validateFleet(input, warehouseMap)
 
-        val routes = buildRoutes(validRouteRaws, warehouseMap)
+        val packages = buildPackages(validPackages, warehouseMap)
 
-        val vehicles = buildVehicles(validFleetRaws, warehouseMap)
+        val routes = buildRoutes(validRoutes, warehouseMap)
+
+        val vehicles = buildVehicles(validFleets, warehouseMap)
 
         return DomainGraph(
             warehouses,
@@ -35,6 +28,36 @@ class DomainGraphBuilder {
             routes,
             vehicles
         )
+    }
+
+
+    private fun validateFleet(
+        input: DomainGraphInput,
+        warehouseMap: Map<String, Warehouse>
+    ): List<FleetRaw> {
+        return input.fleetRaws.filter { fleetRaw ->
+            normalizeWarehouseId(fleetRaw.currentHubId) in warehouseMap
+        }
+    }
+
+    private fun validateRoutes(
+        input: DomainGraphInput,
+        warehouseMap: Map<String, Warehouse>
+    ): List<RouteRaw> {
+        return input.routeRaws.filter { routeRaw ->
+            normalizeWarehouseId(routeRaw.originHubId) in warehouseMap &&
+                    normalizeWarehouseId(routeRaw.destinationHubId) in warehouseMap
+        }
+    }
+
+    private fun validatePackages(
+        input: DomainGraphInput,
+        warehouseMap: Map<String, Warehouse>
+    ): List<PackageRaw> {
+        return input.packageRaws.filter { packageRaw ->
+            normalizeWarehouseId(packageRaw.originHubId) in warehouseMap &&
+                    normalizeWarehouseId(packageRaw.destinationHubId) in warehouseMap
+        }
     }
 
     private fun buildWarehouses(warehouseRaws: List<WarehouseRaw>): List<Warehouse> {
