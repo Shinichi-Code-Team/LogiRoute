@@ -6,35 +6,25 @@ import com.example.logiroute.domain.logic.algorithm.*
 import com.example.logiroute.domain.logic.pricing.*
 import com.example.logiroute.domain.model.*
 import com.example.logiroute.domain.service.PackageAssignmentRing
+import com.example.logiroute.domain.service.PackageAssignmentRing2
 
 private const val SAMPLE_SIZE = 5
 
 fun main() {
     val input = loadInputData()
-
     printRawDataSummary(input)
-
     val domainGraph = DomainGraphBuilder().build(input)
-
     printDomainGraphSummary(domainGraph)
-
     val firstWarehouse = domainGraph.warehouses.firstOrNull()
-
     if (firstWarehouse == null) {
         println("No valid warehouses were found.")
         return
     }
-
     printWarehouseSummary(firstWarehouse)
-
     printSelectionSortResult(domainGraph.packages)
-
     val sortedCargoQueue = runQuickSort(firstWarehouse)
-
-    runPricingDemo(
-        warehouse = firstWarehouse,
-        sortedCargoQueue = sortedCargoQueue
-    )
+    runPricingDemo(warehouse = firstWarehouse, sortedCargoQueue = sortedCargoQueue)
+    runRingTestWithCsvLimited2()
 }
 
 private fun loadInputData(): DomainGraphInput {
@@ -73,16 +63,9 @@ private fun printWarehouseSummary(warehouse: Warehouse) {
 
 private fun printSelectionSortResult(packages: List<Package>) {
     println("\n================ SELECTION SORT ================")
-
-    val sortedPackages =
-        sortPackagesByPriorityConsideringWeight(packages)
-
+    val sortedPackages = sortPackagesByPriorityConsideringWeight(packages)
     for (packageItem in sortedPackages.take(SAMPLE_SIZE)) {
-        println(
-            "Package ID: ${packageItem.id}, " +
-                    "Priority: ${packageItem.priority}, " +
-                    "Weight: ${packageItem.weight}"
-        )
+        println("Package ID: ${packageItem.id}, " + "Priority: ${packageItem.priority}, " + "Weight: ${packageItem.weight}")
     }
 
     val isSortedCorrectly =
@@ -95,29 +78,18 @@ private fun printSelectionSortResult(packages: List<Package>) {
     println("Selection Sort correct: $isSortedCorrectly")
 }
 
-private fun runQuickSort(
-    warehouse: Warehouse
-): MutableList<Package> {
+private fun runQuickSort(warehouse: Warehouse): MutableList<Package> {
     println("\n================ QUICK SORT ================")
-
     val cargoQueue = warehouse.cargoQueue.toMutableList()
-
     if (cargoQueue.isEmpty()) {
         println("The first warehouse has no packages.")
         return cargoQueue
     }
-
     println("Before sorting:")
-
     for (packageItem in cargoQueue.take(SAMPLE_SIZE)) {
-        println(
-            "Package ID: ${packageItem.id}, " +
-                    "Weight: ${packageItem.weight}"
-        )
+        println("Package ID: ${packageItem.id}, " + "Weight: ${packageItem.weight}")
     }
-
     sortByWeightDescending(cargoQueue)
-
     println("\nAfter sorting:")
 
     for (packageItem in cargoQueue.take(SAMPLE_SIZE)) {
@@ -137,10 +109,7 @@ private fun runQuickSort(
     return cargoQueue
 }
 
-private fun runPricingDemo(
-    warehouse: Warehouse,
-    sortedCargoQueue: List<Package>
-) {
+private fun runPricingDemo(warehouse: Warehouse, sortedCargoQueue: List<Package>) {
     println("\n================ PRICING STRATEGIES ================")
 
     val selectedPackage = sortedCargoQueue.firstOrNull()
@@ -247,4 +216,48 @@ private fun runPricingDemo(
     }
 
     runRingTest()
+    runRingTestWithCsvLimited2()
+
+}
+
+fun runRingTestWithCsvLimited2() {
+    val warehouseRaws = loadWarehouses()
+    val packageRaws = loadPackages()
+    val fleetRaws = loadFleets()
+    val routeRaws = loadRoutes()
+
+    val input = DomainGraphInput(
+        warehouseRaws = warehouseRaws,
+        packageRaws = packageRaws,
+        fleetRaws = fleetRaws,
+        routeRaws = routeRaws
+    )
+    val domainGraph = DomainGraphBuilder().build(input)
+    val vehicles = domainGraph.vehicles
+    val packages = domainGraph.packages
+    val ring = PackageAssignmentRing2()
+    ring.addVehicle(15, vehicles[0])
+    ring.addVehicle(40, vehicles[1])
+    ring.addVehicle(65, vehicles[2])
+    ring.addVehicle(90, vehicles[3])
+
+    val limitedPackages = packages.take(70)
+    ring.assignPackages(limitedPackages)
+    println("===== INITIAL ASSIGNMENTS =====")
+    for ((slot, assignedPackages) in ring.getAssignments()) {
+        println("Slot $slot -> ${assignedPackages.size} packages")
+    }
+    val initialAssignments = ring.copyAssignments()
+    val brokenPackages = ring.removeVehicle(40)
+    println()
+    println("Vehicle at slot 40 BROKEN")
+    println("Packages to reroute: ${brokenPackages.size}")
+    val unassignedPackages = ring.reroutePackages(brokenPackages)
+    println()
+    println("===== UPDATED ASSIGNMENTS =====")
+    for ((slot, assignedPackages) in ring.getAssignments()) {
+        println("Slot $slot -> ${assignedPackages.size} packages")
+    }
+    println()
+    println("Could not be assigned because of capacity: " + unassignedPackages.size)
 }
