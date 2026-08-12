@@ -14,7 +14,6 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
 
     val expectedColumnCount = getExpectedColumnCount(lines.first())
     val packages = mutableListOf<PackageRaw>()
-
     for (line in skipHeader(lines)) {
         if (line.isBlank()) continue
 
@@ -23,7 +22,6 @@ fun parsePackages(lines: List<String>): List<PackageRaw> {
         if (!isValidPackageRaw(columns, expectedColumnCount, line)) {
             continue
         }
-
         packages.add(
             PackageRaw(
                 id = columns[PACKAGE_ID_INDEX],
