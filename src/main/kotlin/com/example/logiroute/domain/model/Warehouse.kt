@@ -41,7 +41,7 @@ data class Warehouse(
 
     private fun canAddRoute(route: Route): Boolean {
         return route.origin === this &&
-                mutableOutgoingRoutes.none { it.routeId == route.routeId }
+                mutableOutgoingRoutes.none { it.id == route.id }
     }
 
     fun addVehicle(vehicle: Vehicle): Boolean {
@@ -53,6 +53,6 @@ data class Warehouse(
 
     private fun canAddVehicle(vehicle: Vehicle): Boolean {
         return vehicle.currentHub === this &&
-                mutableStationedVehicles.none { it.vehicleId == vehicle.vehicleId }
+                mutableStationedVehicles.none { it.id == vehicle.id }
     }
 }
