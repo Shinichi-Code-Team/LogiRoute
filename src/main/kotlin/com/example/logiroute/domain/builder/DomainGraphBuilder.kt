@@ -3,11 +3,13 @@ package com.example.logiroute.domain.builder
 import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 import java.security.PrivateKey
 
 class DomainGraphBuilder(
     private val packageRepository: PackageRepository,
+    private val routeRepository: RouteRepository ,
     private val warehouseRepository: WarehouseRepository
 ) {
     fun build(input: DomainGraphInput): DomainGraph {
@@ -130,7 +132,7 @@ class DomainGraphBuilder(
         val origin = warehouseMap.getValue(normalizeWarehouseId(routeRaw.originHubId))
         val destination = warehouseMap.getValue(normalizeWarehouseId(routeRaw.destinationHubId))
         val routeDomain = Route(
-            id = routeRaw.id,
+            id = routeRaw.routeId,
             origin = origin,
             destination = destination,
             distanceKm = routeRaw.distanceKm,

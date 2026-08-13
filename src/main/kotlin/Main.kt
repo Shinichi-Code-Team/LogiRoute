@@ -1,6 +1,7 @@
 import com.example.logiroute.data.processing.loader.Loader
 import com.example.logiroute.data.repository.CSVWarehouseRepository
 import com.example.logiroute.data.repository.CSVPackageRepository
+import com.example.logiroute.data.repository.CSVRouteRepository
 import com.example.logiroute.domain.builder.DomainGraph
 import com.example.logiroute.domain.builder.DomainGraphBuilder
 import com.example.logiroute.domain.builder.DomainGraphInput
@@ -11,14 +12,16 @@ import com.example.logiroute.domain.service.PackageAssignmentRing
 import com.example.logiroute.domain.service.PackageAssignmentRing2
 
 private const val SAMPLE_SIZE = 5
-val packagesRepository = CSVPackageRepository(loader = Loader())
-val warehouseRepository =CSVWarehouseRepository(loader = Loader())
+
 val loader = Loader()
+val packagesRepository = CSVPackageRepository(loader = loader)
+val routesRepository = CSVRouteRepository(loader = loader)
+val warehouseRepository = CSVWarehouseRepository(loader = loader)
 
 fun main() {
     val input = loadInputData()
     printRawDataSummary(input)
-    val domainGraph = DomainGraphBuilder(packagesRepository,warehouseRepository).build(input)
+    val domainGraph = DomainGraphBuilder(packagesRepository ,routesRepository , warehouseRepository ).build(input)
     printDomainGraphSummary(domainGraph)
     val firstWarehouse = domainGraph.warehouses.firstOrNull()
     if (firstWarehouse == null) {
@@ -34,9 +37,9 @@ fun main() {
 
 private fun loadInputData(): DomainGraphInput {
     return DomainGraphInput(
-        warehouseRaws = loader.loadWarehouses(),
-        packageRaws = loader.loadPackages(),
-        routeRaws = loader.loadRoutes(),
+        warehouseRaws = warehouseRepository.getWarehouses(),
+        packageRaws = packagesRepository.getPackages(),
+        routeRaws = routesRepository.getRoutes(),
         fleetRaws = loader.loadFleets()
     )
 }
@@ -172,7 +175,7 @@ private fun runPricingDemo(warehouse: Warehouse, sortedCargoQueue: List<Package>
             routeRaws = routeRaws
         )
 
-        val domainGraph = DomainGraphBuilder(packagesRepository, warehouseRepository).build(input)
+        val domainGraph = DomainGraphBuilder(packagesRepository, routesRepository,warehouseRepository).build(input)
         val vehicles = domainGraph.vehicles
         val packages = domainGraph.packages
 
@@ -225,10 +228,10 @@ private fun runPricingDemo(warehouse: Warehouse, sortedCargoQueue: List<Package>
 }
 
 fun runRingTestWithCsvLimited2() {
-    val warehouseRaws = loader.loadWarehouses()
-    val packageRaws = loader.loadPackages()
+    val warehouseRaws = warehouseRepository.getWarehouses()
+    val packageRaws = packagesRepository.getPackages()
     val fleetRaws = loader.loadFleets()
-    val routeRaws = loader.loadRoutes()
+    val routeRaws = routesRepository.getRoutes()
 
     val input = DomainGraphInput(
         warehouseRaws = warehouseRaws,
@@ -236,7 +239,11 @@ fun runRingTestWithCsvLimited2() {
         fleetRaws = fleetRaws,
         routeRaws = routeRaws
     )
-    val domainGraph = DomainGraphBuilder(packagesRepository,warehouseRepository).build(input)
+    val domainGraph = DomainGraphBuilder(
+        packageRepository = packagesRepository,
+        routeRepository = routesRepository ,
+        warehouseRepository = warehouseRepository
+    ).build(input)
     val vehicles = domainGraph.vehicles
     val packages = domainGraph.packages
     val ring = PackageAssignmentRing2()
