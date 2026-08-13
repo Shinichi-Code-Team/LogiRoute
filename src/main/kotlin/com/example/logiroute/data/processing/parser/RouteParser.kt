@@ -26,7 +26,7 @@ fun parseRoutes(lines: List<String>): List<RouteRaw> {
 
         routes.add(
             RouteRaw(
-                routeId = columns[ROUTE_ID_INDEX],
+                id = columns[ROUTE_ID_INDEX],
                 originHubId = columns[ORIGIN_HUB_ID_INDEX],
                 destinationHubId = columns[DESTINATION_HUB_ID_INDEX],
                 distanceKm = parsePositiveDoubleOrInvalid(columns[DISTANCE_KM_INDEX]),

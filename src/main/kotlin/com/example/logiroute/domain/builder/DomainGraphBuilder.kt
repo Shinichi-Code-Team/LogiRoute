@@ -3,8 +3,13 @@ package com.example.logiroute.domain.builder
 import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.repository.WarehouseRepository
+import java.security.PrivateKey
 
-class DomainGraphBuilder(private val packageRepository: PackageRepository) {
+class DomainGraphBuilder(
+    private val packageRepository: PackageRepository,
+    private val warehouseRepository: WarehouseRepository
+) {
     fun build(input: DomainGraphInput): DomainGraph {
 
         val warehouses = buildWarehouses(input.warehouseRaws)
@@ -125,7 +130,7 @@ class DomainGraphBuilder(private val packageRepository: PackageRepository) {
         val origin = warehouseMap.getValue(normalizeWarehouseId(routeRaw.originHubId))
         val destination = warehouseMap.getValue(normalizeWarehouseId(routeRaw.destinationHubId))
         val routeDomain = Route(
-            routeId = routeRaw.routeId,
+            id = routeRaw.id,
             origin = origin,
             destination = destination,
             distanceKm = routeRaw.distanceKm,
@@ -152,9 +157,9 @@ class DomainGraphBuilder(private val packageRepository: PackageRepository) {
     ): List<Vehicle> {
         val currentHub = warehouseMap.getValue(normalizeWarehouseId(fleetRaw.currentHubId))
         val createdVehicles = mutableListOf<Vehicle>()
-        for (vId in fleetRaw.vehicleIds) {
+        for (vehicleId in fleetRaw.vehicleIds) {
             val vehicleDomain = Vehicle(
-                vehicleId = vId,
+                id = vehicleId,
                 maxCapacityKg = fleetRaw.maxCapacityKg,
                 costPerKm = fleetRaw.costPerKm,
                 currentHub = currentHub
