@@ -16,7 +16,7 @@ val loader = Loader()
 fun main() {
     val input = loadInputData()
     printRawDataSummary(input)
-    val domainGraph = DomainGraphBuilder(packagesRepository).build(input)
+    val domainGraph = DomainGraphBuilder().build(input)
     printDomainGraphSummary(domainGraph)
     val firstWarehouse = domainGraph.warehouses.firstOrNull()
     if (firstWarehouse == null) {
@@ -131,7 +131,7 @@ private fun runPricingDemo(warehouse: Warehouse, sortedCargoQueue: List<Package>
     println("Package ID: ${selectedPackage.id}")
     println("Package weight: ${selectedPackage.weight}")
     println("Package priority: ${selectedPackage.priority}")
-    println("Route ID: ${selectedRoute.routeId}")
+    println("Route ID: ${selectedRoute.id}")
     println("Route distance: ${selectedRoute.distanceKm} km")
 
     val pricingEngine = RoutePricingEngine(EcoStrategy())
@@ -223,17 +223,18 @@ private fun runPricingDemo(warehouse: Warehouse, sortedCargoQueue: List<Package>
 }
 
 fun runRingTestWithCsvLimited2() {
-    val warehouseRaws = loader.loadWarehouses()
-    val fleetRaws = loader.loadFleets()
-    val routeRaws = loader.loadRoutes()
+    val warehouseRaws = loadWarehouses()
+    val packageRaws = loadPackages()
+    val fleetRaws = loadFleets()
+    val routeRaws = loadRoutes()
 
     val input = DomainGraphInput(
         warehouseRaws = warehouseRaws,
-        packageRaws = packagesRepository.getPackages(),
+        packageRaws = packageRaws,
         fleetRaws = fleetRaws,
         routeRaws = routeRaws
     )
-    val domainGraph = DomainGraphBuilder(packagesRepository).build(input)
+    val domainGraph = DomainGraphBuilder().build(input)
     val vehicles = domainGraph.vehicles
     val packages = domainGraph.packages
     val ring = PackageAssignmentRing2()

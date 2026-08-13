@@ -2,42 +2,30 @@ package com.example.logiroute.data.processing.parser
 
 import com.example.logiroute.data.dataholder.WarehouseRaw
 import com.example.logiroute.data.processing.validation.*
-import com.example.logiroute.data.processing.validation.INVALID_DOUBLE_VALUE
 
 private const val WAREHOUSE_ID_INDEX = 0
 private const val WAREHOUSE_NAME_INDEX = 1
 private const val WAREHOUSE_REGIONAL_ZONE_INDEX = 2
 private const val WAREHOUSE_LATITUDE_INDEX = 3
 private const val WAREHOUSE_LONGITUDE_INDEX = 4
+
 private const val MIN_LATITUDE = -90.0
 private const val MAX_LATITUDE = 90.0
 private const val MIN_LONGITUDE = -180.0
 private const val MAX_LONGITUDE = 180.0
 
-
 fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
-    if (lines.isEmpty()) {
-        return emptyList()
-    }
+    if (lines.isEmpty()) return emptyList()
 
-    val expectedColumnCount =
-        getExpectedColumnCount(lines.first())
-
+    val expectedColumnCount = getExpectedColumnCount(lines.first())
     val warehouses = mutableListOf<WarehouseRaw>()
 
     for (line in skipHeader(lines)) {
-        if (line.isBlank()) {
-            continue
-        }
+        if (line.isBlank()) continue
 
         val columns = extractCleanColumns(line)
 
-        if (!isValidWarehouseRaw(
-                columns = columns,
-                expectedColumnCount = expectedColumnCount,
-                originalLine = line
-            )
-        ) {
+        if (!isValidWarehouseRaw(columns, expectedColumnCount, line)) {
             continue
         }
 
@@ -59,7 +47,6 @@ fun parseWarehouses(lines: List<String>): List<WarehouseRaw> {
             )
         )
     }
-
     return warehouses
 }
 
@@ -74,9 +61,7 @@ private fun isValidWarehouseRaw(
     }
 
     if (!hasRequiredWarehouseFields(columns)) {
-        println(
-            "Warning: Missing warehouse ID, name or regional zone -> $originalLine"
-        )
+        println("Warning: Missing warehouse ID, name or regional zone -> $originalLine")
         return false
     }
 
@@ -93,16 +78,10 @@ private fun isValidWarehouseRaw(
     return true
 }
 
-private fun hasRequiredWarehouseFields(
-    columns: List<String>
-): Boolean {
-    val id = columns[WAREHOUSE_ID_INDEX]
-    val name = columns[WAREHOUSE_NAME_INDEX]
-    val regionalZone = columns[WAREHOUSE_REGIONAL_ZONE_INDEX]
-
-    return isNotBlank(id) &&
-            isNotBlank(name) &&
-            isNotBlank(regionalZone)
+private fun hasRequiredWarehouseFields(columns: List<String>): Boolean {
+    return isNotBlank(columns[WAREHOUSE_ID_INDEX]) &&
+            isNotBlank(columns[WAREHOUSE_NAME_INDEX]) &&
+            isNotBlank(columns[WAREHOUSE_REGIONAL_ZONE_INDEX])
 }
 
 private fun isValidWarehouseLatitude(latitude: String): Boolean {
