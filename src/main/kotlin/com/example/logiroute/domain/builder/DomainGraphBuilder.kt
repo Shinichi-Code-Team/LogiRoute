@@ -2,14 +2,15 @@ package com.example.logiroute.domain.builder
 
 import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
+import com.example.logiroute.domain.repository.PackageRepository
 
-class DomainGraphBuilder {
+class DomainGraphBuilder(private val packageRepository: PackageRepository) {
     fun build(input: DomainGraphInput): DomainGraph {
 
         val warehouses = buildWarehouses(input.warehouseRaws)
         val warehouseMap = buildWarehouseIndex(warehouses)
-
-        val validPackageRaws = input.packageRaws.filter { packageRaw ->
+        val packageRaws = packageRepository.getPackages()
+        val validPackageRaws = packageRaws.filter { packageRaw ->
             normalizeWarehouseId(packageRaw.originHubId) in warehouseMap &&
                     normalizeWarehouseId(packageRaw.destinationHubId) in warehouseMap
         }
