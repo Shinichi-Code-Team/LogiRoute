@@ -1,8 +1,8 @@
 import com.example.logiroute.data.processing.loader.Loader
-import com.example.logiroute.data.repository.CSVWarehouseRepository
 import com.example.logiroute.data.repository.CSVPackageRepository
 import com.example.logiroute.data.repository.CSVRouteRepository
 import com.example.logiroute.data.repository.CSVVehicleRepository
+import com.example.logiroute.data.repository.CSVWarehouseRepository
 import com.example.logiroute.domain.builder.DomainGraph
 import com.example.logiroute.domain.builder.DomainGraphBuilder
 import com.example.logiroute.domain.builder.DomainGraphInput
@@ -10,6 +10,11 @@ import com.example.logiroute.domain.logic.algorithm.*
 import com.example.logiroute.domain.logic.packagepricing.basepricing.EcoStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChainDecorator
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.DecoratedPackagePricingService
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.PackageComponent
 import com.example.logiroute.domain.model.*
 import com.example.logiroute.domain.service.PackageAssignmentRing
 import com.example.logiroute.domain.service.PackageAssignmentRing2
@@ -38,6 +43,54 @@ fun main() {
     val sortedCargoQueue = runQuickSort(firstWarehouse)
     runPricingDemo(warehouse = firstWarehouse, sortedCargoQueue = sortedCargoQueue)
     runRingTestWithCsvLimited2()
+
+    println("--------------Package Decorator Test---------------")
+    val warehouseA = Warehouse(
+        id = "WH-1",
+        name = "Global Hub",
+        regionalZone = "North",
+        latitude = 31.5,
+        longitude = 34.4
+    )
+
+    val warehouseB = Warehouse(
+        id = "WH-2",
+        name = "Regional Center",
+        regionalZone = "South",
+        latitude = 31.4,
+        longitude = 34.3
+    )
+
+    val packageItem = Package(
+        id = "PKG-1",
+        weight = 10.0,
+        origin = warehouseA,
+        destination = warehouseB,
+        priority = Priority.URGENT
+    )
+    val pricingEngine = RoutePricingEngine(ExpressStrategy())
+    val pricingService = DecoratedPackagePricingService(pricingEngine)
+    val basePackageCost = pricingService.calculatePackageCost(
+        packageItem,
+        100.0,
+        weight   = packageItem . weight,
+         priority = packageItem.priority)
+    println("Base Package Cost = $basePackageCost")
+    val premiumPackage =
+        ColdChainDecorator(
+            ExpressInsuranceDecorator(
+                FragileHandlingDecorator(packageItem)
+            )
+        )
+
+    val finalCost = pricingService.calculatePackageCost(
+        packageComponent = premiumPackage,
+        distanceKm = 100.0,
+        weight = packageItem.weight,
+        priority = packageItem.priority
+    )
+
+    println("Decorated Cost = $finalCost")
 }
 
 private fun loadInputData(): DomainGraphInput {
@@ -281,3 +334,5 @@ fun runRingTestWithCsvLimited2() {
     println()
     println("Could not be assigned because of capacity: " + unassignedPackages.size)
 }
+
+
