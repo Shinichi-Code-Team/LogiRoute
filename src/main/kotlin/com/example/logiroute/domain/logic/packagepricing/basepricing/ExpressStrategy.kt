@@ -1,15 +1,16 @@
-package com.example.logiroute.domain.logic.pricing
+package com.example.logiroute.domain.logic.packagepricing.basepricing
 
 import com.example.logiroute.domain.model.Priority
 
-class EcoStrategy : DispatchStrategy {
+
+class ExpressStrategy : DispatchStrategy {
 
     override fun calculateTransitCost(
         weight: Double,
         distanceKm: Double
     ): Double {
-        val weightRate = 0.8
-        val distanceRate = 0.5
+        val weightRate = 3.0
+        val distanceRate = 2.3
 
         return (weight * weightRate) +
                 (distanceKm * distanceRate)
@@ -17,9 +18,10 @@ class EcoStrategy : DispatchStrategy {
 
     override fun getPriorityMultiplier(priority: Priority): Double {
         return when (priority) {
-            Priority.URGENT -> 1.5
-            Priority.STANDARD -> 1.0
-            Priority.LOW -> 0.8
+            Priority.URGENT -> 1.4
+            Priority.STANDARD -> 1.1
+            Priority.LOW -> 1.0
         }
     }
+
 }
