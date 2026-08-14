@@ -6,5 +6,5 @@ data class DomainGraphInput(
     val warehouseRaws: List<WarehouseRaw>,
     val packageRaws: List<PackageRaw>,
     val routeRaws: List<RouteRaw>,
-    val fleetRaws: List<FleetRaw>,
+    val vehicleRaws: List<FleetRaw>,
 )

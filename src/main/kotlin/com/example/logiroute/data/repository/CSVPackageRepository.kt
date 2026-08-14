@@ -6,6 +6,6 @@ import com.example.logiroute.domain.repository.PackageRepository
 
 class CSVPackageRepository(private val loader: Loader) : PackageRepository {
     override fun getPackages(): List<PackageRaw> {
-        return Loader().loadPackages()
+        return loader.loadPackages()
     }
 }

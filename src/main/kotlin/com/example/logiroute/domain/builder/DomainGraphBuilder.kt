@@ -3,12 +3,15 @@ package com.example.logiroute.domain.builder
 import com.example.logiroute.data.dataholder.*
 import com.example.logiroute.domain.model.*
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.repository.RouteRepository
+import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
-import java.security.PrivateKey
 
 class DomainGraphBuilder(
     private val packageRepository: PackageRepository,
-    private val warehouseRepository: WarehouseRepository
+    private val routeRepository: RouteRepository,
+    private val warehouseRepository: WarehouseRepository,
+    private val vehicleRepository: VehicleRepository
 ) {
     fun build(input: DomainGraphInput): DomainGraph {
 
@@ -41,7 +44,7 @@ class DomainGraphBuilder(
         input: DomainGraphInput,
         warehouseMap: Map<String, Warehouse>
     ): List<FleetRaw> {
-        return input.fleetRaws.filter { fleetRaw ->
+        return input.vehicleRaws.filter { fleetRaw ->
             normalizeWarehouseId(fleetRaw.currentHubId) in warehouseMap
         }
     }

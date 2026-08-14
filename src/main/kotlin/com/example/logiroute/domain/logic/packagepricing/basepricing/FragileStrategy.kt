@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.logic.pricing
+package com.example.logiroute.domain.logic.packagepricing.basepricing
 
 import com.example.logiroute.domain.model.Priority
 
