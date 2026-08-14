@@ -1,11 +1,12 @@
 package com.example.logiroute.domain.logic.packagepricing.servicepricing
 
+const val COLD_CHAIN_MULTIPLIER =  1.15
+
 class ColdChainDecorator(
     wrappedComponent: PackageComponent,
-    private val coolingFee: Double = 25.0
 ) : PackageDecorator(wrappedComponent) {
 
     override fun calculateCost(baseCost: Double): Double {
-        return super.calculateCost(baseCost) + coolingFee
+        return super.calculateCost(baseCost) * COLD_CHAIN_MULTIPLIER
     }
 }
