@@ -5,21 +5,28 @@ import com.example.logiroute.domain.model.Warehouse
 class PathConstructor {
 
     fun reconstructPath(
-        parentMap: Map<Warehouse, Warehouse?>,
+        parentMap: Map<Warehouse, Warehouse>,
+        source: Warehouse,
         destination: Warehouse
     ): List<Warehouse> {
-        if (destination !in parentMap) {
+        if (destination !in parentMap && source != destination) {
             return emptyList()
         }
         val path = mutableListOf<Warehouse>()
-        var current: Warehouse? = destination
+        val visited = mutableSetOf<Warehouse>()
+        var current = destination
 
-        while (current != null) {
+        while (true) {
+            if (!visited.add(current)) {
+                return emptyList()
+            }
             path.add(current)
-            current = parentMap[current]
+            if (current == source) {
+                break
+            }
+            current = parentMap[current] ?: break
         }
         path.reverse()
         return path
-
     }
 }
