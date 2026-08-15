@@ -6,7 +6,8 @@ import com.example.logiroute.data.repository.CSVWarehouseRepository
 import com.example.logiroute.domain.builder.DomainGraph
 import com.example.logiroute.domain.builder.DomainGraphBuilder
 import com.example.logiroute.domain.builder.DomainGraphInput
-import com.example.logiroute.domain.logic.algorithm.*
+import com.example.logiroute.domain.logic.algorithm.sortByWeightDescending
+import com.example.logiroute.domain.logic.algorithm.sortPackagesByPriorityConsideringWeight
 import com.example.logiroute.domain.logic.packagepricing.basepricing.EcoStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
@@ -14,8 +15,10 @@ import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChai
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.DecoratedPackagePricingService
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.PackageComponent
-import com.example.logiroute.domain.model.*
+import com.example.logiroute.domain.model.Package
+import com.example.logiroute.domain.model.Priority
+import com.example.logiroute.domain.model.Vehicle
+import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.service.PackageAssignmentRing
 import com.example.logiroute.domain.service.PackageAssignmentRing2
 
@@ -73,8 +76,9 @@ fun main() {
     val basePackageCost = pricingService.calculatePackageCost(
         packageItem,
         100.0,
-        weight   = packageItem . weight,
-         priority = packageItem.priority)
+        weight = packageItem.weight,
+        priority = packageItem.priority
+    )
     println("Base Package Cost = $basePackageCost")
     val premiumPackage =
         ColdChainDecorator(
