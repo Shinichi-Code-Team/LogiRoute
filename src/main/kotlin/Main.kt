@@ -6,8 +6,8 @@ import com.example.logiroute.data.repository.CSVWarehouseRepository
 import com.example.logiroute.domain.builder.DomainGraph
 import com.example.logiroute.domain.builder.DomainGraphBuilder
 import com.example.logiroute.domain.builder.DomainGraphInput
-import com.example.logiroute.domain.logic.algorithm.sortByWeightDescending
-import com.example.logiroute.domain.logic.algorithm.sortPackagesByPriorityConsideringWeight
+import com.example.logiroute.domain.logic.algorithm.sorting.sortByWeightDescending
+import com.example.logiroute.domain.logic.algorithm.sorting.sortPackagesByPriorityConsideringWeight
 import com.example.logiroute.domain.logic.packagepricing.basepricing.EcoStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
