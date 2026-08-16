@@ -1,11 +1,10 @@
 package com.example.logiroute.domain.logic.algorithm.routing
 
 import com.example.logiroute.domain.model.Warehouse
-import java.util.ArrayDeque
 
 class BfsRouter(
     private val adjacencyMap: Map<Warehouse, List<Warehouse>>,
-    private val pathConstructor: PathConstructor = PathConstructor()
+    private val pathConstructor: PathConstructor
 ) : Router {
 
     override fun findRoute(source: Warehouse, destination: Warehouse): List<Warehouse> {
@@ -27,7 +26,7 @@ class BfsRouter(
         var isReachable = false
 
         while (queue.isNotEmpty()) {
-            val current = queue.poll()
+            val current = queue.removeFirst()
 
             if (current == destination) {
                 isReachable = true
