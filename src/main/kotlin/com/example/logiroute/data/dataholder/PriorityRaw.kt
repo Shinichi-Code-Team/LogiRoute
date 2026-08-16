@@ -1,7 +1,7 @@
 package com.example.logiroute.data.dataholder
 
 enum class PriorityRaw {
-    LOW,
+    LOW,//0
     STANDARD,
     URGENT;
 }

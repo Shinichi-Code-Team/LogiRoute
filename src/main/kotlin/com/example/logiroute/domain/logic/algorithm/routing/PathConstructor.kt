@@ -24,7 +24,7 @@ class PathConstructor {
             if (current == source) {
                 break
             }
-            current = parentMap[current] ?: break
+            current = parentMap[current] ?: return emptyList()
         }
         path.reverse()
         return path
