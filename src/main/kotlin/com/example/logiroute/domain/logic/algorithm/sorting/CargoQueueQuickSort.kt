@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.logic.algorithm
+package com.example.logiroute.domain.logic.algorithm.sorting
 
 import com.example.logiroute.domain.model.Package
 
