@@ -15,19 +15,14 @@ class BfsRouter(
         if (!adjacencyMap.containsKey(source) || !adjacencyMap.containsKey(destination)) {
             return emptyList()
         }
-
         val queue = ArrayDeque<Warehouse>()
         val visited = mutableSetOf<Warehouse>()
         val parentMap = mutableMapOf<Warehouse, Warehouse>()
-
         queue.add(source)
         visited.add(source)
-
         var isReachable = false
-
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
-
             if (current == destination) {
                 isReachable = true
                 break
