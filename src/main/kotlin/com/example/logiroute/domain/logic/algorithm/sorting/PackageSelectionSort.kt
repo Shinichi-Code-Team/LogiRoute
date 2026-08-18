@@ -1,25 +1,36 @@
 package com.example.logiroute.domain.logic.algorithm.sorting
 
-import com.example.logiroute.domain.model.*
+import com.example.logiroute.domain.model.Package
+import com.example.logiroute.domain.model.Priority
 
-private fun comparePackageByPriority(
-    selectedPackage: Package,
-    currentPackage: Package
+private fun comparePriority(selectedPriority: Priority, currentPriority: Priority
 ): Int {
-    return selectedPackage.priority.comparePriority(currentPackage.priority)
+    return selectedPriority.compareTo(currentPriority)
 }
 
-private fun comparePackageByWeight(
-    selectedPackage: Package,
-    currentPackage: Package
+private fun compareWeight(selectedPackage: Package, currentPackage: Package
 ): Int {
-    return selectedPackage.compareWeight(currentPackage)
+    return selectedPackage.weight.compareTo(currentPackage.weight)
+}
+
+private fun comparePackageByPriority(selectedPackage: Package, currentPackage: Package
+): Int {
+    return comparePriority(
+        selectedPackage.priority,
+        currentPackage.priority
+    )
+}
+
+private fun comparePackageByWeight(selectedPackage: Package, currentPackage: Package
+): Int {
+    return compareWeight(
+        selectedPackage,
+        currentPackage
+    )
 }
 
 fun swapPackages(
-    packages: MutableList<Package>,
-    firstPackageIndex: Int,
-    secondPackageIndex: Int
+    packages: MutableList<Package>, firstPackageIndex: Int, secondPackageIndex: Int
 ) {
     val tempPackage = packages[firstPackageIndex]
     packages[firstPackageIndex] = packages[secondPackageIndex]

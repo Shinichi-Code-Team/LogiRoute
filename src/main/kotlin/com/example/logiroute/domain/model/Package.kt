@@ -12,8 +12,4 @@ data class Package(
     override fun calculateCost(baseCost: Double): Double {
         return baseCost
     }
-
-    fun compareWeight(otherPackage: Package): Int {
-        return weight.compareTo(otherPackage.weight)
-    }
 }
