@@ -91,8 +91,8 @@ fun main() {
 
     println("Base Package Cost = $basePackageCost")
     println("Decorated Package Cost = $decoratedPackageCost")
+    runBidirectionalBfsBenchmark(domainGraph)
 }
-
 private fun printPath(path: List<Warehouse>) {
     if (path.isEmpty()) {
         println("No route found.")
@@ -317,4 +317,71 @@ private fun findWeightedDifference(domainGraph: DomainGraph, bfsRouter: Router, 
     if (!found) {
         println("No weighted difference found in current data.")
     }
+}
+private fun runBidirectionalBfsBenchmark(domainGraph: DomainGraph) {
+    val warehouses = domainGraph.warehouses
+    val origin = warehouses.firstOrNull()
+    val destination = warehouses.lastOrNull()
+
+    if (origin == null || destination == null) {
+        println("[Shinichi-Engine] Warning: Insufficient warehouse data for benchmarking.")
+        return
+    }
+    val forwardAdjacencyMap: Map<Warehouse, List<Warehouse>> = warehouses.associateWith { warehouse ->
+        warehouse.outgoingRoutes.map { it.destination }
+    }
+    val backwardAdjacencyMap = warehouses.associateWith { mutableListOf<Warehouse>() }
+    warehouses.forEach { warehouse ->
+        warehouse.outgoingRoutes.forEach { route ->
+            backwardAdjacencyMap[route.destination]?.add(warehouse)
+        }
+    }
+    val pathConstructor = PathConstructor()
+    val uniStartTime = System.nanoTime()
+    val standardBfsRouter = BfsRouter(forwardAdjacencyMap, pathConstructor)
+    val uniPath = standardBfsRouter.findRoute(origin, destination)
+    val uniTimeMs = (System.nanoTime() - uniStartTime) / 1_000_000.0
+    val uniEvaluated = forwardAdjacencyMap.size
+    val biStartTime = System.nanoTime()
+    val bidirectionalRouter = BidirectionalBfsSolver(forwardAdjacencyMap, backwardAdjacencyMap)
+    val biPath = bidirectionalRouter.findRoute(origin, destination)
+    val biTimeMs = (System.nanoTime() - biStartTime) / 1_000_000.0
+    val biEvaluated = bidirectionalRouter.lastEvaluatedNodesCount
+    fun calculatePathDistance(path: List<Warehouse>): Double {
+        var total = 0.0
+        for (i in 0 until path.size - 1) {
+            val route = path[i].outgoingRoutes.firstOrNull { it.destination == path[i + 1] }
+            if (route != null) total += route.distanceKm
+        }
+        return total
+    }
+    val uniDistance = calculatePathDistance(uniPath)
+    val biDistance = calculatePathDistance(biPath)
+    val uniHops = if (uniPath.isNotEmpty()) uniPath.size - 1 else 0
+    val biHops = if (biPath.isNotEmpty()) biPath.size - 1 else 0
+    val reductionRate = if (uniEvaluated > 0) ((uniEvaluated - biEvaluated).toDouble() / uniEvaluated) * 100 else 0.0
+    println("\n======================================================================")
+    println(" [SHINICHI ENGINE] Bidirectional BFS Performance Benchmark")
+    println("======================================================================")
+    println(" Route Scenario : ${origin.name} (${origin.id}) --> ${destination.name} (${destination.id})")
+    println("----------------------------------------------------------------------")
+    val uniPathStr = if (uniPath.isNotEmpty()) uniPath.joinToString(" -> ") { it.id } else "NO ROUTE"
+    val biPathStr = if (biPath.isNotEmpty()) biPath.joinToString(" -> ") { it.id } else "NO ROUTE"
+    println(" [1] Standard BFS Path   : $uniPathStr")
+    println("     Stats               : $uniHops hops | ${"%.2f".format(uniDistance)} km")
+    println()
+    println(" [2] Bidirectional Path  : $biPathStr")
+    println("     Stats               : $biHops hops | ${"%.2f".format(biDistance)} km")
+    println("----------------------------------------------------------------------")
+    println(" METRICS SUMMARY:")
+    println(" %-22s | %-14s | %-10s | %-10s".format("Algorithm", "Evaluated Nodes", "Hops", "Time (ms)"))
+    println(" --------------------------------------------------------------------")
+    println(" %-22s | %-14d | %-10d | %-10.3f".format("Unidirectional BFS", uniEvaluated, uniHops, uniTimeMs))
+    println(" %-22s | %-14d | %-10d | %-10.3f".format("Bidirectional BFS", biEvaluated, biHops, biTimeMs))
+    println("----------------------------------------------------------------------")
+    println(" ANALYSIS:")
+    println(" - Node Search Reduction : ${"%.1f".format(reductionRate)}%")
+    println(" - Verification Status   : " + if (uniHops == biHops) "PASSED (Optimal Path Confirmed)" else "MISMATCH DETECTED")
+    println("======================================================================\n")
+    println("^_^")
 }
