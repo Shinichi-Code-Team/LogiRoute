@@ -13,14 +13,17 @@ fun main() {
     val warehouseRepository = CSVWarehouseRepository(loader)
     val vehicleRepository = CSVVehicleRepository(loader)
 
-    val graphBuilder = DomainGraphBuilder(packagesRepository,
-        routesRepository, warehouseRepository, vehicleRepository)
+    val graphBuilder = DomainGraphBuilder(
+        packagesRepository,
+        routesRepository, warehouseRepository, vehicleRepository
+    )
 
     val input = DomainGraphInput(
-            warehouseRaws = warehouseRepository.getWarehouses(),
-            packageRaws = packagesRepository.getPackages(),
-            routeRaws = routesRepository.getRoutes(),
-            vehicleRaws = vehicleRepository.getVehicles())
+        warehouseRaws = warehouseRepository.getWarehouses(),
+        packageRaws = packagesRepository.getPackages(),
+        routeRaws = routesRepository.getRoutes(),
+        vehicleRaws = vehicleRepository.getVehicles()
+    )
 
     val domainGraph = graphBuilder.build(input)
     if (domainGraph.warehouses.isEmpty()) {
@@ -36,18 +39,37 @@ fun main() {
     val pathConstructor = PathConstructor()
 
     val bfsAdjacencyMap = domainGraph.warehouses.associateWith { warehouse ->
-            warehouse.outgoingRoutes.map { route ->
-                route.destination
-            }
+        warehouse.outgoingRoutes.map { route ->
+            route.destination
         }
+    }
 
     val weightedAdjacencyMap = domainGraph.warehouses.associateWith { warehouse ->
-            warehouse.outgoingRoutes
+        warehouse.outgoingRoutes
+    }
+
+    val backwardAdjacencyMap =
+        domainGraph.warehouses.associateWith {
+            mutableListOf<Warehouse>()
         }
 
-    val bfsRouter: Router = BfsRouter(bfsAdjacencyMap, pathConstructor)
+    domainGraph.warehouses.forEach { warehouse ->
 
-    val dijkstraRouter: Router = DijkstraRouter(weightedAdjacencyMap, pathConstructor)
+        warehouse.outgoingRoutes.forEach { route ->
+
+            backwardAdjacencyMap[route.destination]
+                ?.add(warehouse)
+        }
+    }
+
+    val bfsRouter = BfsRouter(bfsAdjacencyMap, pathConstructor)
+
+    val dijkstraRouter = DijkstraRouter(weightedAdjacencyMap, pathConstructor)
+    val bidirectionalBfsRouter =
+        BidirectionalBfsSolver(
+            forwardAdjacencyMap = bfsAdjacencyMap,
+            backwardAdjacencyMap = backwardAdjacencyMap
+        )
 
     val pricingStrategy = ExpressStrategy()
 
@@ -67,33 +89,81 @@ fun main() {
 
     val dijkstraPath = dijkstraRouter.findRoute(packageItem.origin, packageItem.destination)
 
+
+    println()
+    println("========== BFS vs DIJKSTRA ==========")
+
     println("BFS Route:")
     printPath(bfsPath)
+
     println("Dijkstra Route:")
     printPath(dijkstraPath)
-    compareRoutingResults(bfsPath, dijkstraPath)
-    validateMultiHop(domainGraph, bfsRouter, dijkstraRouter)
-    validateUnreachableDestination(domainGraph, bfsRouter, dijkstraRouter)
-    findWeightedDifference(domainGraph, bfsRouter, dijkstraRouter)
-    val basePackageCost = pricingService.calculatePackageCost(
-            packageComponent = packageItem,
-            distanceKm = 100.0,
-            weight = packageItem.weight,
-            priority = packageItem.priority
+
+    compareRoutingResults(
+        bfsPath = bfsPath,
+        dijkstraPath = dijkstraPath
+    )
+
+    validateMultiHop(
+        domainGraph = domainGraph,
+        bfsRouter = bfsRouter,
+        dijkstraRouter = dijkstraRouter
+    )
+
+    validateUnreachableDestination(
+        domainGraph = domainGraph,
+        bfsRouter = bfsRouter,
+        dijkstraRouter = dijkstraRouter
+    )
+
+    findWeightedDifference(
+        domainGraph = domainGraph,
+        bfsRouter = bfsRouter,
+        dijkstraRouter = dijkstraRouter
+    )
+    val bidirectionalPath =
+        bidirectionalBfsRouter.findRoute(
+            packageItem.origin,
+            packageItem.destination
         )
+
+    compareBfsWithBidirectional(
+        bfsPath = bfsPath,
+        bidirectionalPath = bidirectionalPath,
+        bidirectionalRouter = bidirectionalBfsRouter,
+        bfsRouter = bfsRouter
+    )
+
+    val basePackageCost = pricingService.calculatePackageCost(
+        packageComponent = packageItem,
+        distanceKm = 100.0,
+        weight = packageItem.weight,
+        priority = packageItem.priority
+    )
 
     val decoratedPackageCost = pricingService.calculatePackageCost(
-            packageComponent = premiumPackage,
-            distanceKm = 100.0,
-            weight = packageItem.weight,
-            priority = packageItem.priority
-        )
-
+        packageComponent = premiumPackage,
+        distanceKm = 100.0,
+        weight = packageItem.weight,
+        priority = packageItem.priority
+    )
+    println("\n========== PACKAGE PRICING ==========")
     println("Base Package Cost = $basePackageCost")
     println("Decorated Package Cost = $decoratedPackageCost")
-    runBidirectionalBfsBenchmark(domainGraph)
+
+
+
+
+    domainGraph.warehouses.forEach { warehouse ->
+        warehouse.outgoingRoutes.forEach { route ->
+            backwardAdjacencyMap[route.destination]
+                ?.add(warehouse)
+        }
+
+    }
 }
-private fun printPath(path: List<Warehouse>) {
+
+fun printPath(path: List<Warehouse>) {
     if (path.isEmpty()) {
         println("No route found.")
         return
@@ -129,7 +199,7 @@ A -> B -> C -> D
 BFS chooses A -> D because it contains only one hop.
 Dijkstra chooses A -> B -> C -> D because its total distance is smaller.
 */
-private fun compareRoutingResults(bfsPath: List<Warehouse>, dijkstraPath: List<Warehouse>) {
+fun compareRoutingResults(bfsPath: List<Warehouse>, dijkstraPath: List<Warehouse>) {
     if (bfsPath.isEmpty()) {
         println("BFS could not find a route.")
     } else {
@@ -164,31 +234,32 @@ private fun compareRoutingResults(bfsPath: List<Warehouse>, dijkstraPath: List<W
     }
 }
 
-private fun calculatePathDistance(path: List<Warehouse>): Double {
+fun calculatePathDistance(
+    path: List<Warehouse>
+): Double {
+
     var totalDistance = 0.0
 
-    if (path.size < 2) {
-        return totalDistance
-    }
-
     for (index in 0 until path.size - 1) {
-        val currentWarehouse =
-            path[index]
 
-        val nextWarehouse =
-            path[index + 1]
+        val currentWarehouse = path[index]
+        val nextWarehouse = path[index + 1]
 
-        for (route in currentWarehouse.outgoingRoutes) {
-            if (route.destination == nextWarehouse) {
-                totalDistance += route.distanceKm
-            }
+        val route =
+            currentWarehouse.outgoingRoutes
+                .firstOrNull {
+                    it.destination == nextWarehouse
+                }
+
+        if (route != null) {
+            totalDistance += route.distanceKm
         }
     }
 
     return totalDistance
 }
 
-private fun validateMultiHop(
+fun validateMultiHop(
     domainGraph: DomainGraph,
     bfsRouter: Router,
     dijkstraRouter: Router
@@ -238,7 +309,7 @@ private fun validateMultiHop(
     }
 }
 
-private fun validateUnreachableDestination(domainGraph: DomainGraph, bfsRouter: Router, dijkstraRouter: Router) {
+fun validateUnreachableDestination(domainGraph: DomainGraph, bfsRouter: Router, dijkstraRouter: Router) {
     var found = false
     for (origin in domainGraph.warehouses) {
         for (destination in domainGraph.warehouses) {
@@ -318,70 +389,111 @@ private fun findWeightedDifference(domainGraph: DomainGraph, bfsRouter: Router, 
         println("No weighted difference found in current data.")
     }
 }
-private fun runBidirectionalBfsBenchmark(domainGraph: DomainGraph) {
-    val warehouses = domainGraph.warehouses
-    val origin = warehouses.firstOrNull()
-    val destination = warehouses.lastOrNull()
 
-    if (origin == null || destination == null) {
-        println("[Shinichi-Engine] Warning: Insufficient warehouse data for benchmarking.")
-        return
+
+fun calculateHops(
+    path: List<Warehouse>
+): Int {
+    return if (path.isNotEmpty()) {
+        path.size - 1
+    } else {
+        0
     }
-    val forwardAdjacencyMap: Map<Warehouse, List<Warehouse>> = warehouses.associateWith { warehouse ->
-        warehouse.outgoingRoutes.map { it.destination }
-    }
-    val backwardAdjacencyMap = warehouses.associateWith { mutableListOf<Warehouse>() }
-    warehouses.forEach { warehouse ->
-        warehouse.outgoingRoutes.forEach { route ->
-            backwardAdjacencyMap[route.destination]?.add(warehouse)
-        }
-    }
-    val pathConstructor = PathConstructor()
-    val uniStartTime = System.nanoTime()
-    val standardBfsRouter = BfsRouter(forwardAdjacencyMap, pathConstructor)
-    val uniPath = standardBfsRouter.findRoute(origin, destination)
-    val uniTimeMs = (System.nanoTime() - uniStartTime) / 1_000_000.0
-    val uniEvaluated = forwardAdjacencyMap.size
-    val biStartTime = System.nanoTime()
-    val bidirectionalRouter = BidirectionalBfsSolver(forwardAdjacencyMap, backwardAdjacencyMap)
-    val biPath = bidirectionalRouter.findRoute(origin, destination)
-    val biTimeMs = (System.nanoTime() - biStartTime) / 1_000_000.0
-    val biEvaluated = bidirectionalRouter.lastEvaluatedNodesCount
-    fun calculatePathDistance(path: List<Warehouse>): Double {
-        var total = 0.0
-        for (i in 0 until path.size - 1) {
-            val route = path[i].outgoingRoutes.firstOrNull { it.destination == path[i + 1] }
-            if (route != null) total += route.distanceKm
-        }
-        return total
-    }
-    val uniDistance = calculatePathDistance(uniPath)
-    val biDistance = calculatePathDistance(biPath)
-    val uniHops = if (uniPath.isNotEmpty()) uniPath.size - 1 else 0
-    val biHops = if (biPath.isNotEmpty()) biPath.size - 1 else 0
-    val reductionRate = if (uniEvaluated > 0) ((uniEvaluated - biEvaluated).toDouble() / uniEvaluated) * 100 else 0.0
-    println("\n======================================================================")
-    println(" [SHINICHI ENGINE] Bidirectional BFS Performance Benchmark")
-    println("======================================================================")
-    println(" Route Scenario : ${origin.name} (${origin.id}) --> ${destination.name} (${destination.id})")
-    println("----------------------------------------------------------------------")
-    val uniPathStr = if (uniPath.isNotEmpty()) uniPath.joinToString(" -> ") { it.id } else "NO ROUTE"
-    val biPathStr = if (biPath.isNotEmpty()) biPath.joinToString(" -> ") { it.id } else "NO ROUTE"
-    println(" [1] Standard BFS Path   : $uniPathStr")
-    println("     Stats               : $uniHops hops | ${"%.2f".format(uniDistance)} km")
-    println()
-    println(" [2] Bidirectional Path  : $biPathStr")
-    println("     Stats               : $biHops hops | ${"%.2f".format(biDistance)} km")
-    println("----------------------------------------------------------------------")
-    println(" METRICS SUMMARY:")
-    println(" %-22s | %-14s | %-10s | %-10s".format("Algorithm", "Evaluated Nodes", "Hops", "Time (ms)"))
-    println(" --------------------------------------------------------------------")
-    println(" %-22s | %-14d | %-10d | %-10.3f".format("Unidirectional BFS", uniEvaluated, uniHops, uniTimeMs))
-    println(" %-22s | %-14d | %-10d | %-10.3f".format("Bidirectional BFS", biEvaluated, biHops, biTimeMs))
-    println("----------------------------------------------------------------------")
-    println(" ANALYSIS:")
-    println(" - Node Search Reduction : ${"%.1f".format(reductionRate)}%")
-    println(" - Verification Status   : " + if (uniHops == biHops) "PASSED (Optimal Path Confirmed)" else "MISMATCH DETECTED")
-    println("======================================================================\n")
-    println("^_^")
 }
+
+fun printBfsResult(
+    path: List<Warehouse>,
+    evaluatedNodes: Int
+) {
+    println()
+    println("Standard BFS:")
+    printPath(path)
+    println()
+    println("Hops = ${calculateHops(path)}")
+    println("Evaluated Nodes = $evaluatedNodes")
+}
+
+fun printBidirectionalResult(
+    path: List<Warehouse>,
+    router: BidirectionalBfsSolver
+) {
+    println()
+    println("Bidirectional BFS:")
+    printPath(path)
+    println()
+    println("Hops = ${calculateHops(path)}")
+    println(
+        "Evaluated Nodes = ${router.lastEvaluatedNodesCount}"
+    )
+}
+
+fun verifySameHopCount(
+    bfsPath: List<Warehouse>,
+    bidirectionalPath: List<Warehouse>
+) {
+
+    println("----------------------------------------------")
+
+    when {
+        bfsPath.isEmpty() && bidirectionalPath.isEmpty() -> {
+            println(
+                "Both algorithms could not find a route."
+            )
+        }
+
+        bfsPath.isEmpty() -> {
+            println("BFS could not find a route.")
+            println("Bidirectional BFS found a route.")
+        }
+
+        bidirectionalPath.isEmpty() -> {
+            println(
+                "Bidirectional BFS could not find a route."
+            )
+            println("BFS found a route.")
+        }
+
+        calculateHops(bfsPath) ==
+                calculateHops(bidirectionalPath) -> {
+
+            println("Verification: PASSED")
+            println(
+                "Both algorithms found a shortest-hop path."
+            )
+        }
+
+        else -> {
+            println("Verification: FAILED")
+            println(
+                "The algorithms returned different hop counts."
+            )
+        }
+    }
+}
+
+fun compareBfsWithBidirectional(
+    bfsPath: List<Warehouse>,
+    bidirectionalPath: List<Warehouse>,
+    bidirectionalRouter: BidirectionalBfsSolver,
+    bfsRouter: BfsRouter
+) {
+    println()
+    println("==============================================")
+    println("BFS vs BIDIRECTIONAL BFS")
+    println("==============================================")
+
+
+    printBfsResult(bfsPath,bfsRouter.evaluatedNodes)
+    printBidirectionalResult(
+        path = bidirectionalPath,
+        router = bidirectionalRouter
+    )
+
+    verifySameHopCount(
+        bfsPath = bfsPath,
+        bidirectionalPath = bidirectionalPath
+    )
+
+
+}
+
