@@ -1,13 +1,23 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.dataholder.WarehouseRaw
 import com.example.logiroute.data.processing.loader.Loader
+import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 
-class CSVWarehouseRepository(private val loader: Loader) : WarehouseRepository {
-    override fun getWarehouses(): List<WarehouseRaw> {
-        return loader.loadWarehouses()
-    }
+class CSVWarehouseRepository(
+    private val loader: Loader
+) : WarehouseRepository {
 
+    override fun getAllWarehouses(): List<Warehouse> {
+        return loader.loadWarehouses().map { raw ->
+            Warehouse(
+                id = raw.id,
+                name = raw.name,
+                regionalZone = raw.regionalZone,
+                latitude = raw.latitude,
+                longitude = raw.longitude
+            )
+        }
+    }
 }
