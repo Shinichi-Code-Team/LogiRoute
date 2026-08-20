@@ -5,7 +5,6 @@ import com.example.logiroute.data.repository.CSVVehicleRepository
 import com.example.logiroute.data.repository.CSVWarehouseRepository
 import com.example.logiroute.domain.builder.DomainGraph
 import com.example.logiroute.domain.builder.DomainGraphBuilder
-import com.example.logiroute.domain.builder.DomainGraphInput
 import com.example.logiroute.domain.logic.algorithm.routing.*
 import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
@@ -16,46 +15,120 @@ import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileH
 import com.example.logiroute.domain.model.Warehouse
 
 fun main() {
+
+    val domainGraph = buildDomainGraph()
+
+    if (!isValidDomainGraph(domainGraph)) {
+        return
+    }
+
+    if (!isValidDomainGraph(domainGraph)) {
+        return
+    }
+
+    printDomainGraphSummary(domainGraph)
+
+    val routers = createRouters(domainGraph)
+
+    runRoutingDemo(
+        domainGraph = domainGraph,
+        routers = routers
+    )
+
+    runBidirectionalDemo(
+        domainGraph = domainGraph,
+        routers = routers
+    )
+
+    runPricingDemo(domainGraph)
+}
+
+private fun buildDomainGraph(): DomainGraph {
     val loader = Loader()
-    val packagesRepository = CSVPackageRepository(loader)
-    val routesRepository = CSVRouteRepository(loader)
+
     val warehouseRepository = CSVWarehouseRepository(loader)
-    val vehicleRepository = CSVVehicleRepository(loader)
+
+    val packageRepository = CSVPackageRepository(
+        loader = loader,
+        warehouseRepository = warehouseRepository
+    )
+
+    val routeRepository = CSVRouteRepository(
+        loader = loader,
+        warehouseRepository = warehouseRepository
+    )
+
+    val vehicleRepository = CSVVehicleRepository(
+        loader = loader,
+        warehouseRepository = warehouseRepository
+    )
 
     val graphBuilder = DomainGraphBuilder(
-        packagesRepository,
-        routesRepository, warehouseRepository, vehicleRepository
+        packageRepository = packageRepository,
+        routeRepository = routeRepository,
+        warehouseRepository = warehouseRepository,
+        vehicleRepository = vehicleRepository
     )
 
-    val input = DomainGraphInput(
-        warehouseRaws = warehouseRepository.getWarehouses(),
-        packageRaws = packagesRepository.getPackages(),
-        routeRaws = routesRepository.getRoutes(),
-        vehicleRaws = vehicleRepository.getVehicles()
-    )
+    return graphBuilder.build()
+}
 
-    val domainGraph = graphBuilder.build(input)
+
+private fun isValidDomainGraph(domainGraph: DomainGraph): Boolean {
     if (domainGraph.warehouses.isEmpty()) {
         println("No warehouses found.")
-        return
+        return false
     }
 
     if (domainGraph.packages.isEmpty()) {
         println("No packages found.")
-        return
+        return false
     }
 
+    return true
+}
+
+private fun printDomainGraphSummary(domainGraph: DomainGraph) {
+    println("========== DOMAIN GRAPH ==========")
+    println("Warehouses: ${domainGraph.warehouses.size}")
+    println("Packages: ${domainGraph.packages.size}")
+    println("Routes: ${domainGraph.routes.size}")
+    println("Vehicles: ${domainGraph.vehicles.size}")
+
+    println("\n========== WAREHOUSE RELATIONSHIPS ==========")
+
+    domainGraph.warehouses.take(3).forEach { warehouse ->
+        println(
+            """
+            Warehouse: ${warehouse.id}
+            Packages: ${warehouse.cargoQueue.map { it.id }}
+            Routes: ${warehouse.outgoingRoutes.map { it.id }}
+            Vehicles: ${warehouse.stationedVehicles.map { it.id }}
+            """.trimIndent()
+        )
+    }
+}
+
+private data class Routers(
+    val bfs: BfsRouter,
+    val dijkstra: DijkstraRouter,
+    val bidirectionalBfs: BidirectionalBfsRouter
+)
+
+private fun createRouters(domainGraph: DomainGraph): Routers {
     val pathConstructor = PathConstructor()
 
-    val bfsAdjacencyMap = domainGraph.warehouses.associateWith { warehouse ->
-        warehouse.outgoingRoutes.map { route ->
-            route.destination
+    val bfsAdjacencyMap =
+        domainGraph.warehouses.associateWith { warehouse ->
+            warehouse.outgoingRoutes.map { route ->
+                route.destination
+            }
         }
-    }
 
-    val weightedAdjacencyMap = domainGraph.warehouses.associateWith { warehouse ->
-        warehouse.outgoingRoutes
-    }
+    val weightedAdjacencyMap =
+        domainGraph.warehouses.associateWith { warehouse ->
+            warehouse.outgoingRoutes
+        }
 
     val backwardAdjacencyMap =
         domainGraph.warehouses.associateWith {
@@ -63,41 +136,43 @@ fun main() {
         }
 
     domainGraph.warehouses.forEach { warehouse ->
-
         warehouse.outgoingRoutes.forEach { route ->
-
             backwardAdjacencyMap[route.destination]
                 ?.add(warehouse)
         }
     }
 
-    val bfsRouter = BfsRouter(bfsAdjacencyMap, pathConstructor)
-
-    val dijkstraRouter = DijkstraRouter(weightedAdjacencyMap, pathConstructor)
-    val bidirectionalBfsRouter =
-        BidirectionalBfsSolver(
+    return Routers(
+        bfs = BfsRouter(
+            bfsAdjacencyMap,
+            pathConstructor
+        ),
+        dijkstra = DijkstraRouter(
+            weightedAdjacencyMap,
+            pathConstructor
+        ),
+        bidirectionalBfs = BidirectionalBfsRouter(
             forwardAdjacencyMap = bfsAdjacencyMap,
             backwardAdjacencyMap = backwardAdjacencyMap
         )
+    )
+}
 
-    val pricingStrategy = ExpressStrategy()
+private fun runRoutingDemo(
+    domainGraph: DomainGraph,
+    routers: Routers
+) {
+    val packageItem = domainGraph.packages.first()
 
-    val pricingEngine = RoutePricingEngine(pricingStrategy)
+    val bfsPath = routers.bfs.findRoute(
+        packageItem.origin,
+        packageItem.destination
+    )
 
-    val pricingService = DecoratedPackagePricingService(pricingEngine)
-
-    val packageItem = domainGraph.packages[0]
-
-    val fragilePackage = FragileHandlingDecorator(packageItem)
-
-    val insuredPackage = ExpressInsuranceDecorator(fragilePackage)
-
-    val premiumPackage = ColdChainDecorator(insuredPackage)
-
-    val bfsPath = bfsRouter.findRoute(packageItem.origin, packageItem.destination)
-
-    val dijkstraPath = dijkstraRouter.findRoute(packageItem.origin, packageItem.destination)
-
+    val dijkstraPath = routers.dijkstra.findRoute(
+        packageItem.origin,
+        packageItem.destination
+    )
 
     println()
     println("========== BFS vs DIJKSTRA ==========")
@@ -115,23 +190,36 @@ fun main() {
 
     validateMultiHop(
         domainGraph = domainGraph,
-        bfsRouter = bfsRouter,
-        dijkstraRouter = dijkstraRouter
+        bfsRouter = routers.bfs,
+        dijkstraRouter = routers.dijkstra
     )
 
     validateUnreachableDestination(
         domainGraph = domainGraph,
-        bfsRouter = bfsRouter,
-        dijkstraRouter = dijkstraRouter
+        bfsRouter = routers.bfs,
+        dijkstraRouter = routers.dijkstra
     )
 
     findWeightedDifference(
         domainGraph = domainGraph,
-        bfsRouter = bfsRouter,
-        dijkstraRouter = dijkstraRouter
+        bfsRouter = routers.bfs,
+        dijkstraRouter = routers.dijkstra
     )
+}
+
+private fun runBidirectionalDemo(
+    domainGraph: DomainGraph,
+    routers: Routers
+) {
+    val packageItem = domainGraph.packages.first()
+
+    val bfsPath = routers.bfs.findRoute(
+        packageItem.origin,
+        packageItem.destination
+    )
+
     val bidirectionalPath =
-        bidirectionalBfsRouter.findRoute(
+        routers.bidirectionalBfs.findRoute(
             packageItem.origin,
             packageItem.destination
         )
@@ -139,38 +227,55 @@ fun main() {
     compareBfsWithBidirectional(
         bfsPath = bfsPath,
         bidirectionalPath = bidirectionalPath,
-        bidirectionalRouter = bidirectionalBfsRouter,
-        bfsRouter = bfsRouter
+        bidirectionalRouter = routers.bidirectionalBfs,
+        bfsRouter = routers.bfs
     )
+}
 
-    val basePackageCost = pricingService.calculatePackageCost(
-        packageComponent = packageItem,
-        distanceKm = 100.0,
-        weight = packageItem.weight,
-        priority = packageItem.priority
-    )
+private fun runPricingDemo(domainGraph: DomainGraph) {
+    val pricingStrategy = ExpressStrategy()
 
-    val decoratedPackageCost = pricingService.calculatePackageCost(
-        packageComponent = premiumPackage,
-        distanceKm = 100.0,
-        weight = packageItem.weight,
-        priority = packageItem.priority
-    )
+    val pricingEngine =
+        RoutePricingEngine(pricingStrategy)
+
+    val pricingService =
+        DecoratedPackagePricingService(pricingEngine)
+
+    val packageItem =
+        domainGraph.packages.first()
+
+    val fragilePackage =
+        FragileHandlingDecorator(packageItem)
+
+    val insuredPackage =
+        ExpressInsuranceDecorator(fragilePackage)
+
+    val premiumPackage =
+        ColdChainDecorator(insuredPackage)
+
+    val basePackageCost =
+        pricingService.calculatePackageCost(
+            packageComponent = packageItem,
+            distanceKm = 100.0,
+            weight = packageItem.weight,
+            priority = packageItem.priority
+        )
+
+    val decoratedPackageCost =
+        pricingService.calculatePackageCost(
+            packageComponent = premiumPackage,
+            distanceKm = 100.0,
+            weight = packageItem.weight,
+            priority = packageItem.priority
+        )
+
     println("\n========== PACKAGE PRICING ==========")
     println("Base Package Cost = $basePackageCost")
     println("Decorated Package Cost = $decoratedPackageCost")
-
-
-
-
-    domainGraph.warehouses.forEach { warehouse ->
-        warehouse.outgoingRoutes.forEach { route ->
-            backwardAdjacencyMap[route.destination]
-                ?.add(warehouse)
-        }
-
-    }
 }
+
+
+
 
 fun printPath(path: List<Warehouse>) {
     if (path.isEmpty()) {
@@ -424,7 +529,7 @@ fun printBfsResult(
 
 fun printBidirectionalResult(
     path: List<Warehouse>,
-    router: BidirectionalBfsSolver
+    router: BidirectionalBfsRouter
 ) {
     println()
     println("Bidirectional BFS:")
@@ -483,7 +588,7 @@ fun verifySameHopCount(
 fun compareBfsWithBidirectional(
     bfsPath: List<Warehouse>,
     bidirectionalPath: List<Warehouse>,
-    bidirectionalRouter: BidirectionalBfsSolver,
+    bidirectionalRouter: BidirectionalBfsRouter,
     bfsRouter: BfsRouter
 ) {
     println()
