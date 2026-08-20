@@ -1,9 +1,18 @@
 import com.example.logiroute.data.processing.loader.Loader
-import com.example.logiroute.data.repository.*
-import com.example.logiroute.domain.builder.*
+import com.example.logiroute.data.repository.CSVPackageRepository
+import com.example.logiroute.data.repository.CSVRouteRepository
+import com.example.logiroute.data.repository.CSVVehicleRepository
+import com.example.logiroute.data.repository.CSVWarehouseRepository
+import com.example.logiroute.domain.builder.DomainGraph
+import com.example.logiroute.domain.builder.DomainGraphBuilder
+import com.example.logiroute.domain.builder.DomainGraphInput
 import com.example.logiroute.domain.logic.algorithm.routing.*
-import com.example.logiroute.domain.logic.packagepricing.basepricing.*
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.*
+import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
+import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChainDecorator
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.DecoratedPackagePricingService
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
+import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
 import com.example.logiroute.domain.model.Warehouse
 
 fun main() {
@@ -483,7 +492,7 @@ fun compareBfsWithBidirectional(
     println("==============================================")
 
 
-    printBfsResult(bfsPath,bfsRouter.evaluatedNodes)
+    printBfsResult(bfsPath, bfsRouter.evaluatedNodes)
     printBidirectionalResult(
         path = bidirectionalPath,
         router = bidirectionalRouter
