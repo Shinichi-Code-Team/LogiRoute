@@ -1,9 +1,10 @@
 package com.example.logiroute.domain.logic.algorithm.routing
 
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.repository.WarehouseRepository
 
 class BfsRouter(
-    private val warehouses: List<Warehouse>,
+    private val warehouseRepository: WarehouseRepository,
     private val pathConstructor: PathConstructor
 ) : Router {
 
@@ -63,6 +64,7 @@ class BfsRouter(
     }
 
     private fun buildAdjacencyMap(): Map<Warehouse, List<Warehouse>> {
+        val warehouses = warehouseRepository.getAllWarehouses()
         return warehouses.associateWith { warehouse ->
             warehouse.outgoingRoutes.map { it.destination }
         }

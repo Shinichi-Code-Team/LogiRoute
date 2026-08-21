@@ -2,12 +2,13 @@ package com.example.logiroute.domain.logic.algorithm.routing
 
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.repository.WarehouseRepository
 
 class DijkstraRouter(
-    private val warehouses: List<Warehouse>,
+    private val warehousesRepository: WarehouseRepository,
     private val pathConstructor: PathConstructor
 ) : Router {
-    val adjacencyMap = buildWeightAdjacencyMap()
+    private val adjacencyMap = buildWeightedAdjacencyMap()
 
     override fun findRoute(source: Warehouse, destination: Warehouse): List<Warehouse> {
         if (source == destination) {
@@ -121,7 +122,8 @@ class DijkstraRouter(
         val parents: MutableMap<Warehouse, Warehouse>
     )
 
-    private fun buildWeightAdjacencyMap(): Map<Warehouse, List<Route>> {
+    private fun buildWeightedAdjacencyMap(): Map<Warehouse, List<Route>> {
+        val warehouses = warehousesRepository.getAllWarehouses()
         return warehouses.associateWith { warehouse ->
             warehouse.outgoingRoutes
         }

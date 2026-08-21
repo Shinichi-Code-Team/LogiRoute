@@ -1,10 +1,12 @@
 package com.example.logiroute.domain.logic.algorithm.routing
 
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.repository.WarehouseRepository
 
 class BidirectionalBfsRouter(
-    private val warehouses: List<Warehouse>,
+    private val warehousesRepository: WarehouseRepository,
 ) : Router {
+    val warehouses = warehousesRepository.getAllWarehouses()
     val forwardAdjacencyMap = buildForwardAdjacencyMap()
     val backwardAdjacencyMap = buildBackwardAdjacencyMap()
     var lastEvaluatedNodesCount: Int = 0

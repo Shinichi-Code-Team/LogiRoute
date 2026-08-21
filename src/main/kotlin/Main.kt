@@ -13,14 +13,42 @@ import com.example.logiroute.domain.logic.packagepricing.servicepricing.Decorate
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.repository.WarehouseRepository
 
 fun main() {
 
-    val domainGraph = buildDomainGraph()
+    val loader = Loader()
 
-    if (!isValidDomainGraph(domainGraph)) {
-        return
-    }
+    val warehouseRepository =
+        CSVWarehouseRepository(loader)
+
+    val packageRepository =
+        CSVPackageRepository(
+            loader,
+            warehouseRepository
+        )
+
+    val routeRepository =
+        CSVRouteRepository(
+            loader,
+            warehouseRepository
+        )
+
+    val vehicleRepository =
+        CSVVehicleRepository(
+            loader,
+            warehouseRepository
+        )
+
+    val graphBuilder =
+        DomainGraphBuilder(
+            packageRepository,
+            routeRepository,
+            warehouseRepository,
+            vehicleRepository
+        )
+
+    val domainGraph = graphBuilder.build()
 
     if (!isValidDomainGraph(domainGraph)) {
         return
@@ -28,49 +56,20 @@ fun main() {
 
     printDomainGraphSummary(domainGraph)
 
-    val routers = createRouters(domainGraph)
+    val routers =
+        createRouters(warehouseRepository)
 
     runRoutingDemo(
-        domainGraph = domainGraph,
-        routers = routers
+        domainGraph,
+        routers
     )
 
     runBidirectionalDemo(
-        domainGraph = domainGraph,
-        routers = routers
+        domainGraph,
+        routers
     )
 
     runPricingDemo(domainGraph)
-}
-
-private fun buildDomainGraph(): DomainGraph {
-    val loader = Loader()
-
-    val warehouseRepository = CSVWarehouseRepository(loader)
-
-    val packageRepository = CSVPackageRepository(
-        loader = loader,
-        warehouseRepository = warehouseRepository
-    )
-
-    val routeRepository = CSVRouteRepository(
-        loader = loader,
-        warehouseRepository = warehouseRepository
-    )
-
-    val vehicleRepository = CSVVehicleRepository(
-        loader = loader,
-        warehouseRepository = warehouseRepository
-    )
-
-    val graphBuilder = DomainGraphBuilder(
-        packageRepository = packageRepository,
-        routeRepository = routeRepository,
-        warehouseRepository = warehouseRepository,
-        vehicleRepository = vehicleRepository
-    )
-
-    return graphBuilder.build()
 }
 
 
@@ -114,26 +113,25 @@ private data class Routers(
     val dijkstra: DijkstraRouter,
     val bidirectionalBfs: BidirectionalBfsRouter
 )
-
 private fun createRouters(
-    domainGraph: DomainGraph
+    warehouseRepository: WarehouseRepository
 ): Routers {
 
     val pathConstructor = PathConstructor()
 
     return Routers(
         bfs = BfsRouter(
-            warehouses = domainGraph.warehouses,
+            warehouseRepository = warehouseRepository,
             pathConstructor = pathConstructor
         ),
 
         dijkstra = DijkstraRouter(
-            warehouses = domainGraph.warehouses,
+            warehousesRepository = warehouseRepository,
             pathConstructor = pathConstructor
         ),
 
         bidirectionalBfs = BidirectionalBfsRouter(
-            warehouses = domainGraph.warehouses
+            warehousesRepository = warehouseRepository
         )
     )
 }
