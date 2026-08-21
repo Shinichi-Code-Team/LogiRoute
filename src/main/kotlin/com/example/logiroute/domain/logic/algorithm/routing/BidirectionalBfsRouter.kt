@@ -2,7 +2,7 @@ package com.example.logiroute.domain.logic.algorithm.routing
 
 import com.example.logiroute.domain.model.Warehouse
 
-class BidirectionalBfsSolver(
+class BidirectionalBfsRouter(
     private val forwardAdjacencyMap: Map<Warehouse, List<Warehouse>>,
     private val backwardAdjacencyMap: Map<Warehouse, List<Warehouse>>
 ) : Router {

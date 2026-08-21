@@ -1,8 +1,7 @@
 package com.example.logiroute.domain.repository
 
-import com.example.logiroute.data.dataholder.FleetRaw
-import com.example.logiroute.data.dataholder.PackageRaw
+import com.example.logiroute.domain.model.Vehicle
 
 interface VehicleRepository {
-     fun getVehicles(): List<FleetRaw>
+     fun getAllVehicles(): List<Vehicle>
 }
