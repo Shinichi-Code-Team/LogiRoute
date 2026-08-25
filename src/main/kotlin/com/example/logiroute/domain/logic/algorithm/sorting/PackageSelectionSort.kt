@@ -3,6 +3,7 @@ package com.example.logiroute.domain.logic.algorithm.sorting
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 
+class PackageSelectionSort {
 private fun comparePriority(selectedPriority: Priority, currentPriority: Priority
 ): Int {
     return selectedPriority.compareTo(currentPriority)
@@ -108,4 +109,5 @@ private fun isSamePriorityWithLowerWeight(
 
     val weightComparison = comparePackageByWeight(selectedPackage, candidatePackage)
     return weightComparison < 0
+}
 }

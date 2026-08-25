@@ -1,18 +1,19 @@
 package com.example.logiroute.domain.logic.algorithm.routing
 
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.repository.WarehouseRepository
 
 class BidirectionalBfsRouter(
-    private val forwardAdjacencyMap: Map<Warehouse, List<Warehouse>>,
-    private val backwardAdjacencyMap: Map<Warehouse, List<Warehouse>>
+    private val warehousesRepository: WarehouseRepository,
 ) : Router {
-
+    val warehouses = warehousesRepository.getAllWarehouses()
+    val forwardAdjacencyMap = buildForwardAdjacencyMap()
+    val backwardAdjacencyMap = buildBackwardAdjacencyMap()
     var lastEvaluatedNodesCount: Int = 0
         private set
 
     override fun findRoute(
-        source: Warehouse,
-        destination: Warehouse
+        source: Warehouse, destination: Warehouse
     ): List<Warehouse> {
 
         lastEvaluatedNodesCount = 0
@@ -26,17 +27,11 @@ class BidirectionalBfsRouter(
             return emptyList()
         }
 
-        val forwardState =
-            createSearchState(source)
+        val forwardState = createSearchState(source)
 
-        val backwardState =
-            createSearchState(destination)
+        val backwardState = createSearchState(destination)
 
-        val meetingPoint =
-            searchForMeetingPoint(
-                forwardState,
-                backwardState
-            )
+        val meetingPoint = searchForMeetingPoint(forwardState, backwardState)
 
         updateEvaluatedNodesCount(
             forwardState,
@@ -283,4 +278,21 @@ class BidirectionalBfsRouter(
         val distance: MutableMap<Warehouse, Int>,
         var evaluatedNodes: Int = 0
     )
+
+    private fun buildForwardAdjacencyMap(): Map<Warehouse, List<Warehouse>> {
+        return warehouses.associateWith { warehouse ->
+            warehouse.outgoingRoutes.map { it.destination }
+        }
+    }
+
+    private fun buildBackwardAdjacencyMap(): Map<Warehouse, List<Warehouse>> {
+        val backwardMap = warehouses.associateWith { mutableListOf<Warehouse>() }
+        for (warehouse in warehouses) {
+            for (route in warehouse.outgoingRoutes) {
+                backwardMap.getValue(route.destination).add(route.origin)
+            }
+
+        }
+        return backwardMap
+    }
 }
