@@ -14,6 +14,7 @@ import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressI
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecases.FindStationedVehiclesByCapacityUseCase
 
 fun main() {
 
@@ -70,6 +71,11 @@ fun main() {
     )
 
     runPricingDemo(domainGraph)
+    val testWarehouse = domainGraph.warehouses.first()
+    val capacityUseCase = FindStationedVehiclesByCapacityUseCase()
+    val heavyVehicles = capacityUseCase.execute(testWarehouse, minCapacity = 500.0)
+    println("------> implement FindStationedVehiclesByCapacityUseCase  ")
+    println("Vehicles in ${testWarehouse.name} with capacity >= 500kg: ${heavyVehicles.size}")
 }
 
 
