@@ -17,7 +17,10 @@ import com.example.logiroute.domain.usecase.FindStationedVehiclesByCapacityUseCa
 import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.FindStationedVehiclesRequest
+import com.example.logiroute.domain.usecase.GetWarehouseLoadFactorRequest
+import com.example.logiroute.domain.usecase.GetWarehouseLoadFactorUseCase
 import com.example.logiroute.domain.usecase.InvalidCapacityException
+import com.example.logiroute.domain.usecase.ZeroFleetCapacityException
 
 fun main() {
 
@@ -82,6 +85,18 @@ fun main() {
         val vehicles = findVehiclesUseCase(request)
         println("Found ${vehicles.size} vehicles: $vehicles")
     } catch (e: InvalidCapacityException) {
+        println("Error: ${e.message}")
+    }
+
+    val getLoadFactorUseCase = GetWarehouseLoadFactorUseCase(warehouseRepository)
+
+    try {
+        val request = GetWarehouseLoadFactorRequest(warehouseId = "WH-001")
+        val loadFactor = getLoadFactorUseCase(request)
+        println("Warehouse WH-001 Load Factor: ${loadFactor * 100}%")
+    } catch (e: ZeroFleetCapacityException) {
+        println("Validation Error: ${e.message}")
+    } catch (e: IllegalArgumentException) {
         println("Error: ${e.message}")
     }
 }
