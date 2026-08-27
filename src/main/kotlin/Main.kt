@@ -9,12 +9,15 @@ import com.example.logiroute.domain.logic.algorithm.routing.*
 import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChainDecorator
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.DecoratedPackagePricingService
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecases.FindStationedVehiclesByCapacityUseCase
+import com.example.logiroute.domain.usecase.FindStationedVehiclesByCapacityUseCase
+import com.example.logiroute.domain.usecase.CalculatePricingUseCase
+import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
+import com.example.logiroute.domain.usecase.FindStationedVehiclesRequest
+import com.example.logiroute.domain.usecase.InvalidCapacityException
 
 fun main() {
 
@@ -71,11 +74,16 @@ fun main() {
     )
 
     runPricingDemo(domainGraph)
-    val testWarehouse = domainGraph.warehouses.first()
-    val capacityUseCase = FindStationedVehiclesByCapacityUseCase()
-    val heavyVehicles = capacityUseCase.execute(testWarehouse, minCapacity = 500.0)
-    println("------> implement FindStationedVehiclesByCapacityUseCase  ")
-    println("Vehicles in ${testWarehouse.name} with capacity >= 500kg: ${heavyVehicles.size}")
+
+    val findVehiclesUseCase = FindStationedVehiclesByCapacityUseCase(vehicleRepository)
+
+    try {
+        val request = FindStationedVehiclesRequest(warehouseId = "WH-001", minCapacity = 500.0)
+        val vehicles = findVehiclesUseCase(request)
+        println("Found ${vehicles.size} vehicles: $vehicles")
+    } catch (e: InvalidCapacityException) {
+        println("Error: ${e.message}")
+    }
 }
 
 
@@ -153,10 +161,11 @@ private fun runRoutingDemo(
         packageItem.destination
     )
 
-    val dijkstraPath = routers.dijkstra.findRoute(
-        packageItem.origin,
-        packageItem.destination
-    )
+    val findOptimalPathUseCase = FindOptimalPathUseCase(routers.dijkstra)
+
+    val dijkstraPath = findOptimalPathUseCase(
+            packageItem.origin,
+            packageItem.destination)
 
     println()
     println("========== BFS vs DIJKSTRA ==========")
@@ -190,7 +199,6 @@ private fun runRoutingDemo(
         dijkstraRouter = routers.dijkstra
     )
 }
-
 private fun runBidirectionalDemo(
     domainGraph: DomainGraph,
     routers: Routers
@@ -222,8 +230,8 @@ private fun runPricingDemo(domainGraph: DomainGraph) {
     val pricingEngine =
         RoutePricingEngine(pricingStrategy)
 
-    val pricingService =
-        DecoratedPackagePricingService(pricingEngine)
+    val calculatePricingUseCase =
+        CalculatePricingUseCase(pricingEngine)
 
     val packageItem =
         domainGraph.packages.first()
@@ -238,26 +246,22 @@ private fun runPricingDemo(domainGraph: DomainGraph) {
         ColdChainDecorator(insuredPackage)
 
     val basePackageCost =
-        pricingService.calculatePackageCost(
-            packageComponent = packageItem,
-            distanceKm = 100.0,
-            weight = packageItem.weight,
-            priority = packageItem.priority
+        calculatePricingUseCase(
+            packageItem = packageItem,
+            distanceKm = 100.0
         )
 
     val decoratedPackageCost =
-        pricingService.calculatePackageCost(
-            packageComponent = premiumPackage,
+        calculatePricingUseCase(
+            packageItem = packageItem,
             distanceKm = 100.0,
-            weight = packageItem.weight,
-            priority = packageItem.priority
+            packageComponent = premiumPackage
         )
 
     println("\n========== PACKAGE PRICING ==========")
     println("Base Package Cost = $basePackageCost")
     println("Decorated Package Cost = $decoratedPackageCost")
 }
-
 
 fun printPath(path: List<Warehouse>) {
     if (path.isEmpty()) {
