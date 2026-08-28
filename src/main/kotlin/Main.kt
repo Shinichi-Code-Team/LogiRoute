@@ -1,4 +1,5 @@
 import com.example.logiroute.data.processing.loader.Loader
+import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.CSVPackageRepository
 import com.example.logiroute.data.repository.CSVRouteRepository
 import com.example.logiroute.data.repository.CSVVehicleRepository
@@ -11,14 +12,18 @@ import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricin
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChainDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
+import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
+import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
+import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
 
 fun main() {
 
     val loader = Loader()
+    val fleetWriter = FleetWriter("fleet.csv")
 
     val warehouseRepository =
         CSVWarehouseRepository(loader)
@@ -37,8 +42,9 @@ fun main() {
 
     val vehicleRepository =
         CSVVehicleRepository(
-            loader,
-            warehouseRepository
+            loader = loader,
+            writer = fleetWriter,
+            warehouseRepository = warehouseRepository
         )
 
     val graphBuilder =
@@ -60,9 +66,21 @@ fun main() {
     val routers =
         createRouters(warehouseRepository)
 
+    val findFewestHopsRouteUseCase =
+        FindFewestHopsRouteUseCase(routers.bfs)
+
+    val findOptimalPathUseCase =
+        FindOptimalPathUseCase(routers.dijkstra)
+
+    val addVehicleToHubUseCase =
+        AddVehicleToHubUseCase(vehicleRepository)
+
+
     runRoutingDemo(
-        domainGraph,
-        routers
+        domainGraph = domainGraph,
+        routers = routers,
+        findFewestHopsRouteUseCase = findFewestHopsRouteUseCase,
+        findOptimalPathUseCase = findOptimalPathUseCase
     )
 
     runBidirectionalDemo(
@@ -71,6 +89,7 @@ fun main() {
     )
 
     runPricingDemo(domainGraph)
+
 }
 
 
@@ -139,20 +158,21 @@ private fun createRouters(
 
 private fun runRoutingDemo(
     domainGraph: DomainGraph,
-    routers: Routers
+    routers: Routers,
+    findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
+    findOptimalPathUseCase: FindOptimalPathUseCase
 ) {
     val packageItem = domainGraph.packages.first()
 
-    val bfsPath = routers.bfs.findRoute(
+    val bfsPath = findFewestHopsRouteUseCase(
         packageItem.origin,
         packageItem.destination
     )
 
-    val findOptimalPathUseCase = FindOptimalPathUseCase(routers.dijkstra)
-
     val dijkstraPath = findOptimalPathUseCase(
-            packageItem.origin,
-            packageItem.destination)
+        packageItem.origin,
+        packageItem.destination
+    )
 
     println()
     println("========== BFS vs DIJKSTRA ==========")
@@ -209,6 +229,31 @@ private fun runBidirectionalDemo(
         bidirectionalRouter = routers.bidirectionalBfs,
         bfsRouter = routers.bfs
     )
+}
+
+private fun runAddVehicleDemo(
+    domainGraph: DomainGraph,
+    addVehicleToHubUseCase: AddVehicleToHubUseCase
+) {
+    val warehouse = domainGraph.warehouses.first()
+
+    val newVehicle = Vehicle(
+        id = "V-TEST-001",
+        maxCapacityKg = 1500.0,
+        costPerKm = 2.5,
+        currentHub = warehouse
+    )
+
+    val added = addVehicleToHubUseCase(newVehicle)
+
+    println()
+    println("========== ADD VEHICLE ==========")
+
+    if (added) {
+        println("Vehicle ${newVehicle.id} added successfully.")
+    } else {
+        println("Vehicle ${newVehicle.id} already exists.")
+    }
 }
 
 private fun runPricingDemo(domainGraph: DomainGraph) {
