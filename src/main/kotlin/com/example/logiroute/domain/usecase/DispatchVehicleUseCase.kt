@@ -8,7 +8,7 @@ class DispatchVehicleUseCase {
 
     operator fun invoke(warehouse: Warehouse, vehicle: Vehicle): List<Package> {
         val availablePackages = warehouse.cargoQueue
-        val (loadedPackages, _) = availablePackages.fold(
+        val (packagesToDispatch, _) = availablePackages.fold(
             initial = emptyList<Package>() to 0.0
         ) { (accPackages, currentWeight), pkg ->
             val nextWeight = currentWeight + pkg.weight
@@ -18,7 +18,10 @@ class DispatchVehicleUseCase {
                 accPackages to currentWeight
             }
         }
-
-        return loadedPackages
+        return packagesToDispatch.also { packages ->
+            packages.forEach { pkg ->
+                warehouse.removePackage(pkg)
+            }
+        }
     }
 }
