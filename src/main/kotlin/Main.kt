@@ -1,4 +1,5 @@
 import com.example.logiroute.data.processing.loader.Loader
+import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.CSVPackageRepository
 import com.example.logiroute.data.repository.CSVRouteRepository
 import com.example.logiroute.data.repository.CSVVehicleRepository
@@ -11,20 +12,19 @@ import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricin
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChainDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
 import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
+import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.FindStationedVehiclesByCapacityUseCase
 import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
-import com.example.logiroute.domain.usecase.FindStationedVehiclesRequest
-import com.example.logiroute.domain.usecase.GetWarehouseLoadFactorRequest
-import com.example.logiroute.domain.usecase.GetWarehouseLoadFactorUseCase
-import com.example.logiroute.domain.usecase.InvalidCapacityException
-import com.example.logiroute.domain.usecase.ZeroFleetCapacityException
+import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
+import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
 
 fun main() {
 
     val loader = Loader()
+    val fleetWriter = FleetWriter("fleet.csv")
 
     val warehouseRepository =
         CSVWarehouseRepository(loader)
@@ -43,8 +43,9 @@ fun main() {
 
     val vehicleRepository =
         CSVVehicleRepository(
-            loader,
-            warehouseRepository
+            loader = loader,
+            writer = fleetWriter,
+            warehouseRepository = warehouseRepository
         )
 
     val graphBuilder =
@@ -66,39 +67,31 @@ fun main() {
     val routers =
         createRouters(warehouseRepository)
 
+    val findFewestHopsRouteUseCase =
+        FindFewestHopsRouteUseCase(routers.bfs)
+
+    val findOptimalPathUseCase =
+        FindOptimalPathUseCase(routers.dijkstra)
+
+    val addVehicleToHubUseCase =
+        AddVehicleToHubUseCase(vehicleRepository)
+
+
     runRoutingDemo(
-        domainGraph,
-        routers
+        domainGraph = domainGraph,
+        routers = routers,
+        findFewestHopsRouteUseCase = findFewestHopsRouteUseCase,
+        findOptimalPathUseCase = findOptimalPathUseCase
     )
 
-    runBidirectionalDemo(
-        domainGraph,
-        routers
-    )
+    //runBidirectionalDemo( domainGraph, routers)
+
+    //runPricingDemo(domainGraph)
+    runShipmentConsolidationDemo()
+    runShipmentConsolidationOnRealData(domainGraph, routers)
 
     runPricingDemo(domainGraph)
 
-    val findVehiclesUseCase = FindStationedVehiclesByCapacityUseCase(vehicleRepository)
-
-    try {
-        val request = FindStationedVehiclesRequest(warehouseId = "WH-001", minCapacity = 500.0)
-        val vehicles = findVehiclesUseCase(request)
-        println("Found ${vehicles.size} vehicles: $vehicles")
-    } catch (e: InvalidCapacityException) {
-        println("Error: ${e.message}")
-    }
-
-    val getLoadFactorUseCase = GetWarehouseLoadFactorUseCase(warehouseRepository)
-
-    try {
-        val request = GetWarehouseLoadFactorRequest(warehouseId = "WH-001")
-        val loadFactor = getLoadFactorUseCase(request)
-        println("Warehouse WH-001 Load Factor: ${loadFactor * 100}%")
-    } catch (e: ZeroFleetCapacityException) {
-        println("Validation Error: ${e.message}")
-    } catch (e: IllegalArgumentException) {
-        println("Error: ${e.message}")
-    }
 }
 
 
@@ -167,20 +160,21 @@ private fun createRouters(
 
 private fun runRoutingDemo(
     domainGraph: DomainGraph,
-    routers: Routers
+    routers: Routers,
+    findFewestHopsRouteUseCase: FindFewestHopsRouteUseCase,
+    findOptimalPathUseCase: FindOptimalPathUseCase
 ) {
     val packageItem = domainGraph.packages.first()
 
-    val bfsPath = routers.bfs.findRoute(
+    val bfsPath = findFewestHopsRouteUseCase(
         packageItem.origin,
         packageItem.destination
     )
 
-    val findOptimalPathUseCase = FindOptimalPathUseCase(routers.dijkstra)
-
     val dijkstraPath = findOptimalPathUseCase(
-            packageItem.origin,
-            packageItem.destination)
+        packageItem.origin,
+        packageItem.destination
+    )
 
     println()
     println("========== BFS vs DIJKSTRA ==========")
@@ -237,6 +231,31 @@ private fun runBidirectionalDemo(
         bidirectionalRouter = routers.bidirectionalBfs,
         bfsRouter = routers.bfs
     )
+}
+
+private fun runAddVehicleDemo(
+    domainGraph: DomainGraph,
+    addVehicleToHubUseCase: AddVehicleToHubUseCase
+) {
+    val warehouse = domainGraph.warehouses.first()
+
+    val newVehicle = Vehicle(
+        id = "V-TEST-001",
+        maxCapacityKg = 1500.0,
+        costPerKm = 2.5,
+        currentHub = warehouse
+    )
+
+    val added = addVehicleToHubUseCase(newVehicle)
+
+    println()
+    println("========== ADD VEHICLE ==========")
+
+    if (added) {
+        println("Vehicle ${newVehicle.id} added successfully.")
+    } else {
+        println("Vehicle ${newVehicle.id} already exists.")
+    }
 }
 
 private fun runPricingDemo(domainGraph: DomainGraph) {
@@ -610,5 +629,243 @@ fun compareBfsWithBidirectional(
     )
 
 
+}
+private fun runShipmentConsolidationDemo() {
+
+    val warehouseA = Warehouse(
+        id = "A",
+        name = "Warehouse A",
+        regionalZone = "Demo",
+        latitude = 0.0,
+        longitude = 0.0
+    )
+
+    val warehouseB = Warehouse(
+        id = "B",
+        name = "Warehouse B",
+        regionalZone = "Demo",
+        latitude = 0.0,
+        longitude = 0.0
+    )
+
+    val warehouseC = Warehouse(
+        id = "C",
+        name = "Warehouse C",
+        regionalZone = "Demo",
+        latitude = 0.0,
+        longitude = 0.0
+    )
+
+    val warehouseD = Warehouse(
+        id = "D",
+        name = "Warehouse D",
+        regionalZone = "Demo",
+        latitude = 0.0,
+        longitude = 0.0
+    )
+
+    val routeAB = Route(
+        id = "R1",
+        origin = warehouseA,
+        destination = warehouseB,
+        distanceKm = 10.0,
+        typicalDelayMin = 0
+    )
+
+    val routeBC = Route(
+        id = "R2",
+        origin = warehouseB,
+        destination = warehouseC,
+        distanceKm = 10.0,
+        typicalDelayMin = 0
+    )
+
+    val routeCD = Route(
+        id = "R3",
+        origin = warehouseC,
+        destination = warehouseD,
+        distanceKm = 10.0,
+        typicalDelayMin = 0
+    )
+
+    warehouseA.addOutgoingRoute(routeAB)
+    warehouseB.addOutgoingRoute(routeBC)
+    warehouseC.addOutgoingRoute(routeCD)
+
+    val package1 = Package(
+        id = "P1",
+        weight = 40.0,
+        origin = warehouseA,
+        destination = warehouseD,
+        priority = Priority.URGENT
+    )
+
+    val package2 = Package(
+        id = "P2",
+        weight = 20.0,
+        origin = warehouseA,
+        destination = warehouseC,
+        priority = Priority.STANDARD
+    )
+
+    val package3 = Package(
+        id = "P3",
+        weight = 10.0,
+        origin = warehouseA,
+        destination = warehouseB,
+        priority = Priority.LOW
+    )
+
+    val packages = listOf(
+        package1,
+        package2,
+        package3
+    )
+
+    val vehicle = Vehicle(
+        id = "V1",
+        maxCapacityKg = 70.0,
+        costPerKm = 1.0,
+        currentHub = warehouseA
+    )
+
+    val warehouseRepository =
+        object : WarehouseRepository {
+            override fun getAllWarehouses(): List<Warehouse> {
+                return listOf(
+                    warehouseA,
+                    warehouseB,
+                    warehouseC,
+                    warehouseD
+                )
+            }
+        }
+
+    val pathConstructor = PathConstructor()
+
+    val dijkstraRouter = DijkstraRouter(
+        warehousesRepository = warehouseRepository,
+        pathConstructor = pathConstructor
+    )
+
+    val findOptimalPathUseCase =
+        FindOptimalPathUseCase(dijkstraRouter)
+
+    val detectUseCase = DetectShipmentConsolidationOpportunitiesUseCase(
+            findOptimalPathUseCase
+        )
+
+    val optimizeUseCase =
+        OptimizeShipmentConsolidationUseCase()
+
+    val opportunities =
+        detectUseCase(packages)
+
+    println()
+    println("========== CONSOLIDATION DEMO ==========")
+
+    opportunities.forEach { opportunity ->
+
+        println()
+        println("Main Package: ${opportunity.mainPackage.id}")
+
+        println(
+            "Compatible Packages: ${
+                opportunity.compatiblePackages.map { it.id }
+            }"
+        )
+
+        println(
+            "Shared Route: ${
+                opportunity.sharedRoute.map { it.id }
+            }"
+        )
+
+        val plan =
+            optimizeUseCase(
+                opportunity = opportunity,
+                vehicle = vehicle
+            )
+
+        println(
+            "Selected Packages: ${
+                plan.selectedPackages.map { it.id }
+            }"
+        )
+
+        println("Total Weight: ${plan.totalWeight} kg")
+        println(
+            "Remaining Capacity: ${plan.remainingCapacity} kg"
+        )
+    }
+}
+private fun runShipmentConsolidationOnRealData(
+    domainGraph: DomainGraph,
+    routers: Routers
+) {
+    val findOptimalPathUseCase =
+        FindOptimalPathUseCase(routers.dijkstra)
+
+    val detectUseCase =
+        DetectShipmentConsolidationOpportunitiesUseCase(
+            findOptimalPathUseCase
+        )
+
+    val optimizeUseCase =
+        OptimizeShipmentConsolidationUseCase()
+
+    val opportunities =
+        detectUseCase(domainGraph.packages)
+
+    println()
+    println("========== REAL DATA CONSOLIDATION ==========")
+
+    if (opportunities.isEmpty()) {
+        println("No consolidation opportunities found.")
+        return
+    }
+
+    opportunities.forEach { opportunity ->
+
+        println()
+        println("Main Package: ${opportunity.mainPackage.id}")
+
+        println(
+            "Compatible Packages: ${
+                opportunity.compatiblePackages.map { it.id }
+            }"
+        )
+
+        println(
+            "Shared Route: ${
+                opportunity.sharedRoute.map { it.id }
+            }"
+        )
+
+        val vehicle = domainGraph.vehicles
+            .firstOrNull {
+                it.currentHub == opportunity.mainPackage.origin
+            }
+
+        if (vehicle != null) {
+            val plan = optimizeUseCase(
+                opportunity = opportunity,
+                vehicle = vehicle
+            )
+
+            println("Vehicle: ${vehicle.id}")
+            println(
+                "Selected Packages: ${
+                    plan.selectedPackages.map { it.id }
+                }"
+            )
+            println("Total Weight: ${plan.totalWeight} kg")
+            println(
+                "Remaining Capacity: ${plan.remainingCapacity} kg"
+            )
+        } else {
+            println("No vehicle available at the origin warehouse.")
+        }
+    }
 }
 
