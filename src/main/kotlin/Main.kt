@@ -15,6 +15,7 @@ import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileH
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.FindStationedVehiclesByCapacityUseCase
 import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
