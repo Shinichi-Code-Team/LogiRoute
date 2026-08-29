@@ -55,4 +55,7 @@ data class Warehouse(
         return vehicle.currentHub === this &&
                 mutableStationedVehicles.none { it.id == vehicle.id }
     }
+    fun removePackage(packageItem: Package) : Boolean {
+        return mutableCargoQueue.remove(packageItem)
+    }
 }
