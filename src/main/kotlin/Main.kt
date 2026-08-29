@@ -20,6 +20,7 @@ import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
 import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
+import com.example.logiroute.domain.usecase.AssignPackageToCargoQueueUseCase
 
 fun main() {
 
@@ -76,6 +77,10 @@ fun main() {
     val addVehicleToHubUseCase =
         AddVehicleToHubUseCase(vehicleRepository)
 
+    val assignPackageUseCase = AssignPackageToCargoQueueUseCase(
+        packageRepository = packageRepository,
+        warehouseRepository = warehouseRepository
+    )
 
     runRoutingDemo(
         domainGraph = domainGraph,
@@ -297,6 +302,28 @@ private fun runPricingDemo(domainGraph: DomainGraph) {
     println("Decorated Package Cost = $decoratedPackageCost")
 }
 
+private fun runAssignPackageDemo(
+    domainGraph: DomainGraph,
+    assignPackageUseCase: AssignPackageToCargoQueueUseCase
+) {
+    val firstPackage = domainGraph.packages.firstOrNull()
+    val firstWarehouse = domainGraph.warehouses.firstOrNull()
+
+    if (firstPackage != null && firstWarehouse != null) {
+        val result = assignPackageUseCase(
+            packageId = firstPackage.id,
+            warehouseId = firstWarehouse.id
+        )
+        println("\n========== ASSIGN PACKAGE TO CARGO QUEUE ==========")
+        println(" Added ${firstPackage.id} to ${firstWarehouse.name}")
+        println(" Sorted Queue:")
+        result.forEachIndexed { index, pkg ->
+            println("  ${index + 1}. ${pkg.id} (${pkg.priority}) - ${pkg.weight}kg")
+        }
+    } else {
+        println(" No packages or warehouses found!")
+    }
+}
 fun printPath(path: List<Warehouse>) {
     if (path.isEmpty()) {
         println("No route found.")
