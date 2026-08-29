@@ -5,7 +5,7 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.usecase.model.ConsolidationOpportunity
 import com.example.logiroute.domain.usecase.model.ConsolidationPlan
 
-class OptimizeShipmentConsolidationUseCase {
+class PrioritizeShipmentConsolidationUseCase {
 
     operator fun invoke(
         opportunity: ConsolidationOpportunity,
@@ -14,12 +14,14 @@ class OptimizeShipmentConsolidationUseCase {
 
         val allPackages = getAllPackages(opportunity)
 
-        val selectedPackages = selectPackagesWithinCapacity(
-            packages = allPackages,
-            vehicle = vehicle
-        )
+        val prioritizedPackages =
+            prioritizePackages(allPackages)
 
-        val totalWeight = calculateTotalWeight(selectedPackages)
+        val (selectedPackages, totalWeight) =
+            selectPackagesWithinCapacity(
+                packages = prioritizedPackages,
+                vehicle = vehicle
+            )
 
         return buildConsolidationPlan(
             vehicle = vehicle,
@@ -35,31 +37,32 @@ class OptimizeShipmentConsolidationUseCase {
                 opportunity.compatiblePackages
     }
 
-    private fun selectPackagesWithinCapacity(
-        packages: List<Package>,
-        vehicle: Vehicle
+    private fun prioritizePackages(
+        packages: List<Package>
     ): List<Package> {
-
-        return packages.fold(emptyList()) { selectedPackages, packageItem ->
-
-            val currentWeight =
-                calculateTotalWeight(selectedPackages)
-
-            if (
-                currentWeight + packageItem.weight
-                <= vehicle.maxCapacityKg
-            ) {
-                selectedPackages + packageItem
-            } else {
-                selectedPackages
-            }
+        return packages.sortedByDescending {
+            it.priority
         }
     }
 
-    private fun calculateTotalWeight(
-        packages: List<Package>
-    ): Double {
-        return packages.sumOf { it.weight }
+    private fun selectPackagesWithinCapacity(
+        packages: List<Package>,
+        vehicle: Vehicle
+    ): Pair<List<Package>, Double> {
+
+        return packages.fold(
+            emptyList<Package>() to 0.0
+        ) { (selectedPackages, currentWeight), packageItem ->
+
+            val nextWeight =
+                currentWeight + packageItem.weight
+
+            if (nextWeight <= vehicle.maxCapacityKg) {
+                (selectedPackages + packageItem) to nextWeight
+            } else {
+                selectedPackages to currentWeight
+            }
+        }
     }
 
     private fun buildConsolidationPlan(
@@ -72,7 +75,8 @@ class OptimizeShipmentConsolidationUseCase {
             vehicle = vehicle,
             selectedPackages = selectedPackages,
             totalWeight = totalWeight,
-            remainingCapacity = vehicle.maxCapacityKg - totalWeight
+            remainingCapacity =
+                vehicle.maxCapacityKg - totalWeight
         )
     }
 }

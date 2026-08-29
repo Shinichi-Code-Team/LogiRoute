@@ -73,21 +73,27 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         opportunities: List<ConsolidationOpportunity>
     ): List<ConsolidationOpportunity> {
 
-        return opportunities.filter { currentOpportunity ->
-
-            val currentPackages =
-                getAllPackages(currentOpportunity)
-
-            opportunities.none { otherOpportunity ->
-
-                val otherPackages =
-                    getAllPackages(otherOpportunity)
-
-                otherOpportunity != currentOpportunity &&
-                        otherPackages.size > currentPackages.size &&
-                        otherPackages.containsAll(currentPackages)
+        return opportunities
+            .distinctBy { opportunity ->
+                getAllPackages(opportunity)
+                    .map { it.id }
+                    .sorted()
             }
-        }
+            .filter { currentOpportunity ->
+
+                val currentPackages =
+                    getAllPackages(currentOpportunity).toSet()
+
+                opportunities.none { otherOpportunity ->
+
+                    val otherPackages =
+                        getAllPackages(otherOpportunity).toSet()
+
+                    otherOpportunity != currentOpportunity &&
+                            otherPackages.size > currentPackages.size &&
+                            otherPackages.containsAll(currentPackages)
+                }
+            }
     }
 
     private fun getAllPackages(
