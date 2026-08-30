@@ -1,12 +1,8 @@
 package com.example.logiroute.domain.usecase
 
+import com.example.logiroute.com.example.logiroute.domain.model.exceptions.ZeroFleetCapacityException
+import com.example.logiroute.com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
 import com.example.logiroute.domain.repository.WarehouseRepository
-
-class ZeroFleetCapacityException(message: String) : IllegalArgumentException(message)
-
-data class GetWarehouseLoadFactorRequest(
-    val warehouseId: String
-)
 
 class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
