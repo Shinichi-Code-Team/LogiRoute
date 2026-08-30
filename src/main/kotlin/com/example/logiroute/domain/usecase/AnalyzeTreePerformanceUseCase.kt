@@ -2,16 +2,9 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.logic.tree.BalancedBinarySearchTree
 import com.example.logiroute.domain.logic.tree.BinarySearchTree
+import com.example.logiroute.domain.model.response.TreePerformanceReport
 
 private const val TOTAL_PACKAGE_IDS = 1000
-
-data class TreePerformanceReport(
-    val sampleKeys: List<String>,
-    val unbalancedSteps: Map<String, Int>,
-    val balancedSteps: Map<String, Int>,
-    val unbalancedHeight: Int,
-    val balancedHeight: Int
-)
 
 class AnalyzeTreePerformanceUseCase {
 
