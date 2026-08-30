@@ -1,10 +1,6 @@
 package com.example.logiroute.domain.model
 
-enum class HubType {
-    GLOBAL_HUB,
-    REGIONAL_CENTER,
-    LOCAL_DEPOT
-}
+import com.example.logiroute.com.example.logiroute.domain.model.HubType
 
 data class HubNode(
     val warehouse: Warehouse,
