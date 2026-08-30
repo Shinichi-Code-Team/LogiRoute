@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.logic.builder
+package com.example.logiroute.domain.builder
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Route
