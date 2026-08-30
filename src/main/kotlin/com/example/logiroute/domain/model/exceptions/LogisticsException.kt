@@ -11,4 +11,13 @@ open class LogisticsException(message: String) : Exception(message) {
     class ZeroFleetCapacityException(message: String)
         : LogisticsException(message)
 
+    class NoUrgentPackagesException(warehouseId: String) :
+        LogisticsException("No URGENT packages found in warehouse with ID: $warehouseId")
+
+    class NoSuitableVehicleException(warehouseId: String) :
+        LogisticsException("No available vehicles found for transit in warehouse with ID: $warehouseId")
+
+    class WarehouseNotFoundException(warehouseId: String) :
+        LogisticsException("Warehouse not found with ID: $warehouseId")
+
 }
