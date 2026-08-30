@@ -2,15 +2,15 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
-import com.example.logiroute.domain.usecase.model.ConsolidationOpportunity
-import com.example.logiroute.domain.usecase.model.ConsolidationPlan
+import com.example.logiroute.com.example.logiroute.domain.model.request.ConsolidationOpportunityRequest
+import com.example.logiroute.com.example.logiroute.domain.model.request.ConsolidationPlanRequest
 
 class PrioritizeShipmentConsolidationUseCase {
 
     operator fun invoke(
-        opportunity: ConsolidationOpportunity,
+        opportunity: ConsolidationOpportunityRequest,
         vehicle: Vehicle
-    ): ConsolidationPlan {
+    ): ConsolidationPlanRequest {
 
         val allPackages = getAllPackages(opportunity)
 
@@ -31,7 +31,7 @@ class PrioritizeShipmentConsolidationUseCase {
     }
 
     private fun getAllPackages(
-        opportunity: ConsolidationOpportunity
+        opportunity: ConsolidationOpportunityRequest
     ): List<Package> {
         return listOf(opportunity.mainPackage) +
                 opportunity.compatiblePackages
@@ -69,9 +69,9 @@ class PrioritizeShipmentConsolidationUseCase {
         vehicle: Vehicle,
         selectedPackages: List<Package>,
         totalWeight: Double
-    ): ConsolidationPlan {
+    ): ConsolidationPlanRequest {
 
-        return ConsolidationPlan(
+        return ConsolidationPlanRequest(
             vehicle = vehicle,
             selectedPackages = selectedPackages,
             totalWeight = totalWeight,

@@ -1,12 +1,8 @@
 package com.example.logiroute.domain.usecase
 
+import com.example.logiroute.com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
+import com.example.logiroute.com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.WarehouseRepository
-
-class ZeroFleetCapacityException(message: String) : IllegalArgumentException(message)
-
-data class GetWarehouseLoadFactorRequest(
-    val warehouseId: String
-)
 
 class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
@@ -24,7 +20,7 @@ class GetWarehouseLoadFactorUseCase(
             .sumOf { vehicle -> vehicle.maxCapacityKg }
 
         if (totalFleetCapacity == 0.0) {
-            throw ZeroFleetCapacityException(
+            throw LogisticsException.ZeroFleetCapacityException(
                 "Cannot calculate load factor for warehouse ${request.warehouseId}: Stationed fleet capacity is zero."
             )
         }
