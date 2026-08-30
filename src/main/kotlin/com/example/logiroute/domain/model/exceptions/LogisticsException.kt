@@ -7,4 +7,8 @@ open class LogisticsException(message: String) : Exception(message) {
 
     class InvalidCapacityException(message: String) :
         LogisticsException(Invalid_Capacity_Exception)
+
+    class ZeroFleetCapacityException(message: String)
+        : LogisticsException(message)
+
 }
