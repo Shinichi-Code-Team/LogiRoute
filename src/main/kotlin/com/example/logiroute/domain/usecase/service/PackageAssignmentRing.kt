@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.service
+package com.example.logiroute.domain.usecase.service
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
