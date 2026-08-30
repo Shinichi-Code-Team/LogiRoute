@@ -15,6 +15,7 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
+import com.example.logiroute.domain.usecase.AnalyzeTreePerformanceUseCase
 
 fun main() {
 
@@ -71,6 +72,8 @@ fun main() {
     )
 
     runPricingDemo(domainGraph)
+
+
 }
 
 
@@ -106,8 +109,11 @@ private fun printDomainGraphSummary(domainGraph: DomainGraph) {
             Vehicles: ${warehouse.stationedVehicles.map { it.id }}
             """.trimIndent()
         )
+
     }
+
 }
+
 
 private data class Routers(
     val bfs: BfsRouter,
@@ -556,6 +562,21 @@ fun verifySameHopCount(
             )
         }
     }
+    // ========== SUB-TASK 4: BALANCED INDEX SIMULATOR ==========
+
+    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
+    val performanceReport = analyzeTreePerformanceUseCase()
+
+    println()
+    println("Unbalanced BST height: ${performanceReport.unbalancedHeight}")
+    println("Balanced tree height:  ${performanceReport.balancedHeight}")
+    performanceReport.sampleKeys.forEach { key ->
+        println(
+            "$key -> unbalanced steps: ${performanceReport.unbalancedSteps[key]}, " +
+                    "balanced steps: ${performanceReport.balancedSteps[key]}"
+        )
+    }
+
 }
 
 fun compareBfsWithBidirectional(
@@ -583,4 +604,5 @@ fun compareBfsWithBidirectional(
 
 
 }
+
 
