@@ -1,4 +1,4 @@
-package com.example.logiroute.com.example.logiroute.domain.model
+package com.example.logiroute.com.example.logiroute.domain.model.request
 
 enum class HubType {
     GLOBAL_HUB,
