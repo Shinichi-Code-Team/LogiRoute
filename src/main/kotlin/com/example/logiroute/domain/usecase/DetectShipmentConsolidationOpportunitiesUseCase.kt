@@ -2,7 +2,7 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.usecase.model.ConsolidationOpportunity
+import com.example.logiroute.com.example.logiroute.domain.model.request.ConsolidationOpportunityRequest
 
 class DetectShipmentConsolidationOpportunitiesUseCase(
     private val findOptimalPathUseCase: FindOptimalPathUseCase
@@ -10,7 +10,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
 
     operator fun invoke(
         packages: List<Package>
-    ): List<ConsolidationOpportunity> {
+    ): List<ConsolidationOpportunityRequest> {
 
         val opportunities = packages
             .map { mainPackage ->
@@ -29,7 +29,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
     private fun buildOpportunity(
         mainPackage: Package,
         packages: List<Package>
-    ): ConsolidationOpportunity {
+    ): ConsolidationOpportunityRequest {
 
         val sharedRoute = getSharedRoute(mainPackage)
 
@@ -39,7 +39,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
             sharedRoute = sharedRoute
         )
 
-        return ConsolidationOpportunity(
+        return ConsolidationOpportunityRequest(
             mainPackage = mainPackage,
             compatiblePackages = compatiblePackages,
             sharedRoute = sharedRoute
@@ -70,28 +70,34 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
     }
 
     private fun removeSubOpportunities(
-        opportunities: List<ConsolidationOpportunity>
-    ): List<ConsolidationOpportunity> {
+        opportunities: List<ConsolidationOpportunityRequest>
+    ): List<ConsolidationOpportunityRequest> {
 
-        return opportunities.filter { currentOpportunity ->
-
-            val currentPackages =
-                getAllPackages(currentOpportunity)
-
-            opportunities.none { otherOpportunity ->
-
-                val otherPackages =
-                    getAllPackages(otherOpportunity)
-
-                otherOpportunity != currentOpportunity &&
-                        otherPackages.size > currentPackages.size &&
-                        otherPackages.containsAll(currentPackages)
+        return opportunities
+            .distinctBy { opportunity ->
+                getAllPackages(opportunity)
+                    .map { it.id }
+                    .sorted()
             }
-        }
+            .filter { currentOpportunity ->
+
+                val currentPackages =
+                    getAllPackages(currentOpportunity).toSet()
+
+                opportunities.none { otherOpportunity ->
+
+                    val otherPackages =
+                        getAllPackages(otherOpportunity).toSet()
+
+                    otherOpportunity != currentOpportunity &&
+                            otherPackages.size > currentPackages.size &&
+                            otherPackages.containsAll(currentPackages)
+                }
+            }
     }
 
     private fun getAllPackages(
-        opportunity: ConsolidationOpportunity
+        opportunity: ConsolidationOpportunityRequest
     ): List<Package> {
 
         return listOf(opportunity.mainPackage) +
