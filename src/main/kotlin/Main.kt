@@ -20,6 +20,7 @@ import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
 import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
+import com.example.logiroute.domain.usecase.ReroutePackageUseCase
 
 fun main() {
 
@@ -77,6 +78,10 @@ fun main() {
         AddVehicleToHubUseCase(vehicleRepository)
 
 
+    val reroutePackageUseCase = ReroutePackageUseCase(
+        packageRepository = packageRepository,
+        warehouseRepository = warehouseRepository
+    )
     runRoutingDemo(
         domainGraph = domainGraph,
         routers = routers,
@@ -91,6 +96,7 @@ fun main() {
     runShipmentConsolidationOnRealData(domainGraph, routers)
 
     runPricingDemo(domainGraph)
+    runReroutePackageDemo(domainGraph, reroutePackageUseCase)
 
 }
 
@@ -869,3 +875,28 @@ private fun runShipmentConsolidationOnRealData(
     }
 }
 
+private fun runReroutePackageDemo(
+    domainGraph: DomainGraph,
+    reroutePackageUseCase: ReroutePackageUseCase
+) {
+    val firstPackage = domainGraph.packages.firstOrNull()
+    val secondWarehouse = domainGraph.warehouses.getOrNull(1)
+
+    if (firstPackage != null && secondWarehouse != null) {
+        println("\n========== REROUTE PACKAGE DEMO ==========")
+        println(" Original Package: ${firstPackage.id}")
+        println("Original Destination: ${firstPackage.destination.name}")
+        println(" New Destination: ${secondWarehouse.name}")
+
+        val reroutedPackage = reroutePackageUseCase(
+            packageId = firstPackage.id,
+            newDestinationId = secondWarehouse.id
+        )
+
+        println(" Package rerouted successfully!")
+        println(" New Destination: ${reroutedPackage.destination.name}")
+        println(" Package: ${reroutedPackage.id} (${reroutedPackage.priority}) - ${reroutedPackage.weight}kg")
+    } else {
+        println(" Not enough data to demonstrate rerouting!")
+    }
+}
