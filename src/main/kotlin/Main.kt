@@ -11,6 +11,9 @@ import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
 import com.example.logiroute.domain.logic.algorithm.routing.DijkstraRouter
 import com.example.logiroute.domain.logic.algorithm.routing.PathConstructor
 import com.example.logiroute.domain.usecase.*
+import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequest
+import com.example.logiroute.domain.model.request.ExecuteEmergencyCargoPrioritizationRequest
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 fun main() {
 
@@ -190,5 +193,46 @@ fun main() {
                 } kg"
             )
         }
+    }
+
+    val detectRescueUseCase =
+        DetectEmergencyCargoRescueOpportunitiesUseCase(
+            packageRepository = packageRepository,
+            vehicleRepository = vehicleRepository,
+            warehouseRepository = warehouseRepository,
+            findOptimalPathUseCase = findOptimalPathUseCase
+        )
+
+    val executePrioritizationUseCase =
+        ExecuteEmergencyCargoPrioritizationUseCase(
+            packageRepository = packageRepository
+        )
+
+    println()
+    println("========== EMERGENCY CARGO RESCUE ==========")
+
+    val sampleWarehouseId = domainGraph.warehouses.first().id
+
+    try {
+        val detectRequest = DetectEmergencyCargoRescueRequest(warehouseId = sampleWarehouseId)
+        val rescueOpportunities = detectRescueUseCase(detectRequest)
+
+        rescueOpportunities.forEach { rescueOpportunity ->
+            val executeRequest = ExecuteEmergencyCargoPrioritizationRequest(rescueOpportunity)
+            val dispatchPlan = executePrioritizationUseCase(executeRequest)
+
+            println()
+            println("Current Warehouse : ${rescueOpportunity.currentWarehouse.name}")
+            println("Next Hop Transit  : ${rescueOpportunity.nextHopWarehouse.name}")
+            println("Assigned Vehicle  : ${dispatchPlan.vehicle.id}")
+            println("Loaded Urgent     : ${dispatchPlan.loadedUrgentPackages.map { it.id }}")
+            println("Offloaded Low Prio: ${dispatchPlan.offloadedLowPriorityPackages.map { it.id }}")
+            println("Total Weight      : ${dispatchPlan.totalWeight} kg")
+            println("Remaining Capacity: ${dispatchPlan.remainingCapacity} kg")
+        }
+    } catch (e: LogisticsException) {
+        println("Emergency Process Notice: ${e.message}")
+    } catch (e: Exception) {
+        println("Unexpected Error: ${e.message}")
     }
 }
