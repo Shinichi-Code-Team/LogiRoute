@@ -1,6 +1,5 @@
 package com.example.logiroute
 
-import com.example.logiroute.com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.data.processing.loader.Loader
 import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.CSVPackageRepository
@@ -14,6 +13,7 @@ import com.example.logiroute.domain.logic.algorithm.routing.PathConstructor
 import com.example.logiroute.domain.usecase.*
 import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequest
 import com.example.logiroute.domain.model.request.ExecuteEmergencyCargoPrioritizationRequest
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 fun main() {
 
