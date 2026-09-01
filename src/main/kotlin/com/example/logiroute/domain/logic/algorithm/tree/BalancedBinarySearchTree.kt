@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.logic.tree
+package com.example.logiroute.domain.logic.algorithm.tree
 
 class BalancedBinarySearchTree {
 

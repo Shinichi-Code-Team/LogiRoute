@@ -1,11 +1,10 @@
-package com.example.logiroute.domain.tree
+package com.example.logiroute.domain.logic.algorithm.tree
 
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubHierarchyRaw
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubNode
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.model.exceptions.WarehouseNotFoundException
-
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 class HubTreeBuilder {
 
@@ -37,7 +36,11 @@ class HubTreeBuilder {
     ): HubNode {
 
         val warehouse = warehouseMap[raw.warehouseId]
-            ?: throw WarehouseNotFoundException(raw.warehouseId)
+            ?: throw LogisticsException.WarehouseNotFoundException(raw.warehouseId)
+        validateParentChildRelationship(
+            parent = parent,
+            childType = raw.hubType
+        )
 
         val node = HubNode(
             warehouse = warehouse,
@@ -60,5 +63,29 @@ class HubTreeBuilder {
             }
 
         return node
+    }
+
+    private fun validateParentChildRelationship(
+        parent: HubNode?,
+        childType: HubType
+    ) {
+        if (parent == null) return
+
+        val validRelationship = when (parent.hubType) {
+            HubType.GLOBAL_HUB ->
+                childType == HubType.REGIONAL_CENTER
+
+            HubType.REGIONAL_CENTER ->
+                childType == HubType.LOCAL_DEPOT
+
+            HubType.LOCAL_DEPOT ->
+                false
+        }
+
+        if (!validRelationship) {
+            throw LogisticsException.InvalidHubHierarchyException(
+                "Invalid hierarchy: ${parent.hubType} cannot have $childType as a child."
+            )
+        }
     }
 }
