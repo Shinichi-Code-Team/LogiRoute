@@ -1,8 +1,8 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.com.example.logiroute.domain.usecase.model.request.FindStationedVehiclesRequest
 import com.example.logiroute.domain.model.Vehicle
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.VehicleRepository
 
 class FindStationedVehiclesByCapacityUseCase(
