@@ -1,27 +1,50 @@
 package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
-import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.result.VehicleAssignment
 
 class DispatchVehicleUseCase {
 
-    operator fun invoke(warehouse: Warehouse, vehicle: Vehicle): List<Package> {
-        val availablePackages = warehouse.cargoQueue
-        val (packagesToDispatch, _) = availablePackages.fold(
-            initial = emptyList<Package>() to 0.0
-        ) { (accPackages, currentWeight), pkg ->
-            val nextWeight = currentWeight + pkg.weight
-            if (nextWeight <= vehicle.maxCapacityKg) {
-                (accPackages + pkg) to nextWeight
-            } else {
-                accPackages to currentWeight
-            }
-        }
-        return packagesToDispatch.also { packages ->
-            packages.forEach { pkg ->
-                warehouse.removePackage(pkg)
-            }
+    operator fun invoke(
+        warehouse: Warehouse,
+        assignment: VehicleAssignment
+    ): List<Package> {
+
+        loadPackagesIntoVehicle(
+            assignment
+        )
+
+        removePackagesFromWarehouse(
+            warehouse = warehouse,
+            packages = assignment.packages
+        )
+
+        return assignment.packages
+    }
+
+    private fun loadPackagesIntoVehicle(
+        assignment: VehicleAssignment
+    ) {
+
+        assignment.vehicle
+            .loadedPackages
+            .addAll(
+                assignment.packages
+            )
+    }
+
+    private fun removePackagesFromWarehouse(
+        warehouse: Warehouse,
+        packages: List<Package>
+    ) {
+
+        packages.forEach {
+                packageItem ->
+
+            warehouse.removePackage(
+                packageItem
+            )
         }
     }
 }
