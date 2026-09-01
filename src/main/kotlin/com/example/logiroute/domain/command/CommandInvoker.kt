@@ -8,15 +8,21 @@ class CommandInvoker {
         command.execute()
         executedCommands.add(command)
     }
+
     fun undoLast(): Boolean {
         val lastCommand = executedCommands.removeLastOrNull() ?: return false
         lastCommand.undo()
         return true
     }
+
     fun undoAll() {
-        while (executedCommands.isNotEmpty()) {
-            undoLast()
+        generateSequence {
+            executedCommands.removeFirstOrNull()
+        }.forEach {
+            it.undo()
         }
+
     }
+
     fun historySize(): Int = executedCommands.size
 }

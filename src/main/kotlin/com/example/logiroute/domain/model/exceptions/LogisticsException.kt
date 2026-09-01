@@ -8,7 +8,8 @@ open class LogisticsException(message: String) : Exception(message) {
         const val NO_URGENT_PACKAGES_EXCEPTION = "No URGENT packages found in warehouse with ID:"
         const val NO_SUITABLE_VEHICLE_EXCEPTION = "No available vehicles found for transit in warehouse with ID:"
         const val WAREHOUSE_NOT_FOUND_EXCEPTION = "Warehouse not found with ID:"
-    }
+        const val ROOT_HUB_NOT_FOUND_EXCEPTION = "Global hub root was not found."
+        const val INVALID_HUB_HIERARCHY_EXCEPTION = "Invalid hub hierarchy:"    }
 
     class InvalidCapacityException(message: Double) :
         LogisticsException("$INVALID_CAPACITY_EXCEPTION $message")
@@ -24,4 +25,9 @@ open class LogisticsException(message: String) : Exception(message) {
 
     class WarehouseNotFoundException(message: String) :
         LogisticsException("$WAREHOUSE_NOT_FOUND_EXCEPTION $message")
+    class RootHubNotFoundException :
+        LogisticsException(ROOT_HUB_NOT_FOUND_EXCEPTION)
+
+    class InvalidHubHierarchyException(message: String) :
+        LogisticsException("$INVALID_HUB_HIERARCHY_EXCEPTION $message")
 }

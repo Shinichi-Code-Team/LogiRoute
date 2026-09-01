@@ -6,6 +6,6 @@ class HubNode(
     val warehouse: Warehouse,
     val hubType: HubType,
     val parentHub: HubNode? = null,
-    ) {
+) {
     val children: MutableList<HubNode> = mutableListOf()
 }
