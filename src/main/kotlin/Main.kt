@@ -1,608 +1,469 @@
+package com.example.logiroute
+
+import com.example.logiroute.com.example.logiroute.domain.model.request.HubHierarchyRaw
+import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.data.processing.loader.Loader
+import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.CSVPackageRepository
 import com.example.logiroute.data.repository.CSVRouteRepository
 import com.example.logiroute.data.repository.CSVVehicleRepository
 import com.example.logiroute.data.repository.CSVWarehouseRepository
-import com.example.logiroute.domain.builder.DomainGraph
 import com.example.logiroute.domain.builder.DomainGraphBuilder
-import com.example.logiroute.domain.logic.algorithm.routing.*
-import com.example.logiroute.domain.logic.packagepricing.basepricing.ExpressStrategy
-import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.ColdChainDecorator
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.ExpressInsuranceDecorator
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.FragileHandlingDecorator
+import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
+import com.example.logiroute.domain.logic.algorithm.routing.DijkstraRouter
+import com.example.logiroute.domain.logic.algorithm.routing.PathConstructor
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.CalculatePricingUseCase
-import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
-import com.example.logiroute.domain.usecase.AnalyzeTreePerformanceUseCase
+import com.example.logiroute.domain.tree.HubTreeBuilder
+import com.example.logiroute.domain.usecase.*
+import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequest
+import com.example.logiroute.domain.model.request.ExecuteEmergencyCargoPrioritizationRequest
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 fun main() {
+    val globalWarehouse = Warehouse(
+        id = "G01",
+        name = "Global Hub",
+        regionalZone = "GLOBAL",
+        latitude = 0.0,
+        longitude = 0.0
+    )
 
-    val loader = Loader()
+    val regionalWarehouse = Warehouse(
+        id = "R01",
+        name = "Regional Center",
+        regionalZone = "NORTH",
+        latitude = 1.0,
+        longitude = 1.0
+    )
 
-    val warehouseRepository =
-        CSVWarehouseRepository(loader)
+    val localWarehouse = Warehouse(
+        id = "L01",
+        name = "Local Depot",
+        regionalZone = "NORTH",
+        latitude = 2.0,
+        longitude = 2.0
+    )
+    val hierarchy = listOf(
+        HubHierarchyRaw(
+            warehouseId = "G01",
+            hubType = HubType.GLOBAL_HUB,
+            parentWarehouseId = null
+        ),
 
-    val packageRepository =
-        CSVPackageRepository(
-            loader,
-            warehouseRepository
+        HubHierarchyRaw(
+            warehouseId = "R01",
+            hubType = HubType.REGIONAL_CENTER,
+            parentWarehouseId = "G01"
+        ),
+
+        HubHierarchyRaw(
+            warehouseId = "L01",
+            hubType = HubType.LOCAL_DEPOT,
+            parentWarehouseId = "R01"
         )
+    )
+    val builder = HubTreeBuilder()
 
-    val routeRepository =
-        CSVRouteRepository(
-            loader,
-            warehouseRepository
-        )
+    val root = builder.buildTree(
+        warehouses = listOf(
+            globalWarehouse,
+            regionalWarehouse,
+            localWarehouse
+        ),
+        hierarchy = hierarchy
+    )
+    val localNode = root.children
+        .first()
+        .children
+        .first()
 
-    val vehicleRepository =
-        CSVVehicleRepository(
-            loader,
-            warehouseRepository
-        )
+    val traceHubLineageUseCase = TraceHubLineageUseCase()
 
-    val graphBuilder =
-        DomainGraphBuilder(
-            packageRepository,
-            routeRepository,
-            warehouseRepository,
-            vehicleRepository
-        )
+    val lineage = traceHubLineageUseCase(localNode)
+
+    lineage.forEach {
+        println("${it.hubType}: ${it.warehouse.name}")
+    }
+
+
+   val loader = Loader()
+    val fleetWriter = FleetWriter("fleet.csv")
+
+    val warehouseRepository = CSVWarehouseRepository(loader)
+
+    val packageRepository = CSVPackageRepository(
+        loader = loader,
+        warehouseRepository = warehouseRepository
+    )
+
+    val routeRepository = CSVRouteRepository(
+        loader = loader,
+        warehouseRepository = warehouseRepository
+    )
+
+    val vehicleRepository = CSVVehicleRepository(
+        loader = loader,
+        writer = fleetWriter,
+        warehouseRepository = warehouseRepository
+    )
+
+    val graphBuilder = DomainGraphBuilder(
+        packageRepository,
+        routeRepository,
+        warehouseRepository,
+        vehicleRepository
+    )
 
     val domainGraph = graphBuilder.build()
 
-    if (!isValidDomainGraph(domainGraph)) {
+    if (domainGraph.warehouses.isEmpty() || domainGraph.packages.isEmpty()) {
+        println("Domain data is not available.")
         return
     }
-
-    printDomainGraphSummary(domainGraph)
-
-    val routers =
-        createRouters(warehouseRepository)
-
-    runRoutingDemo(
-        domainGraph,
-        routers
-    )
-
-    runBidirectionalDemo(
-        domainGraph,
-        routers
-    )
-
-    runPricingDemo(domainGraph)
-
-
-}
-
-
-private fun isValidDomainGraph(domainGraph: DomainGraph): Boolean {
-    if (domainGraph.warehouses.isEmpty()) {
-        println("No warehouses found.")
-        return false
-    }
-
-    if (domainGraph.packages.isEmpty()) {
-        println("No packages found.")
-        return false
-    }
-
-    return true
-}
-
-private fun printDomainGraphSummary(domainGraph: DomainGraph) {
-    println("========== DOMAIN GRAPH ==========")
-    println("Warehouses: ${domainGraph.warehouses.size}")
-    println("Packages: ${domainGraph.packages.size}")
-    println("Routes: ${domainGraph.routes.size}")
-    println("Vehicles: ${domainGraph.vehicles.size}")
-
-    println("\n========== WAREHOUSE RELATIONSHIPS ==========")
-
-    domainGraph.warehouses.take(3).forEach { warehouse ->
-        println(
-            """
-            Warehouse: ${warehouse.id}
-            Packages: ${warehouse.cargoQueue.map { it.id }}
-            Routes: ${warehouse.outgoingRoutes.map { it.id }}
-            Vehicles: ${warehouse.stationedVehicles.map { it.id }}
-            """.trimIndent()
-        )
-
-    }
-
-}
-
-
-private data class Routers(
-    val bfs: BfsRouter,
-    val dijkstra: DijkstraRouter,
-    val bidirectionalBfs: BidirectionalBfsRouter
-)
-private fun createRouters(
-    warehouseRepository: WarehouseRepository
-): Routers {
 
     val pathConstructor = PathConstructor()
 
-    return Routers(
-        bfs = BfsRouter(
-            warehouseRepository = warehouseRepository,
-            pathConstructor = pathConstructor
-        ),
-
-        dijkstra = DijkstraRouter(
-            warehousesRepository = warehouseRepository,
-            pathConstructor = pathConstructor
-        ),
-
-        bidirectionalBfs = BidirectionalBfsRouter(
-            warehousesRepository = warehouseRepository
-        )
-    )
-}
-
-private fun runRoutingDemo(
-    domainGraph: DomainGraph,
-    routers: Routers
-) {
-    val packageItem = domainGraph.packages.first()
-
-    val bfsPath = routers.bfs.findRoute(
-        packageItem.origin,
-        packageItem.destination
+    val bfsRouter = BfsRouter(
+        warehouseRepository = warehouseRepository,
+        pathConstructor = pathConstructor
     )
 
-    val findOptimalPathUseCase = FindOptimalPathUseCase(routers.dijkstra)
+    val distanceRouter = DijkstraRouter(
+        warehousesRepository = warehouseRepository,
+        pathConstructor = pathConstructor,
+        routeWeight = { route -> route.distanceKm }
+    )
 
-    val dijkstraPath = findOptimalPathUseCase(
-            packageItem.origin,
-            packageItem.destination)
+    val delayRouter = DijkstraRouter(
+        warehousesRepository = warehouseRepository,
+        pathConstructor = pathConstructor,
+        routeWeight = { route -> route.typicalDelayMin.toDouble() }
+    )
+
+    val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(bfsRouter)
+
+    val findOptimalPathUseCase = FindOptimalPathUseCase(distanceRouter)
+
+    val addVehicleToHubUseCase = AddVehicleToHubUseCase(vehicleRepository)
+
+    val findStationedVehiclesByCapacityUseCase =
+        FindStationedVehiclesByCapacityUseCase(vehicleRepository)
+
+    val getWarehouseLoadFactorUseCase =
+        GetWarehouseLoadFactorUseCase(warehouseRepository)
+
+    val detectShipmentConsolidationUseCase =
+        DetectShipmentConsolidationOpportunitiesUseCase(findOptimalPathUseCase)
+
+    val packageSelectionSort = PackageSelectionSort()
+
+    val prioritizeShipmentConsolidationUseCase =
+        PrioritizeShipmentConsolidationUseCase(packageSelectionSort)
+
+    val calculateVehicleUtilizationUseCase =
+        CalculateVehicleUtilizationUseCase()
+
+    val assignPackagesToBestFitVehiclesUseCase =
+        AssignPackagesToBestFitVehiclesUseCase(calculateVehicleUtilizationUseCase)
+
+    val rebalanceVehicleLoadsUseCase =
+        RebalanceVehicleLoadsUseCase()
+
+    val selectShipmentRouteUseCase = SelectShipmentRouteUseCase(
+        distanceRouter = distanceRouter,
+        delayRouter = delayRouter,
+        bfsRouter = bfsRouter
+    )
+
+    val evaluateRouteUseCase =
+        EvaluateRouteUseCase(routeRepository)
+
+    val estimateDispatchCostUseCase =
+        EstimateDispatchCostUseCase()
+
+    val dispatchVehicleUseCase =
+        DispatchVehicleUseCase()
 
     println()
-    println("========== BFS vs DIJKSTRA ==========")
+    println("============================================")
+    println("        LOGIROUTE SHIPMENT FLOW")
+    println("============================================")
 
-    println("BFS Route:")
-    printPath(bfsPath)
+    println()
+    println("========== STEP 1: DETECT CONSOLIDATION ==========")
 
-    println("Dijkstra Route:")
-    printPath(dijkstraPath)
+    val opportunities =
+        detectShipmentConsolidationUseCase(domainGraph.packages)
 
-    compareRoutingResults(
-        bfsPath = bfsPath,
-        dijkstraPath = dijkstraPath
-    )
+    println("Number of consolidation opportunities: ${opportunities.size}")
 
-    validateMultiHop(
-        domainGraph = domainGraph,
-        bfsRouter = routers.bfs,
-        dijkstraRouter = routers.dijkstra
-    )
-
-    validateUnreachableDestination(
-        domainGraph = domainGraph,
-        bfsRouter = routers.bfs,
-        dijkstraRouter = routers.dijkstra
-    )
-
-    findWeightedDifference(
-        domainGraph = domainGraph,
-        bfsRouter = routers.bfs,
-        dijkstraRouter = routers.dijkstra
-    )
-}
-private fun runBidirectionalDemo(
-    domainGraph: DomainGraph,
-    routers: Routers
-) {
-    val packageItem = domainGraph.packages.first()
-
-    val bfsPath = routers.bfs.findRoute(
-        packageItem.origin,
-        packageItem.destination
-    )
-
-    val bidirectionalPath =
-        routers.bidirectionalBfs.findRoute(
-            packageItem.origin,
-            packageItem.destination
-        )
-
-    compareBfsWithBidirectional(
-        bfsPath = bfsPath,
-        bidirectionalPath = bidirectionalPath,
-        bidirectionalRouter = routers.bidirectionalBfs,
-        bfsRouter = routers.bfs
-    )
-}
-
-private fun runPricingDemo(domainGraph: DomainGraph) {
-    val pricingStrategy = ExpressStrategy()
-
-    val pricingEngine =
-        RoutePricingEngine(pricingStrategy)
-
-    val calculatePricingUseCase =
-        CalculatePricingUseCase(pricingEngine)
-
-    val packageItem =
-        domainGraph.packages.first()
-
-    val fragilePackage =
-        FragileHandlingDecorator(packageItem)
-
-    val insuredPackage =
-        ExpressInsuranceDecorator(fragilePackage)
-
-    val premiumPackage =
-        ColdChainDecorator(insuredPackage)
-
-    val basePackageCost =
-        calculatePricingUseCase(
-            packageItem = packageItem,
-            distanceKm = 100.0
-        )
-
-    val decoratedPackageCost =
-        calculatePricingUseCase(
-            packageItem = packageItem,
-            distanceKm = 100.0,
-            packageComponent = premiumPackage
-        )
-
-    println("\n========== PACKAGE PRICING ==========")
-    println("Base Package Cost = $basePackageCost")
-    println("Decorated Package Cost = $decoratedPackageCost")
-}
-
-fun printPath(path: List<Warehouse>) {
-    if (path.isEmpty()) {
-        println("No route found.")
+    if (opportunities.isEmpty()) {
+        println("No consolidation opportunities found.")
         return
     }
 
-    for (index in path.indices) {
-        print(path[index].name)
+    val opportunity = opportunities.first()
 
-        if (index < path.size - 1) {
-            print(" -> ")
-        }
-    }
+    println("Main Package: ${opportunity.mainPackage.id}")
 
-}
-
-/*
-BFS finds the path with the fewest number of hops between warehouses.
-It does not use Route.distanceKm when choosing the path.
-
-Dijkstra calculates the cumulative distance of the routes and selects
-the path with the smallest total distance.
-
-Therefore, BFS cannot guarantee the shortest physical path when edge
-weights vary.
-
-For example:
-
-A -> D = 100 km
-
-A -> B -> C -> D
-10 km + 10 km + 10 km = 30 km
-
-BFS chooses A -> D because it contains only one hop.
-Dijkstra chooses A -> B -> C -> D because its total distance is smaller.
-*/
-fun compareRoutingResults(bfsPath: List<Warehouse>, dijkstraPath: List<Warehouse>) {
-    if (bfsPath.isEmpty()) {
-        println("BFS could not find a route.")
-    } else {
-        println("BFS hops = ${bfsPath.size - 1}")
-        println(
-            "BFS distance = ${
-                calculatePathDistance(bfsPath)
-            } km"
-        )
-    }
-
-    if (dijkstraPath.isEmpty()) {
-        println("Dijkstra could not find a route.")
-    } else {
-        println("Dijkstra hops = ${dijkstraPath.size - 1}")
-        println(
-            "Dijkstra distance = ${
-                calculatePathDistance(dijkstraPath)
-            } km"
-        )
-    }
-
-    if (
-        bfsPath.isNotEmpty() &&
-        dijkstraPath.isNotEmpty()
-    ) {
-        if (bfsPath == dijkstraPath) {
-            println("Both routers selected the same path.")
-        } else {
-            println("BFS and Dijkstra selected different paths.")
-        }
-    }
-}
-
-fun calculatePathDistance(
-    path: List<Warehouse>
-): Double {
-
-    var totalDistance = 0.0
-
-    for (index in 0 until path.size - 1) {
-
-        val currentWarehouse = path[index]
-        val nextWarehouse = path[index + 1]
-
-        val route =
-            currentWarehouse.outgoingRoutes
-                .firstOrNull {
-                    it.destination == nextWarehouse
-                }
-
-        if (route != null) {
-            totalDistance += route.distanceKm
-        }
-    }
-
-    return totalDistance
-}
-
-fun validateMultiHop(
-    domainGraph: DomainGraph,
-    bfsRouter: Router,
-    dijkstraRouter: Router
-) {
-    var found = false
-
-    for (origin in domainGraph.warehouses) {
-        for (destination in domainGraph.warehouses) {
-            if (origin != destination) {
-                val bfsPath =
-                    bfsRouter.findRoute(
-                        origin,
-                        destination
-                    )
-
-                if (bfsPath.size > 2) {
-                    println("Multi-hop scenario:")
-                    println(
-                        "${origin.name} -> ${destination.name}"
-                    )
-
-                    println("BFS:")
-                    printPath(bfsPath)
-
-                    val dijkstraPath =
-                        dijkstraRouter.findRoute(
-                            origin,
-                            destination
-                        )
-
-                    println("Dijkstra:")
-                    printPath(dijkstraPath)
-
-                    found = true
-                    break
-                }
-            }
-        }
-
-        if (found) {
-            break
-        }
-    }
-
-    if (!found) {
-        println("No multi-hop scenario found.")
-    }
-}
-
-fun validateUnreachableDestination(domainGraph: DomainGraph, bfsRouter: Router, dijkstraRouter: Router) {
-    var found = false
-    for (origin in domainGraph.warehouses) {
-        for (destination in domainGraph.warehouses) {
-            if (origin != destination) {
-                val bfsPath = bfsRouter.findRoute(origin, destination)
-
-                if (bfsPath.isEmpty()) {
-                    println("Unreachable scenario:")
-                    println("${origin.name} -> ${destination.name}")
-                    println("BFS: No route found.")
-                    val dijkstraPath = dijkstraRouter.findRoute(origin, destination)
-
-                    if (dijkstraPath.isEmpty()) {
-                        println("Dijkstra: No route found.")
-                    } else {
-                        println("Dijkstra:")
-                        printPath(dijkstraPath)
-                    }
-                    found = true
-                    break
-                }
-            }
-        }
-        if (found) {
-            break
-        }
-    }
-    if (!found) {
-        println("No unreachable scenario found.")
-    }
-}
-
-private fun findWeightedDifference(domainGraph: DomainGraph, bfsRouter: Router, dijkstraRouter: Router) {
-    var found = false
-
-    for (origin in domainGraph.warehouses) {
-        for (destination in domainGraph.warehouses) {
-            if (origin != destination) {
-                val bfsPath = bfsRouter.findRoute(origin, destination)
-                val dijkstraPath = dijkstraRouter.findRoute(origin, destination)
-
-                if (
-                    bfsPath.isNotEmpty() &&
-                    dijkstraPath.isNotEmpty()
-                ) {
-                    val bfsDistance = calculatePathDistance(bfsPath)
-
-                    val dijkstraDistance = calculatePathDistance(dijkstraPath)
-
-                    if (
-                        bfsPath != dijkstraPath &&
-                        dijkstraDistance < bfsDistance
-                    ) {
-                        println("Weighted graph comparison:")
-                        println("${origin.name} -> ${destination.name}")
-                        println("BFS:")
-                        printPath(bfsPath)
-                        println("Hops = ${bfsPath.size - 1}")
-                        println("Distance = $bfsDistance km")
-                        println("Dijkstra:")
-                        printPath(dijkstraPath)
-                        println("Hops = ${dijkstraPath.size - 1}")
-                        println("Distance = $dijkstraDistance km")
-                        found = true
-                        break
-                    }
-                }
-            }
-        }
-
-        if (found) {
-            break
-        }
-    }
-
-    if (!found) {
-        println("No weighted difference found in current data.")
-    }
-}
-
-
-fun calculateHops(
-    path: List<Warehouse>
-): Int {
-    return if (path.isNotEmpty()) {
-        path.size - 1
-    } else {
-        0
-    }
-}
-
-fun printBfsResult(
-    path: List<Warehouse>,
-    evaluatedNodes: Int
-) {
-    println()
-    println("Standard BFS:")
-    printPath(path)
-    println()
-    println("Hops = ${calculateHops(path)}")
-    println("Evaluated Nodes = $evaluatedNodes")
-}
-
-fun printBidirectionalResult(
-    path: List<Warehouse>,
-    router: BidirectionalBfsRouter
-) {
-    println()
-    println("Bidirectional BFS:")
-    printPath(path)
-    println()
-    println("Hops = ${calculateHops(path)}")
     println(
-        "Evaluated Nodes = ${router.lastEvaluatedNodesCount}"
+        "Compatible Packages: ${
+            opportunity.compatiblePackages.map { it.id }
+        }"
     )
-}
 
-fun verifySameHopCount(
-    bfsPath: List<Warehouse>,
-    bidirectionalPath: List<Warehouse>
-) {
-
-    println("----------------------------------------------")
-
-    when {
-        bfsPath.isEmpty() && bidirectionalPath.isEmpty() -> {
-            println(
-                "Both algorithms could not find a route."
-            )
-        }
-
-        bfsPath.isEmpty() -> {
-            println("BFS could not find a route.")
-            println("Bidirectional BFS found a route.")
-        }
-
-        bidirectionalPath.isEmpty() -> {
-            println(
-                "Bidirectional BFS could not find a route."
-            )
-            println("BFS found a route.")
-        }
-
-        calculateHops(bfsPath) ==
-                calculateHops(bidirectionalPath) -> {
-
-            println("Verification: PASSED")
-            println(
-                "Both algorithms found a shortest-hop path."
-            )
-        }
-
-        else -> {
-            println("Verification: FAILED")
-            println(
-                "The algorithms returned different hop counts."
-            )
-        }
-    }
-    // ========== SUB-TASK 4: BALANCED INDEX SIMULATOR ==========
-
-    val analyzeTreePerformanceUseCase = AnalyzeTreePerformanceUseCase()
-    val performanceReport = analyzeTreePerformanceUseCase()
+    println(
+        "Shared Route: ${
+            opportunity.sharedRoute.joinToString(" -> ") { it.id }
+        }"
+    )
 
     println()
-    println("Unbalanced BST height: ${performanceReport.unbalancedHeight}")
-    println("Balanced tree height:  ${performanceReport.balancedHeight}")
-    performanceReport.sampleKeys.forEach { key ->
+    println("========== STEP 2: PRIORITIZE PACKAGES ==========")
+
+    val prioritizedPackages =
+        prioritizeShipmentConsolidationUseCase(opportunity)
+
+    prioritizedPackages.forEachIndexed { index, packageItem ->
         println(
-            "$key -> unbalanced steps: ${performanceReport.unbalancedSteps[key]}, " +
-                    "balanced steps: ${performanceReport.balancedSteps[key]}"
+            "${index + 1}. ${packageItem.id} | " +
+                    "Priority = ${packageItem.priority} | " +
+                    "Weight = ${packageItem.weight} kg"
         )
     }
 
-}
-
-fun compareBfsWithBidirectional(
-    bfsPath: List<Warehouse>,
-    bidirectionalPath: List<Warehouse>,
-    bidirectionalRouter: BidirectionalBfsRouter,
-    bfsRouter: BfsRouter
-) {
     println()
-    println("==============================================")
-    println("BFS vs BIDIRECTIONAL BFS")
-    println("==============================================")
+    println("========== STEP 3: SHIPMENT SERVICE ==========")
 
-
-    printBfsResult(bfsPath, bfsRouter.evaluatedNodes)
-    printBidirectionalResult(
-        path = bidirectionalPath,
-        router = bidirectionalRouter
+    val shipment = ShipmentGroupRequest(
+        packages = prioritizedPackages,
+        origin = opportunity.mainPackage.origin,
+        destination = opportunity.mainPackage.destination,
+        service = ShipmentService.EXPRESS
     )
 
-    verifySameHopCount(
-        bfsPath = bfsPath,
-        bidirectionalPath = bidirectionalPath
+    println("Shipment Service: ${shipment.service}")
+
+    println()
+    println("========== STEP 4: SELECT FINAL ROUTE ==========")
+
+    val selectedRoute =
+        selectShipmentRouteUseCase(shipment)
+
+    println("Routing Objective: ${selectedRoute.routingObjective}")
+
+    println(
+        "Selected Route: ${
+            selectedRoute.path.joinToString(" -> ") { it.id }
+        }"
     )
 
+    println()
+    println("========== STEP 5: VALIDATE PACKAGES ==========")
 
+    val finalRoutePackages = prioritizedPackages.filter { packageItem ->
+        packageItem.destination in selectedRoute.path
+    }
+
+    val removedPackages = prioritizedPackages.filterNot { packageItem ->
+        packageItem.destination in selectedRoute.path
+    }
+
+    println(
+        "Packages compatible with final route: ${
+            finalRoutePackages.map { it.id }
+        }"
+    )
+
+    if (removedPackages.isNotEmpty()) {
+        println(
+            "Packages removed from consolidation: ${
+                removedPackages.map { it.id }
+            }"
+        )
+    }
+
+    if (opportunity.mainPackage !in finalRoutePackages) {
+        throw IllegalStateException(
+            "Main package destination is not part of the selected route."
+        )
+    }
+
+    println()
+    println("========== STEP 6: VEHICLE UTILIZATION ==========")
+
+    val stationedVehicles = domainGraph.vehicles.filter { vehicle ->
+        vehicle.currentHub == opportunity.mainPackage.origin
+    }
+
+    if (stationedVehicles.isEmpty()) {
+        println(
+            "No vehicles stationed at warehouse ${opportunity.mainPackage.origin.id}"
+        )
+        return
+    }
+
+    stationedVehicles.forEach { vehicle ->
+        val utilization =
+            calculateVehicleUtilizationUseCase(vehicle)
+
+        println()
+        println("Vehicle: ${vehicle.id}")
+        println("Max Capacity: ${vehicle.maxCapacityKg} kg")
+        println("Current Load: ${utilization.currentLoadKg} kg")
+        println("Remaining Capacity: ${utilization.remainingCapacityKg} kg")
+        println("Utilization: ${utilization.utilizationPercentage}%")
+        println("Cost Per Km: ${vehicle.costPerKm}")
+    }
+
+    println()
+    println("========== STEP 7: BEST FIT ASSIGNMENT ==========")
+
+    val initialAssignments = assignPackagesToBestFitVehiclesUseCase(
+        packages = finalRoutePackages,
+        vehicles = stationedVehicles
+    )
+
+    initialAssignments.forEach { assignment ->
+        println()
+        println("Vehicle: ${assignment.vehicle.id}")
+        println(
+            "Assigned Packages: ${
+                assignment.packages.map { it.id }
+            }"
+        )
+        println("Assigned Weight: ${assignment.totalWeightKg} kg")
+        println("Remaining Capacity: ${assignment.remainingCapacityKg} kg")
+    }
+
+    println()
+    println("========== STEP 8: REBALANCE VEHICLES ==========")
+
+    val finalAssignments =
+        rebalanceVehicleLoadsUseCase(initialAssignments)
+
+    println("Vehicles before rebalancing: ${initialAssignments.size}")
+    println("Vehicles after rebalancing: ${finalAssignments.size}")
+
+    finalAssignments.forEach { assignment ->
+        println()
+        println("Vehicle: ${assignment.vehicle.id}")
+        println(
+            "Final Packages: ${
+                assignment.packages.map { it.id }
+            }"
+        )
+        println("Remaining Capacity: ${assignment.remainingCapacityKg} kg")
+    }
+
+    println()
+    println("========== STEP 9: EVALUATE ROUTE ==========")
+
+    val routeEvaluation =
+        evaluateRouteUseCase(selectedRoute)
+
+    println("Total Distance: ${routeEvaluation.totalDistanceKm} km")
+    println("Expected Delay: ${routeEvaluation.totalExpectedDelayMin} min")
+    println("Hop Count: ${routeEvaluation.hopCount}")
+
+    println()
+    println("========== STEP 10: DISPATCH COST ==========")
+
+    finalAssignments.forEach { assignment ->
+        val dispatchCost = estimateDispatchCostUseCase(
+            vehicle = assignment.vehicle,
+            routeEvaluation = routeEvaluation
+        )
+
+        println()
+        println("Vehicle: ${assignment.vehicle.id}")
+        println("Cost Per Km: ${assignment.vehicle.costPerKm}")
+        println("Route Distance: ${routeEvaluation.totalDistanceKm}")
+        println("Estimated Dispatch Cost: $dispatchCost")
+    }
+
+    println()
+    println("========== STEP 11: DISPATCH ==========")
+
+    finalAssignments.forEach { assignment ->
+        println()
+        println("Dispatching vehicle: ${assignment.vehicle.id}")
+
+        println(
+            "Packages before dispatch: ${
+                assignment.packages.map { it.id }
+            }"
+        )
+
+        val dispatchedPackages = dispatchVehicleUseCase(
+            warehouse = opportunity.mainPackage.origin,
+            assignment = assignment
+        )
+
+        println(
+            "Dispatched Packages: ${
+                dispatchedPackages.map { it.id }
+            }"
+        )
+    }
+
+    println()
+    println("============================================")
+    println("              FLOW COMPLETED")
+    println("============================================")
+
+    println(
+        "Warehouse remaining packages: ${
+            opportunity.mainPackage.origin.cargoQueue.map { it.id }
+        }"
+    )
+
+    finalAssignments.forEach { assignment ->
+        println(
+            "${assignment.vehicle.id} loaded packages: ${
+                assignment.vehicle.loadedPackages.map { it.id }
+            }"
+        )
+    }
+
+    val detectRescueUseCase =
+        DetectEmergencyCargoRescueOpportunitiesUseCase(
+            packageRepository = packageRepository,
+            vehicleRepository = vehicleRepository,
+            warehouseRepository = warehouseRepository,
+            findOptimalPathUseCase = findOptimalPathUseCase
+        )
+
+    val executePrioritizationUseCase =
+        ExecuteEmergencyCargoPrioritizationUseCase(
+            packageRepository = packageRepository
+        )
+
+    println()
+    println("========== EMERGENCY CARGO RESCUE ==========")
+
+    val sampleWarehouseId = domainGraph.warehouses.first().id
+
+    try {
+        val detectRequest = DetectEmergencyCargoRescueRequest(warehouseId = sampleWarehouseId)
+        val rescueOpportunities = detectRescueUseCase(detectRequest)
+
+        rescueOpportunities.forEach { rescueOpportunity ->
+            val executeRequest = ExecuteEmergencyCargoPrioritizationRequest(rescueOpportunity)
+            val dispatchPlan = executePrioritizationUseCase(executeRequest)
+
+            println()
+            println("Current Warehouse : ${rescueOpportunity.currentWarehouse.name}")
+            println("Next Hop Transit  : ${rescueOpportunity.nextHopWarehouse.name}")
+            println("Assigned Vehicle  : ${dispatchPlan.vehicle.id}")
+            println("Loaded Urgent     : ${dispatchPlan.loadedUrgentPackages.map { it.id }}")
+            println("Offloaded Low Prio: ${dispatchPlan.offloadedLowPriorityPackages.map { it.id }}")
+            println("Total Weight      : ${dispatchPlan.totalWeight} kg")
+            println("Remaining Capacity: ${dispatchPlan.remainingCapacity} kg")
+        }
+    } catch (e: LogisticsException) {
+        println("Emergency Process Notice: ${e.message}")
+    } catch (e: Exception) {
+        println("Unexpected Error: ${e.message}")
+    }
 }
-
-

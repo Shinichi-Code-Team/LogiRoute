@@ -1,0 +1,106 @@
+package com.example.logiroute.domain.usecase
+
+import com.example.logiroute.domain.model.Package
+import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.com.example.logiroute.domain.model.request.ConsolidationOpportunityRequest
+
+class DetectShipmentConsolidationOpportunitiesUseCase(
+    private val findOptimalPathUseCase: FindOptimalPathUseCase
+) {
+
+    operator fun invoke(
+        packages: List<Package>
+    ): List<ConsolidationOpportunityRequest> {
+
+        val opportunities = packages
+            .map { mainPackage ->
+                buildOpportunity(
+                    mainPackage = mainPackage,
+                    packages = packages
+                )
+            }
+            .filter { opportunity ->
+                opportunity.compatiblePackages.isNotEmpty()
+            }
+
+        return removeSubOpportunities(opportunities)
+    }
+
+    private fun buildOpportunity(
+        mainPackage: Package,
+        packages: List<Package>
+    ): ConsolidationOpportunityRequest {
+
+        val sharedRoute = getSharedRoute(mainPackage)
+
+        val compatiblePackages = findCompatiblePackages(
+            mainPackage = mainPackage,
+            packages = packages,
+            sharedRoute = sharedRoute
+        )
+
+        return ConsolidationOpportunityRequest(
+            mainPackage = mainPackage,
+            compatiblePackages = compatiblePackages,
+            sharedRoute = sharedRoute
+        )
+    }
+
+    private fun getSharedRoute(
+        mainPackage: Package
+    ): List<Warehouse> {
+
+        return findOptimalPathUseCase(
+            mainPackage.origin,
+            mainPackage.destination
+        )
+    }
+
+    private fun findCompatiblePackages(
+        mainPackage: Package,
+        packages: List<Package>,
+        sharedRoute: List<Warehouse>
+    ): List<Package> {
+
+        return packages.filter { candidatePackage ->
+            candidatePackage != mainPackage &&
+                    candidatePackage.origin == mainPackage.origin &&
+                    candidatePackage.destination in sharedRoute
+        }
+    }
+
+    private fun removeSubOpportunities(
+        opportunities: List<ConsolidationOpportunityRequest>
+    ): List<ConsolidationOpportunityRequest> {
+
+        return opportunities
+            .distinctBy { opportunity ->
+                getAllPackages(opportunity)
+                    .map { it.id }
+                    .sorted()
+            }
+            .filter { currentOpportunity ->
+
+                val currentPackages =
+                    getAllPackages(currentOpportunity).toSet()
+
+                opportunities.none { otherOpportunity ->
+
+                    val otherPackages =
+                        getAllPackages(otherOpportunity).toSet()
+
+                    otherOpportunity != currentOpportunity &&
+                            otherPackages.size > currentPackages.size &&
+                            otherPackages.containsAll(currentPackages)
+                }
+            }
+    }
+
+    private fun getAllPackages(
+        opportunity: ConsolidationOpportunityRequest
+    ): List<Package> {
+
+        return listOf(opportunity.mainPackage) +
+                opportunity.compatiblePackages
+    }
+}

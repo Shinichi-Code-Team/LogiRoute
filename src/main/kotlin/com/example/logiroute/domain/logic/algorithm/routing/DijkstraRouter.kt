@@ -6,11 +6,17 @@ import com.example.logiroute.domain.repository.WarehouseRepository
 
 class DijkstraRouter(
     private val warehousesRepository: WarehouseRepository,
-    private val pathConstructor: PathConstructor
+    private val pathConstructor: PathConstructor,
+    private val routeWeight: (Route) -> Double
 ) : Router {
+
     private val adjacencyMap = buildWeightedAdjacencyMap()
 
-    override fun findRoute(source: Warehouse, destination: Warehouse): List<Warehouse> {
+    override fun findRoute(
+        source: Warehouse,
+        destination: Warehouse
+    ): List<Warehouse> {
+
         if (source == destination) {
             return listOf(source)
         }
@@ -23,29 +29,38 @@ class DijkstraRouter(
 
         state.distances[source] = 0.0
 
-        runDijkstra(destination, state)
+        runDijkstra(
+            destination = destination,
+            state = state
+        )
 
         if (destination !in state.parents) {
             return emptyList()
         }
 
         return pathConstructor.reconstructPath(
-            state.parents,
-            source,
-            destination
+            parentMap = state.parents,
+            source = source,
+            destination = destination
         )
     }
 
     private fun createInitialState(): DijkstraState {
-        val distances = mutableMapOf<Warehouse, Double>()
 
-        for ((warehouse, routes) in adjacencyMap) {
-            distances[warehouse] = Double.POSITIVE_INFINITY
-
-            for (route in routes) {
-                distances[route.destination] = Double.POSITIVE_INFINITY
+        val allWarehouses = adjacencyMap
+            .flatMap { (warehouse, routes) ->
+                listOf(warehouse) +
+                        routes.map { route ->
+                            route.destination
+                        }
             }
-        }
+            .distinct()
+
+        val distances = allWarehouses
+            .associateWith {
+                Double.POSITIVE_INFINITY
+            }
+            .toMutableMap()
 
         return DijkstraState(
             distances = distances,
@@ -54,7 +69,10 @@ class DijkstraRouter(
         )
     }
 
-    private fun runDijkstra(destination: Warehouse, state: DijkstraState) {
+    private fun runDijkstra(
+        destination: Warehouse,
+        state: DijkstraState
+    ) {
 
         while (hasReachableWarehouse(state)) {
 
@@ -66,54 +84,72 @@ class DijkstraRouter(
 
             state.visited.add(current)
 
-            val routes = adjacencyMap[current] ?: emptyList()
-
-            for (route in routes) {
-                val neighbor = route.destination
-
-                if (neighbor !in state.visited) {
-
-                    val newDistance =
-                        state.distances.getValue(current) + route.distanceKm
-
-                    if (newDistance < state.distances.getValue(neighbor)) {
-                        state.distances[neighbor] = newDistance
-                        state.parents[neighbor] = current
-                    }
+            adjacencyMap[current]
+                .orEmpty()
+                .filter { route ->
+                    route.destination !in state.visited
                 }
-            }
+                .forEach { route ->
+                    updateDistance(
+                        current = current,
+                        route = route,
+                        state = state
+                    )
+                }
         }
     }
 
-    private fun hasReachableWarehouse(state: DijkstraState): Boolean {
-        for ((warehouse, distance) in state.distances) {
-            if (
-                warehouse !in state.visited &&
-                distance < Double.POSITIVE_INFINITY
-            ) {
-                return true
-            }
-        }
+    private fun updateDistance(
+        current: Warehouse,
+        route: Route,
+        state: DijkstraState
+    ) {
 
-        return false
+        val neighbor = route.destination
+
+        val newCost =
+            state.distances.getValue(current) +
+                    routeWeight(route)
+
+        if (newCost < state.distances.getValue(neighbor)) {
+            state.distances[neighbor] = newCost
+            state.parents[neighbor] = current
+        }
     }
 
-    private fun findLowestCostWarehouse(state: DijkstraState): Warehouse {
+    private fun hasReachableWarehouse(
+        state: DijkstraState
+    ): Boolean {
 
-        var lowestWarehouse = state.distances.keys.first()
-        var lowestDistance = Double.POSITIVE_INFINITY
+        return state.distances.any { (warehouse, cost) ->
+            warehouse !in state.visited &&
+                    cost < Double.POSITIVE_INFINITY
+        }
+    }
 
-        for ((warehouse, distance) in state.distances) {
-            if (
-                warehouse !in state.visited &&
-                distance < lowestDistance
-            ) {
-                lowestWarehouse = warehouse
-                lowestDistance = distance
-            }
+    private fun findLowestCostWarehouse(
+        state: DijkstraState
+    ): Warehouse {
+
+            return state.distances
+                .filter { (warehouse, _) ->
+                    warehouse !in state.visited
+                }
+                .minByOrNull { (_, cost) ->
+                    cost
+                }
+                ?.key
+                ?: error("No reachable warehouse found")
         }
 
-        return lowestWarehouse
+    private fun buildWeightedAdjacencyMap():
+            Map<Warehouse, List<Route>> {
+
+        return warehousesRepository
+            .getAllWarehouses()
+            .associateWith { warehouse ->
+                warehouse.outgoingRoutes
+            }
     }
 
     private data class DijkstraState(
@@ -121,12 +157,4 @@ class DijkstraRouter(
         val visited: MutableSet<Warehouse>,
         val parents: MutableMap<Warehouse, Warehouse>
     )
-
-    private fun buildWeightedAdjacencyMap(): Map<Warehouse, List<Route>> {
-        val warehouses = warehousesRepository.getAllWarehouses()
-        return warehouses.associateWith { warehouse ->
-            warehouse.outgoingRoutes
-        }
-    }
-
 }
