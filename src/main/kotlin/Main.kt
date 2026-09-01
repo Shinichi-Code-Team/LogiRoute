@@ -13,6 +13,13 @@ import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
 import com.example.logiroute.domain.logic.algorithm.routing.DijkstraRouter
 import com.example.logiroute.domain.logic.algorithm.routing.PathConstructor
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.FindStationedVehiclesByCapacityUseCase
+import com.example.logiroute.domain.usecase.CalculatePricingUseCase
+import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
+import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
+import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
+import com.example.logiroute.domain.usecase.ReroutePackageUseCase
 import com.example.logiroute.domain.tree.HubTreeBuilder
 import com.example.logiroute.domain.usecase.*
 import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequest
@@ -61,9 +68,50 @@ fun main() {
             hubType = HubType.LOCAL_DEPOT,
             parentWarehouseId = "R01"
         )
+
+    val domainGraph = graphBuilder.build()
+
+    if (!isValidDomainGraph(domainGraph)) {
+        return
+    }
+
+    printDomainGraphSummary(domainGraph)
+
+    val routers =
+        createRouters(warehouseRepository)
+
+    val findFewestHopsRouteUseCase =
+        FindFewestHopsRouteUseCase(routers.bfs)
+
+    val findOptimalPathUseCase =
+        FindOptimalPathUseCase(routers.dijkstra)
+
+    val addVehicleToHubUseCase =
+        AddVehicleToHubUseCase(vehicleRepository)
+
+
+    val reroutePackageUseCase = ReroutePackageUseCase(
+        packageRepository = packageRepository,
+        warehouseRepository = warehouseRepository
+    )
+    runRoutingDemo(
+        domainGraph = domainGraph,
+        routers = routers,
+        findFewestHopsRouteUseCase = findFewestHopsRouteUseCase,
+        findOptimalPathUseCase = findOptimalPathUseCase
     )
     val builder = HubTreeBuilder()
 
+    //runBidirectionalDemo( domainGraph, routers)
+
+    //runPricingDemo(domainGraph)
+    runShipmentConsolidationDemo()
+    runShipmentConsolidationOnRealData(domainGraph, routers)
+
+    runPricingDemo(domainGraph)
+    runReroutePackageDemo(domainGraph, reroutePackageUseCase)
+
+}
     val root = builder.buildTree(
         warehouses = listOf(
             globalWarehouse,
@@ -465,5 +513,31 @@ fun main() {
         println("Emergency Process Notice: ${e.message}")
     } catch (e: Exception) {
         println("Unexpected Error: ${e.message}")
+    }
+}
+
+private fun runReroutePackageDemo(
+    domainGraph: DomainGraph,
+    reroutePackageUseCase: ReroutePackageUseCase
+) {
+    val firstPackage = domainGraph.packages.firstOrNull()
+    val secondWarehouse = domainGraph.warehouses.getOrNull(1)
+
+    if (firstPackage != null && secondWarehouse != null) {
+        println("\n========== REROUTE PACKAGE DEMO ==========")
+        println(" Original Package: ${firstPackage.id}")
+        println("Original Destination: ${firstPackage.destination.name}")
+        println(" New Destination: ${secondWarehouse.name}")
+
+        val reroutedPackage = reroutePackageUseCase(
+            packageId = firstPackage.id,
+            newDestinationId = secondWarehouse.id
+        )
+
+        println(" Package rerouted successfully!")
+        println(" New Destination: ${reroutedPackage.destination.name}")
+        println(" Package: ${reroutedPackage.id} (${reroutedPackage.priority}) - ${reroutedPackage.weight}kg")
+    } else {
+        println(" Not enough data to demonstrate rerouting!")
     }
 }
