@@ -2,8 +2,8 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
-import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.result.VehicleAssignment
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 private const val MIN_ACCEPTABLE_UTILIZATION = 70.0
 private const val MIN_COST_SAVING_RATIO = 0.25

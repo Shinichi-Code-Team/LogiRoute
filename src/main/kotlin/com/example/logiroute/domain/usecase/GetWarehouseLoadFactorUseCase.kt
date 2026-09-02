@@ -1,8 +1,8 @@
 package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
-import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository

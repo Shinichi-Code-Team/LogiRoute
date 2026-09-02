@@ -3,10 +3,10 @@ package com.example.logiroute.domain.usecase
 import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
 import com.example.logiroute.domain.logic.algorithm.routing.DijkstraRouter
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.ShipmentGroupRequest
 import com.example.logiroute.domain.model.request.ShipmentService
 import com.example.logiroute.domain.model.result.ShipmentRouteResult
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 class SelectShipmentRouteUseCase(
     private val distanceRouter: DijkstraRouter,
@@ -20,12 +20,9 @@ class SelectShipmentRouteUseCase(
 
         val path = selectPath(shipment)
         if (path.isEmpty()) {
-            throw LogisticsException
-                .RouteNotFoundException(
-                    "No route found from " +
-                            "${shipment.origin.id} " +
-                            "to ${shipment.destination.id}"
-                )
+            throw LogisticsException.RouteNotFoundException(
+                "No route found from ${shipment.origin.id} to ${shipment.destination.id}"
+            )
         }
 
         val objective = selectRoutingObjective(shipment.service)
