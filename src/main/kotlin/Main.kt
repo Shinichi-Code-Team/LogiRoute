@@ -2,167 +2,27 @@ package com.example.logiroute
 
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubHierarchyRaw
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
+import com.example.logiroute.com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
 import com.example.logiroute.data.processing.loader.Loader
 import com.example.logiroute.data.processing.writer.FleetWriter
-import com.example.logiroute.data.repository.CSVPackageRepository
-import com.example.logiroute.data.repository.CSVRouteRepository
-import com.example.logiroute.data.repository.CSVVehicleRepository
-import com.example.logiroute.data.repository.CSVWarehouseRepository
-import com.example.logiroute.domain.builder.DomainGraphBuilder
-import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
-import com.example.logiroute.domain.logic.algorithm.routing.DijkstraRouter
-import com.example.logiroute.domain.logic.algorithm.routing.PathConstructor
+import com.example.logiroute.data.repository.*
+import com.example.logiroute.domain.builder.*
+import com.example.logiroute.domain.logic.algorithm.routing.*
+import com.example.logiroute.domain.logic.algorithm.sorting.PackageSelectionSort
+import com.example.logiroute.domain.logic.algorithm.tree.HubTreeBuilder
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.FindStationedVehiclesByCapacityUseCase
-import com.example.logiroute.domain.usecase.CalculatePricingUseCase
-import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
-import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
-import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
-import com.example.logiroute.domain.usecase.ReroutePackageUseCase
-import com.example.logiroute.domain.tree.HubTreeBuilder
+import com.example.logiroute.domain.model.request.*
 import com.example.logiroute.domain.usecase.*
-import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequest
-import com.example.logiroute.domain.model.request.ExecuteEmergencyCargoPrioritizationRequest
 import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 fun main() {
-    val globalWarehouse = Warehouse(
-        id = "G01",
-        name = "Global Hub",
-        regionalZone = "GLOBAL",
-        latitude = 0.0,
-        longitude = 0.0
-    )
-
-    val regionalWarehouse = Warehouse(
-        id = "R01",
-        name = "Regional Center",
-        regionalZone = "NORTH",
-        latitude = 1.0,
-        longitude = 1.0
-    )
-
-    val localWarehouse = Warehouse(
-        id = "L01",
-        name = "Local Depot",
-        regionalZone = "NORTH",
-        latitude = 2.0,
-        longitude = 2.0
-    )
-    val hierarchy = listOf(
-        HubHierarchyRaw(
-            warehouseId = "G01",
-            hubType = HubType.GLOBAL_HUB,
-            parentWarehouseId = null
-        ),
-
-        HubHierarchyRaw(
-            warehouseId = "R01",
-            hubType = HubType.REGIONAL_CENTER,
-            parentWarehouseId = "G01"
-        ),
-
-        HubHierarchyRaw(
-            warehouseId = "L01",
-            hubType = HubType.LOCAL_DEPOT,
-            parentWarehouseId = "R01"
-        )
-
-    val domainGraph = graphBuilder.build()
-
-    if (!isValidDomainGraph(domainGraph)) {
-        return
-    }
-
-    printDomainGraphSummary(domainGraph)
-
-    val routers =
-        createRouters(warehouseRepository)
-
-    val findFewestHopsRouteUseCase =
-        FindFewestHopsRouteUseCase(routers.bfs)
-
-    val findOptimalPathUseCase =
-        FindOptimalPathUseCase(routers.dijkstra)
-
-    val addVehicleToHubUseCase =
-        AddVehicleToHubUseCase(vehicleRepository)
-
-
-    val reroutePackageUseCase = ReroutePackageUseCase(
-        packageRepository = packageRepository,
-        warehouseRepository = warehouseRepository
-    )
-    runRoutingDemo(
-        domainGraph = domainGraph,
-        routers = routers,
-        findFewestHopsRouteUseCase = findFewestHopsRouteUseCase,
-        findOptimalPathUseCase = findOptimalPathUseCase
-    )
-    val builder = HubTreeBuilder()
-
-    //runBidirectionalDemo( domainGraph, routers)
-
-    //runPricingDemo(domainGraph)
-    runShipmentConsolidationDemo()
-    runShipmentConsolidationOnRealData(domainGraph, routers)
-
-    runPricingDemo(domainGraph)
-    runReroutePackageDemo(domainGraph, reroutePackageUseCase)
-
-}
-    val root = builder.buildTree(
-        warehouses = listOf(
-            globalWarehouse,
-            regionalWarehouse,
-            localWarehouse
-        ),
-        hierarchy = hierarchy
-    )
-    val localNode = root.children
-        .first()
-        .children
-        .first()
-
-    val traceHubLineageUseCase = TraceHubLineageUseCase()
-
-    val lineage = traceHubLineageUseCase(localNode)
-
-    lineage.forEach {
-        println("${it.hubType}: ${it.warehouse.name}")
-    }
-
-
-   val loader = Loader()
+    val loader = Loader()
     val fleetWriter = FleetWriter("fleet.csv")
-
     val warehouseRepository = CSVWarehouseRepository(loader)
-
-    val packageRepository = CSVPackageRepository(
-        loader = loader,
-        warehouseRepository = warehouseRepository
-    )
-
-    val routeRepository = CSVRouteRepository(
-        loader = loader,
-        warehouseRepository = warehouseRepository
-    )
-
-    val vehicleRepository = CSVVehicleRepository(
-        loader = loader,
-        writer = fleetWriter,
-        warehouseRepository = warehouseRepository
-    )
-
-    val graphBuilder = DomainGraphBuilder(
-        packageRepository,
-        routeRepository,
-        warehouseRepository,
-        vehicleRepository
-    )
-
-    val domainGraph = graphBuilder.build()
+    val packageRepository = CSVPackageRepository(loader, warehouseRepository)
+    val routeRepository = CSVRouteRepository(loader, warehouseRepository)
+    val vehicleRepository = CSVVehicleRepository(loader, fleetWriter, warehouseRepository)
+    val domainGraph = DomainGraphBuilder(packageRepository, routeRepository, warehouseRepository, vehicleRepository).build()
 
     if (domainGraph.warehouses.isEmpty() || domainGraph.packages.isEmpty()) {
         println("Domain data is not available.")
@@ -170,193 +30,120 @@ fun main() {
     }
 
     val pathConstructor = PathConstructor()
-
-    val bfsRouter = BfsRouter(
-        warehouseRepository = warehouseRepository,
-        pathConstructor = pathConstructor
-    )
-
-    val distanceRouter = DijkstraRouter(
-        warehousesRepository = warehouseRepository,
-        pathConstructor = pathConstructor,
-        routeWeight = { route -> route.distanceKm }
-    )
-
-    val delayRouter = DijkstraRouter(
-        warehousesRepository = warehouseRepository,
-        pathConstructor = pathConstructor,
-        routeWeight = { route -> route.typicalDelayMin.toDouble() }
-    )
-
-    val findFewestHopsRouteUseCase = FindFewestHopsRouteUseCase(bfsRouter)
-
+    val bfsRouter = BfsRouter(warehouseRepository, pathConstructor)
+    val distanceRouter = DijkstraRouter(warehouseRepository, pathConstructor) { it.distanceKm }
+    val delayRouter = DijkstraRouter(warehouseRepository, pathConstructor) { it.typicalDelayMin.toDouble() }
     val findOptimalPathUseCase = FindOptimalPathUseCase(distanceRouter)
+    val calculateVehicleUtilizationUseCase = CalculateVehicleUtilizationUseCase()
 
-    val addVehicleToHubUseCase = AddVehicleToHubUseCase(vehicleRepository)
-
-    val findStationedVehiclesByCapacityUseCase =
-        FindStationedVehiclesByCapacityUseCase(vehicleRepository)
-
-    val getWarehouseLoadFactorUseCase =
-        GetWarehouseLoadFactorUseCase(warehouseRepository)
-
-    val detectShipmentConsolidationUseCase =
-        DetectShipmentConsolidationOpportunitiesUseCase(findOptimalPathUseCase)
-
-    val packageSelectionSort = PackageSelectionSort()
-
-    val prioritizeShipmentConsolidationUseCase =
-        PrioritizeShipmentConsolidationUseCase(packageSelectionSort)
-
-    val calculateVehicleUtilizationUseCase =
-        CalculateVehicleUtilizationUseCase()
-
-    val assignPackagesToBestFitVehiclesUseCase =
-        AssignPackagesToBestFitVehiclesUseCase(calculateVehicleUtilizationUseCase)
-
-    val rebalanceVehicleLoadsUseCase =
-        RebalanceVehicleLoadsUseCase()
-
-    val selectShipmentRouteUseCase = SelectShipmentRouteUseCase(
-        distanceRouter = distanceRouter,
-        delayRouter = delayRouter,
-        bfsRouter = bfsRouter
+    runHubHierarchyDemo()
+    runShipmentFlow(
+        domainGraph = domainGraph,
+        detectConsolidation = DetectShipmentConsolidationOpportunitiesUseCase(findOptimalPathUseCase),
+        prioritizeConsolidation = PrioritizeShipmentConsolidationUseCase(PackageSelectionSort()),
+        validateFinalRoute = ValidatePackagesAgainstFinalRouteUseCase(),
+        calculateUtilization = calculateVehicleUtilizationUseCase,
+        assignBestFit = AssignPackagesToBestFitVehiclesUseCase(calculateVehicleUtilizationUseCase),
+        rebalanceLoads = RebalanceVehicleLoadsUseCase(),
+        selectRoute = SelectShipmentRouteUseCase(distanceRouter, delayRouter, bfsRouter),
+        evaluateRoute = EvaluateRouteUseCase(routeRepository),
+        estimateCost = EstimateDispatchCostUseCase(),
+        dispatchVehicle = DispatchVehicleUseCase()
     )
+    runEmergencyCargoRescue(
+        domainGraph = domainGraph,
+        packageRepository = packageRepository,
+        vehicleRepository = vehicleRepository,
+        warehouseRepository = warehouseRepository,
+        findOptimalPathUseCase = findOptimalPathUseCase
+    )
+    runReroutePackageDemo(domainGraph, ReroutePackageUseCase(packageRepository, warehouseRepository))
+}
 
-    val evaluateRouteUseCase =
-        EvaluateRouteUseCase(routeRepository)
+private fun runHubHierarchyDemo() {
+    val globalWarehouse = Warehouse("G01", "Global Hub", "GLOBAL", 0.0, 0.0)
+    val regionalWarehouse = Warehouse("R01", "Regional Center", "NORTH", 1.0, 1.0)
+    val localWarehouse = Warehouse("L01", "Local Depot", "NORTH", 2.0, 2.0)
+    val hierarchy = listOf(
+        HubHierarchyRaw("G01", HubType.GLOBAL_HUB, null),
+        HubHierarchyRaw("R01", HubType.REGIONAL_CENTER, "G01"),
+        HubHierarchyRaw("L01", HubType.LOCAL_DEPOT, "R01")
+    )
+    val root = HubTreeBuilder().buildTree(
+        warehouses = listOf(globalWarehouse, regionalWarehouse, localWarehouse),
+        hierarchy = hierarchy
+    )
+    val localNode = root.children.first().children.first()
+    TraceHubLineageUseCase()(localNode).forEach { println("${it.hubType}: ${it.warehouse.name}") }
+}
 
-    val estimateDispatchCostUseCase =
-        EstimateDispatchCostUseCase()
-
-    val dispatchVehicleUseCase =
-        DispatchVehicleUseCase()
-
-    println()
-    println("============================================")
-    println("        LOGIROUTE SHIPMENT FLOW")
-    println("============================================")
-
-    println()
-    println("========== STEP 1: DETECT CONSOLIDATION ==========")
-
-    val opportunities =
-        detectShipmentConsolidationUseCase(domainGraph.packages)
-
+private fun runShipmentFlow(
+    domainGraph: DomainGraph,
+    detectConsolidation: DetectShipmentConsolidationOpportunitiesUseCase,
+    prioritizeConsolidation: PrioritizeShipmentConsolidationUseCase,
+    validateFinalRoute: ValidatePackagesAgainstFinalRouteUseCase,
+    calculateUtilization: CalculateVehicleUtilizationUseCase,
+    assignBestFit: AssignPackagesToBestFitVehiclesUseCase,
+    rebalanceLoads: RebalanceVehicleLoadsUseCase,
+    selectRoute: SelectShipmentRouteUseCase,
+    evaluateRoute: EvaluateRouteUseCase,
+    estimateCost: EstimateDispatchCostUseCase,
+    dispatchVehicle: DispatchVehicleUseCase
+) {
+    printHeader("LOGIROUTE SHIPMENT FLOW")
+    printStep(1, "DETECT CONSOLIDATION")
+    val opportunities = detectConsolidation(domainGraph.packages)
     println("Number of consolidation opportunities: ${opportunities.size}")
-
     if (opportunities.isEmpty()) {
         println("No consolidation opportunities found.")
         return
     }
 
     val opportunity = opportunities.first()
-
     println("Main Package: ${opportunity.mainPackage.id}")
+    println("Compatible Packages: ${opportunity.compatiblePackages.map { it.id }}")
+    println("Shared Route: ${opportunity.sharedRoute.joinToString(" -> ") { it.id }}")
 
-    println(
-        "Compatible Packages: ${
-            opportunity.compatiblePackages.map { it.id }
-        }"
-    )
-
-    println(
-        "Shared Route: ${
-            opportunity.sharedRoute.joinToString(" -> ") { it.id }
-        }"
-    )
-
-    println()
-    println("========== STEP 2: PRIORITIZE PACKAGES ==========")
-
-    val prioritizedPackages =
-        prioritizeShipmentConsolidationUseCase(opportunity)
-
+    printStep(2, "PRIORITIZE PACKAGES")
+    val prioritizedPackages = prioritizeConsolidation(opportunity)
     prioritizedPackages.forEachIndexed { index, packageItem ->
-        println(
-            "${index + 1}. ${packageItem.id} | " +
-                    "Priority = ${packageItem.priority} | " +
-                    "Weight = ${packageItem.weight} kg"
-        )
+        println("${index + 1}. ${packageItem.id} | Priority = ${packageItem.priority} | Weight = ${packageItem.weight} kg")
     }
 
-    println()
-    println("========== STEP 3: SHIPMENT SERVICE ==========")
-
+    printStep(3, "SHIPMENT SERVICE")
     val shipment = ShipmentGroupRequest(
         packages = prioritizedPackages,
         origin = opportunity.mainPackage.origin,
         destination = opportunity.mainPackage.destination,
         service = ShipmentService.EXPRESS
     )
-
     println("Shipment Service: ${shipment.service}")
 
-    println()
-    println("========== STEP 4: SELECT FINAL ROUTE ==========")
-
-    val selectedRoute =
-        selectShipmentRouteUseCase(shipment)
-
+    printStep(4, "SELECT FINAL ROUTE")
+    val selectedRoute = selectRoute(shipment)
     println("Routing Objective: ${selectedRoute.routingObjective}")
+    println("Selected Route: ${selectedRoute.path.joinToString(" -> ") { it.id }}")
 
-    println(
-        "Selected Route: ${
-            selectedRoute.path.joinToString(" -> ") { it.id }
-        }"
+    printStep(5, "VALIDATE PACKAGES")
+    val validation = validateFinalRoute(
+        packages = prioritizedPackages,
+        finalRoutePath = selectedRoute.path,
+        mainPackage = opportunity.mainPackage
     )
-
-    println()
-    println("========== STEP 5: VALIDATE PACKAGES ==========")
-
-    val finalRoutePackages = prioritizedPackages.filter { packageItem ->
-        packageItem.destination in selectedRoute.path
+    println("Packages compatible with final route: ${validation.validPackages.map { it.id }}")
+    if (validation.removedPackages.isNotEmpty()) {
+        println("Packages kept at warehouse: ${validation.removedPackages.map { it.id }}")
     }
 
-    val removedPackages = prioritizedPackages.filterNot { packageItem ->
-        packageItem.destination in selectedRoute.path
-    }
-
-    println(
-        "Packages compatible with final route: ${
-            finalRoutePackages.map { it.id }
-        }"
-    )
-
-    if (removedPackages.isNotEmpty()) {
-        println(
-            "Packages removed from consolidation: ${
-                removedPackages.map { it.id }
-            }"
-        )
-    }
-
-    if (opportunity.mainPackage !in finalRoutePackages) {
-        throw IllegalStateException(
-            "Main package destination is not part of the selected route."
-        )
-    }
-
-    println()
-    println("========== STEP 6: VEHICLE UTILIZATION ==========")
-
-    val stationedVehicles = domainGraph.vehicles.filter { vehicle ->
-        vehicle.currentHub == opportunity.mainPackage.origin
-    }
-
+    printStep(6, "VEHICLE UTILIZATION")
+    val stationedVehicles = domainGraph.vehicles.filter { it.currentHub == opportunity.mainPackage.origin }
     if (stationedVehicles.isEmpty()) {
-        println(
-            "No vehicles stationed at warehouse ${opportunity.mainPackage.origin.id}"
-        )
+        println("No vehicles stationed at warehouse ${opportunity.mainPackage.origin.id}")
         return
     }
-
     stationedVehicles.forEach { vehicle ->
-        val utilization =
-            calculateVehicleUtilizationUseCase(vehicle)
-
-        println()
-        println("Vehicle: ${vehicle.id}")
+        val utilization = calculateUtilization(vehicle)
+        println("\nVehicle: ${vehicle.id}")
         println("Max Capacity: ${vehicle.maxCapacityKg} kg")
         println("Current Load: ${utilization.currentLoadKg} kg")
         println("Remaining Capacity: ${utilization.remainingCapacityKg} kg")
@@ -364,150 +151,85 @@ fun main() {
         println("Cost Per Km: ${vehicle.costPerKm}")
     }
 
-    println()
-    println("========== STEP 7: BEST FIT ASSIGNMENT ==========")
-
-    val initialAssignments = assignPackagesToBestFitVehiclesUseCase(
-        packages = finalRoutePackages,
-        vehicles = stationedVehicles
-    )
-
+    printStep(7, "BEST FIT ASSIGNMENT")
+    val initialAssignments = assignBestFit(validation.validPackages, stationedVehicles)
     initialAssignments.forEach { assignment ->
-        println()
-        println("Vehicle: ${assignment.vehicle.id}")
-        println(
-            "Assigned Packages: ${
-                assignment.packages.map { it.id }
-            }"
-        )
+        println("\nVehicle: ${assignment.vehicle.id}")
+        println("Assigned Packages: ${assignment.packages.map { it.id }}")
         println("Assigned Weight: ${assignment.totalWeightKg} kg")
         println("Remaining Capacity: ${assignment.remainingCapacityKg} kg")
     }
 
-    println()
-    println("========== STEP 8: REBALANCE VEHICLES ==========")
-
-    val finalAssignments =
-        rebalanceVehicleLoadsUseCase(initialAssignments)
-
+    printStep(8, "REBALANCE VEHICLES")
+    val finalAssignments = rebalanceLoads(initialAssignments)
     println("Vehicles before rebalancing: ${initialAssignments.size}")
     println("Vehicles after rebalancing: ${finalAssignments.size}")
-
     finalAssignments.forEach { assignment ->
-        println()
-        println("Vehicle: ${assignment.vehicle.id}")
-        println(
-            "Final Packages: ${
-                assignment.packages.map { it.id }
-            }"
-        )
+        println("\nVehicle: ${assignment.vehicle.id}")
+        println("Final Packages: ${assignment.packages.map { it.id }}")
         println("Remaining Capacity: ${assignment.remainingCapacityKg} kg")
     }
 
-    println()
-    println("========== STEP 9: EVALUATE ROUTE ==========")
-
-    val routeEvaluation =
-        evaluateRouteUseCase(selectedRoute)
-
+    printStep(9, "EVALUATE ROUTE")
+    val routeEvaluation = evaluateRoute(selectedRoute)
     println("Total Distance: ${routeEvaluation.totalDistanceKm} km")
     println("Expected Delay: ${routeEvaluation.totalExpectedDelayMin} min")
     println("Hop Count: ${routeEvaluation.hopCount}")
 
-    println()
-    println("========== STEP 10: DISPATCH COST ==========")
-
+    printStep(10, "DISPATCH COST")
     finalAssignments.forEach { assignment ->
-        val dispatchCost = estimateDispatchCostUseCase(
-            vehicle = assignment.vehicle,
-            routeEvaluation = routeEvaluation
-        )
-
-        println()
-        println("Vehicle: ${assignment.vehicle.id}")
+        val dispatchCost = estimateCost(assignment.vehicle, routeEvaluation)
+        println("\nVehicle: ${assignment.vehicle.id}")
         println("Cost Per Km: ${assignment.vehicle.costPerKm}")
         println("Route Distance: ${routeEvaluation.totalDistanceKm}")
         println("Estimated Dispatch Cost: $dispatchCost")
     }
 
-    println()
-    println("========== STEP 11: DISPATCH ==========")
-
+    printStep(11, "DISPATCH")
     finalAssignments.forEach { assignment ->
-        println()
-        println("Dispatching vehicle: ${assignment.vehicle.id}")
-
-        println(
-            "Packages before dispatch: ${
-                assignment.packages.map { it.id }
-            }"
-        )
-
-        val dispatchedPackages = dispatchVehicleUseCase(
+        println("\nDispatching vehicle: ${assignment.vehicle.id}")
+        println("Packages before dispatch: ${assignment.packages.map { it.id }}")
+        val dispatchedPackages = dispatchVehicle(
             warehouse = opportunity.mainPackage.origin,
             assignment = assignment
         )
-
-        println(
-            "Dispatched Packages: ${
-                dispatchedPackages.map { it.id }
-            }"
-        )
+        println("Dispatched Packages: ${dispatchedPackages.map { it.id }}")
     }
 
-    println()
-    println("============================================")
-    println("              FLOW COMPLETED")
-    println("============================================")
-
-    println(
-        "Warehouse remaining packages: ${
-            opportunity.mainPackage.origin.cargoQueue.map { it.id }
-        }"
-    )
-
+    printHeader("FLOW COMPLETED")
+    println("Warehouse remaining packages: ${opportunity.mainPackage.origin.cargoQueue.map { it.id }}")
     finalAssignments.forEach { assignment ->
-        println(
-            "${assignment.vehicle.id} loaded packages: ${
-                assignment.vehicle.loadedPackages.map { it.id }
-            }"
-        )
+        println("${assignment.vehicle.id} loaded packages: ${assignment.vehicle.loadedPackages.map { it.id }}")
     }
+}
 
-    val detectRescueUseCase =
-        DetectEmergencyCargoRescueOpportunitiesUseCase(
-            packageRepository = packageRepository,
-            vehicleRepository = vehicleRepository,
-            warehouseRepository = warehouseRepository,
-            findOptimalPathUseCase = findOptimalPathUseCase
-        )
-
-    val executePrioritizationUseCase =
-        ExecuteEmergencyCargoPrioritizationUseCase(
-            packageRepository = packageRepository
-        )
-
-    println()
-    println("========== EMERGENCY CARGO RESCUE ==========")
-
-    val sampleWarehouseId = domainGraph.warehouses.first().id
+private fun runEmergencyCargoRescue(
+    domainGraph: DomainGraph,
+    packageRepository: CSVPackageRepository,
+    vehicleRepository: CSVVehicleRepository,
+    warehouseRepository: CSVWarehouseRepository,
+    findOptimalPathUseCase: FindOptimalPathUseCase
+) {
+    val detectRescue = DetectEmergencyCargoRescueOpportunitiesUseCase(
+        packageRepository,
+        vehicleRepository,
+        warehouseRepository,
+        findOptimalPathUseCase
+    )
+    val executePrioritization = ExecuteEmergencyCargoPrioritizationUseCase(packageRepository)
+    println("\n========== EMERGENCY CARGO RESCUE ==========")
 
     try {
-        val detectRequest = DetectEmergencyCargoRescueRequest(warehouseId = sampleWarehouseId)
-        val rescueOpportunities = detectRescueUseCase(detectRequest)
-
-        rescueOpportunities.forEach { rescueOpportunity ->
-            val executeRequest = ExecuteEmergencyCargoPrioritizationRequest(rescueOpportunity)
-            val dispatchPlan = executePrioritizationUseCase(executeRequest)
-
-            println()
-            println("Current Warehouse : ${rescueOpportunity.currentWarehouse.name}")
-            println("Next Hop Transit  : ${rescueOpportunity.nextHopWarehouse.name}")
-            println("Assigned Vehicle  : ${dispatchPlan.vehicle.id}")
-            println("Loaded Urgent     : ${dispatchPlan.loadedUrgentPackages.map { it.id }}")
-            println("Offloaded Low Prio: ${dispatchPlan.offloadedLowPriorityPackages.map { it.id }}")
-            println("Total Weight      : ${dispatchPlan.totalWeight} kg")
-            println("Remaining Capacity: ${dispatchPlan.remainingCapacity} kg")
+        val request = DetectEmergencyCargoRescueRequest(domainGraph.warehouses.first().id)
+        detectRescue(request).forEach { opportunity ->
+            val plan = executePrioritization(ExecuteEmergencyCargoPrioritizationRequest(opportunity))
+            println("\nCurrent Warehouse : ${opportunity.currentWarehouse.name}")
+            println("Next Hop Transit  : ${opportunity.nextHopWarehouse.name}")
+            println("Assigned Vehicle  : ${plan.vehicle.id}")
+            println("Loaded Urgent     : ${plan.loadedUrgentPackages.map { it.id }}")
+            println("Offloaded Low Prio: ${plan.offloadedLowPriorityPackages.map { it.id }}")
+            println("Total Weight      : ${plan.totalWeight} kg")
+            println("Remaining Capacity: ${plan.remainingCapacity} kg")
         }
     } catch (e: LogisticsException) {
         println("Emergency Process Notice: ${e.message}")
@@ -516,28 +238,30 @@ fun main() {
     }
 }
 
-private fun runReroutePackageDemo(
-    domainGraph: DomainGraph,
-    reroutePackageUseCase: ReroutePackageUseCase
-) {
+private fun runReroutePackageDemo(domainGraph: DomainGraph, reroutePackageUseCase: ReroutePackageUseCase) {
     val firstPackage = domainGraph.packages.firstOrNull()
     val secondWarehouse = domainGraph.warehouses.getOrNull(1)
-
-    if (firstPackage != null && secondWarehouse != null) {
-        println("\n========== REROUTE PACKAGE DEMO ==========")
-        println(" Original Package: ${firstPackage.id}")
-        println("Original Destination: ${firstPackage.destination.name}")
-        println(" New Destination: ${secondWarehouse.name}")
-
-        val reroutedPackage = reroutePackageUseCase(
-            packageId = firstPackage.id,
-            newDestinationId = secondWarehouse.id
-        )
-
-        println(" Package rerouted successfully!")
-        println(" New Destination: ${reroutedPackage.destination.name}")
-        println(" Package: ${reroutedPackage.id} (${reroutedPackage.priority}) - ${reroutedPackage.weight}kg")
-    } else {
-        println(" Not enough data to demonstrate rerouting!")
+    if (firstPackage == null || secondWarehouse == null) {
+        println("Not enough data to demonstrate rerouting!")
+        return
     }
+
+    println("\n========== REROUTE PACKAGE DEMO ==========")
+    println("Original Package: ${firstPackage.id}")
+    println("Original Destination: ${firstPackage.destination.name}")
+    println("New Destination: ${secondWarehouse.name}")
+    val reroutedPackage = reroutePackageUseCase(firstPackage.id, secondWarehouse.id)
+    println("Package rerouted successfully!")
+    println("New Destination: ${reroutedPackage.destination.name}")
+    println("Package: ${reroutedPackage.id} (${reroutedPackage.priority}) - ${reroutedPackage.weight} kg")
+}
+
+private fun printStep(number: Int, title: String) {
+    println("\n========== STEP $number: $title ==========")
+}
+
+private fun printHeader(title: String) {
+    println("\n============================================")
+    println("              $title")
+    println("============================================")
 }
