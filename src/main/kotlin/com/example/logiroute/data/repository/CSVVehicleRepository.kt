@@ -22,11 +22,6 @@ class CSVVehicleRepository(
             val currentHub = warehouseMap[raw.currentHubId]
 
             if (currentHub == null) {
-                println(
-                    "Warning: Unknown warehouse reference -> " +
-                            "currentHub=${raw.currentHubId}, " +
-                            "vehicles=${raw.vehicleIds}"
-                )
                 emptyList()
             } else {
                 raw.vehicleIds.map { vehicleId ->
