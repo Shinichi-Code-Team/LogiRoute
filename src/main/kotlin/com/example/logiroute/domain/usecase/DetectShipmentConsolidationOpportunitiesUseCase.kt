@@ -12,11 +12,20 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         packages: List<Package>
     ): List<ConsolidationOpportunityRequest> {
 
+        val packagesByOrigin = packages.groupBy { it.origin }
+        val routeCache =
+            mutableMapOf<Pair<Warehouse, Warehouse>, List<Warehouse>>()
+
         val opportunities = packages
             .map { mainPackage ->
+
+                val sameOriginPackages =
+                    packagesByOrigin[mainPackage.origin].orEmpty()
+
                 buildOpportunity(
                     mainPackage = mainPackage,
-                    packages = packages
+                    packages = sameOriginPackages,
+                    routeCache = routeCache
                 )
             }
             .filter { opportunity ->
@@ -28,16 +37,25 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
 
     private fun buildOpportunity(
         mainPackage: Package,
-        packages: List<Package>
+        packages: List<Package>,
+        routeCache: MutableMap<
+                Pair<Warehouse, Warehouse>,
+                List<Warehouse>
+                >
     ): ConsolidationOpportunityRequest {
 
-        val sharedRoute = getSharedRoute(mainPackage)
+        val sharedRoute =
+            getSharedRoute(
+                mainPackage = mainPackage,
+                routeCache = routeCache
+            )
 
-        val compatiblePackages = findCompatiblePackages(
-            mainPackage = mainPackage,
-            packages = packages,
-            sharedRoute = sharedRoute
-        )
+        val compatiblePackages =
+            findCompatiblePackages(
+                mainPackage = mainPackage,
+                packages = packages,
+                sharedRoute = sharedRoute
+            )
 
         return ConsolidationOpportunityRequest(
             mainPackage = mainPackage,
@@ -47,13 +65,23 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
     }
 
     private fun getSharedRoute(
-        mainPackage: Package
+        mainPackage: Package,
+        routeCache: MutableMap<
+                Pair<Warehouse, Warehouse>,
+                List<Warehouse>
+                >
     ): List<Warehouse> {
 
-        return findOptimalPathUseCase(
-            mainPackage.origin,
-            mainPackage.destination
-        )
+        val routeKey =
+            mainPackage.origin to mainPackage.destination
+
+        return routeCache.getOrPut(routeKey) {
+
+            findOptimalPathUseCase(
+                mainPackage.origin,
+                mainPackage.destination
+            )
+        }
     }
 
     private fun findCompatiblePackages(
@@ -62,10 +90,12 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         sharedRoute: List<Warehouse>
     ): List<Package> {
 
+        val routeWarehouses = sharedRoute.toSet()
+
         return packages.filter { candidatePackage ->
+
             candidatePackage != mainPackage &&
-                    candidatePackage.origin == mainPackage.origin &&
-                    candidatePackage.destination in sharedRoute
+                    candidatePackage.destination in routeWarehouses
         }
     }
 
@@ -73,27 +103,35 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         opportunities: List<ConsolidationOpportunityRequest>
     ): List<ConsolidationOpportunityRequest> {
 
-        return opportunities
-            .distinctBy { opportunity ->
+        val distinctOpportunities =
+            opportunities.distinctBy { opportunity ->
+
                 getAllPackages(opportunity)
                     .map { it.id }
                     .sorted()
             }
-            .filter { currentOpportunity ->
 
-                val currentPackages =
-                    getAllPackages(currentOpportunity).toSet()
+        val packageSets =
+            distinctOpportunities.associateWith { opportunity ->
 
-                opportunities.none { otherOpportunity ->
-
-                    val otherPackages =
-                        getAllPackages(otherOpportunity).toSet()
-
-                    otherOpportunity != currentOpportunity &&
-                            otherPackages.size > currentPackages.size &&
-                            otherPackages.containsAll(currentPackages)
-                }
+                getAllPackages(opportunity).toSet()
             }
+
+        return distinctOpportunities.filter { currentOpportunity ->
+
+            val currentPackages =
+                packageSets.getValue(currentOpportunity)
+
+            distinctOpportunities.none { otherOpportunity ->
+
+                val otherPackages =
+                    packageSets.getValue(otherOpportunity)
+
+                otherOpportunity != currentOpportunity &&
+                        otherPackages.size > currentPackages.size &&
+                        otherPackages.containsAll(currentPackages)
+            }
+        }
     }
 
     private fun getAllPackages(

@@ -20,11 +20,6 @@ class CSVRouteRepository(
             val destination = warehouseMap[raw.destinationHubId]
 
             if (origin == null || destination == null) {
-                println(
-                    "Warning: Unknown warehouse reference -> " +
-                            "${raw.id}, origin=${raw.originHubId}, " +
-                            "destination=${raw.destinationHubId}"
-                )
                 null
             } else {
                 Route(
