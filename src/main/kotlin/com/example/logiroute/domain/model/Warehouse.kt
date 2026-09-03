@@ -58,4 +58,9 @@ data class Warehouse(
     fun removePackage(packageItem: Package) : Boolean {
         return mutableCargoQueue.remove(packageItem)
     }
+
+    fun restoreCargoQueue(packages: List<Package>) {
+        mutableCargoQueue.clear()
+        mutableCargoQueue.addAll(packages)
+    }
 }

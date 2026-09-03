@@ -9,8 +9,9 @@ class AssignPackageToQueueCommand(
     private val warehouse: Warehouse,
     private val packageItem: Package
 ) : Command {
+    private var wasExecutedSuccessfully = false
     override fun execute() {
-        assignPackageToCargoQueueUseCase(
+        wasExecutedSuccessfully= assignPackageToCargoQueueUseCase(
             warehouse,
             packageItem
         )
@@ -18,6 +19,8 @@ class AssignPackageToQueueCommand(
 
     override fun undo() {
         warehouse.removePackage(packageItem)
+        wasExecutedSuccessfully = false
+
     }
 
 }

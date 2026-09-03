@@ -11,17 +11,17 @@ class CommandInvoker {
 
     fun undoLast(): Boolean {
         val lastCommand = executedCommands.removeLastOrNull() ?: return false
+
         lastCommand.undo()
         return true
     }
 
     fun undoAll() {
         generateSequence {
-            executedCommands.removeFirstOrNull()
-        }.forEach {
-            it.undo()
+            executedCommands.removeLastOrNull()
+        }.forEach { command ->
+            command.undo()
         }
-
     }
 
     fun historySize(): Int = executedCommands.size
