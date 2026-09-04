@@ -61,17 +61,17 @@ private fun isValidWarehouseRaw(
     }
 
     if (!hasRequiredWarehouseFields(columns)) {
-        println("Warning: Missing warehouse ID, name or regional zone -> $originalLine")
+       // println("Warning: Missing warehouse ID, name or regional zone -> $originalLine")
         return false
     }
 
     if (!isValidWarehouseLatitude(columns[WAREHOUSE_LATITUDE_INDEX])) {
-        println("Warning: Invalid latitude -> $originalLine")
+     //   println("Warning: Invalid latitude -> $originalLine")
         return false
     }
 
     if (!isValidWarehouseLongitude(columns[WAREHOUSE_LONGITUDE_INDEX])) {
-        println("Warning: Invalid longitude -> $originalLine")
+      //  println("Warning: Invalid longitude -> $originalLine")
         return false
     }
 
