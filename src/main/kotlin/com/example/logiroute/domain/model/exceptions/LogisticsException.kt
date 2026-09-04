@@ -23,6 +23,9 @@ open class LogisticsException(message: String) : Exception(message) {
 
         const val INVALID_HUB_HIERARCHY_EXCEPTION =
             "Invalid hub hierarchy:"
+
+        const val COMMAND_EXECUTION_EXCEPTION =
+            "Failed to execute command for package:"
     }
 
     class InvalidCapacityException(capacity: Double) :
@@ -51,4 +54,8 @@ open class LogisticsException(message: String) : Exception(message) {
 
     class RouteSegmentNotFoundException(message: String) :
         LogisticsException(message)
+
+
+    class CommandExecutionException(packageId: String) :
+        LogisticsException("$COMMAND_EXECUTION_EXCEPTION $packageId")
 }

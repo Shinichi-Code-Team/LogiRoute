@@ -1,6 +1,6 @@
 package com.example.logiroute.domain.logic.algorithm.tree
 
-class BalancedBinarySearchTree {
+class  BalancedBinarySearchTree {
 
     private var root: TreeNode? = null
 
