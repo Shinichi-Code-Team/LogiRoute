@@ -6,6 +6,8 @@ import com.example.logiroute.data.processing.loader.Loader
 import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.*
 import com.example.logiroute.domain.builder.DomainGraphBuilder
+import com.example.logiroute.domain.command.AssignPackageToQueueCommand
+import com.example.logiroute.domain.command.CommandInvoker
 import com.example.logiroute.domain.logic.algorithm.routing.*
 import com.example.logiroute.domain.logic.algorithm.sorting.PackageSelectionSort
 import com.example.logiroute.domain.logic.packagepricing.basepricing.EcoStrategy
@@ -21,14 +23,23 @@ fun main() {
     val routeRepository = CSVRouteRepository(loader, warehouseRepository)
     val vehicleRepository = CSVVehicleRepository(loader, FleetWriter("fleet.csv"), warehouseRepository)
 
-    val graph = DomainGraphBuilder(
-        packageRepository,
-        routeRepository,
-        warehouseRepository,
-        vehicleRepository
-    ).build()
+    // قراءة البيانات وتغليفها بـ try-catch لمنع الانهيار بسبب أي بيانات تالفة في CSV
+    val graph = try {
+        DomainGraphBuilder(
+            packageRepository,
+            routeRepository,
+            warehouseRepository,
+            vehicleRepository
+        ).build()
+    } catch (e: Exception) {
+        println("[Warning] Failed to build domain graph from CSV: ${e.message}")
+        return
+    }
 
-    if (graph.packages.isEmpty() || graph.warehouses.isEmpty()) return
+    if (graph.packages.isEmpty() || graph.warehouses.isEmpty()) {
+        println("[Warning] Graph is empty. Check CSV resources.")
+        return
+    }
 
     val pathConstructor = PathConstructor()
     val bfsRouter = BfsRouter(warehouseRepository, pathConstructor)
@@ -105,10 +116,11 @@ fun main() {
 
     val loadFactorUseCase = GetWarehouseLoadFactorUseCase(warehouseRepository)
     graph.warehouses.firstOrNull { it.stationedVehicles.isNotEmpty() }?.let {
-        runCatching {
-            loadFactorUseCase(GetWarehouseLoadFactorRequest(it.id))
-        }.onSuccess { factor ->
+        try {
+            val factor = loadFactorUseCase(GetWarehouseLoadFactorRequest(it.id))
             println("Warehouse load factor: $factor")
+        } catch (e: Exception) {
+            println("Could not calculate load factor: ${e.message}")
         }
     }
 
@@ -151,18 +163,19 @@ fun main() {
     val executeEmergency = ExecuteEmergencyCargoPrioritizationUseCase(packageRepository)
 
     graph.packages.firstOrNull { it.priority == Priority.URGENT }?.let { urgent ->
-        runCatching {
-            detectEmergency(DetectEmergencyCargoRescueRequest(urgent.origin.id))
-        }.onSuccess { rescue ->
+        try {
+            val rescue = detectEmergency(DetectEmergencyCargoRescueRequest(urgent.origin.id))
             rescue.firstOrNull()?.let {
                 val plan = executeEmergency(ExecuteEmergencyCargoPrioritizationRequest(it))
                 println("\nEmergency: ${plan.loadedUrgentPackages.map { pkg -> pkg.id }}")
             }
+        } catch (e: Exception) {
+            println("Emergency rescue check skipped: ${e.message}")
         }
     }
 
     val assignToQueue = AssignPackageToCargoQueueUseCase()
-    val samplePackage = graph.packages.first().copy(id = "TEST-PACKAGE")
+    val samplePackage = graph.packages.first()
 
     val addedToQueue = assignToQueue(samplePackage.origin, samplePackage)
     println("\nQueue assignment: $addedToQueue")
@@ -170,20 +183,106 @@ fun main() {
     val addVehicle = AddVehicleToHubUseCase(vehicleRepository)
 
     graph.vehicles.firstOrNull()?.let {
-        val sampleVehicle = it.copy(id = "TEST-VEHICLE")
-        println("Vehicle added: ${addVehicle(sampleVehicle)}")
+        println("Vehicle added: ${addVehicle(it)}")
     }
 
     val reroutePackage = ReroutePackageUseCase(packageRepository, warehouseRepository)
 
     graph.packages.firstOrNull()?.let { pkg ->
         graph.warehouses.firstOrNull { it != pkg.destination }?.let { newDestination ->
-            runCatching {
-                reroutePackage(pkg.id, newDestination.id)
-            }.onSuccess {
-                println("Rerouted: ${it.id} -> ${it.destination.id}")
+            try {
+                val rerouted = reroutePackage(pkg.id, newDestination.id)
+                println("Rerouted: ${rerouted.id} -> ${rerouted.destination.id}")
+            } catch (e: Exception) {
+                println("Reroute skipped: ${e.message}")
             }
         }
+    }
+    println("\n=== Telemetry & Undo/Redo Testing (Real Domain Data) ===")
+
+    val invoker = CommandInvoker()
+    val testWarehouse = graph.warehouses.firstOrNull()
+
+    if (testWarehouse != null) {
+        val sampleTemplate = graph.packages.firstOrNull()
+
+        if (sampleTemplate != null) {
+            val pkgA = sampleTemplate.copy(id = "PKG-TEST-001", origin = testWarehouse)
+            val pkgB = sampleTemplate.copy(id = "PKG-TEST-002", origin = testWarehouse)
+            val pkgC = sampleTemplate.copy(id = "PKG-TEST-003", origin = testWarehouse)
+
+            println("\n--- 1. Testing Empty Stacks ---")
+            println("[Telemetry] Undo on empty stack -> Result: ${invoker.undoLast()}")
+            println("[Telemetry] Redo on empty stack -> Result: ${invoker.redoLast()}")
+
+            println("\n--- 2. Testing Command Execution ---")
+            println("[Telemetry] Initial Queue Size: ${testWarehouse.cargoQueue.size}")
+
+            val cmd1 = AssignPackageToQueueCommand(
+                assignPackageToCargoQueueUseCase = assignToQueue,
+                warehouse = testWarehouse,
+                packageItem = pkgA
+            )
+            val cmd2 = AssignPackageToQueueCommand(
+                assignPackageToCargoQueueUseCase = assignToQueue,
+                warehouse = testWarehouse,
+                packageItem = pkgB
+            )
+
+            try {
+                invoker.executeCommand(cmd1)
+                println("[Execute Log] Cmd1 Executed (${pkgA.id}) -> Success | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+            } catch (e: Exception) {
+                println("[Execute Log] Cmd1 (${pkgA.id}) Failed: ${e.message} | Queue Size: ${testWarehouse.cargoQueue.size}")
+            }
+
+            try {
+                invoker.executeCommand(cmd2)
+                println("[Execute Log] Cmd2 Executed (${pkgB.id}) -> Success | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+            } catch (e: Exception) {
+                println("[Execute Log] Cmd2 (${pkgB.id}) Failed: ${e.message} | Queue Size: ${testWarehouse.cargoQueue.size}")
+            }
+
+            println("\n--- 3. Testing Multiple Undo Operations ---")
+            val undo1 = invoker.undoLast()
+            println("[Undo Log] 1st Undo Executed -> Result: $undo1 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+
+            val undo2 = invoker.undoLast()
+            println("[Undo Log] 2nd Undo Executed -> Result: $undo2 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+
+            println("\n--- 4. Testing Multiple Redo Operations ---")
+            val redo1 = invoker.redoLast()
+            println("[Redo Log] 1st Redo Executed -> Result: $redo1 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+
+            val redo2 = invoker.redoLast()
+            println("[Redo Log] 2nd Redo Executed -> Result: $redo2 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+
+            println("\n--- 5. Testing Redo History Clearance ---")
+            invoker.undoLast()
+            println("[Telemetry] Undo executed. History Size before new command: ${invoker.historySize()}")
+
+            val cmd3 = AssignPackageToQueueCommand(
+                assignPackageToCargoQueueUseCase = assignToQueue,
+                warehouse = testWarehouse,
+                packageItem = pkgC
+            )
+
+            try {
+                invoker.executeCommand(cmd3)
+                println("[Execute Log] Cmd3 Executed (${pkgC.id}) -> Success | Queue Size: ${testWarehouse.cargoQueue.size}")
+            } catch (e: Exception) {
+                println("[Execute Log] Cmd3 Failed: ${e.message}")
+            }
+
+            val redoResult = invoker.redoLast()
+            println("[Telemetry] Attempting Redo after new command execution (Expected: false) -> Result: $redoResult")
+
+            println("\n--- Final Domain Verification ---")
+            println("Final Cargo Queue Size: ${testWarehouse.cargoQueue.size}")
+            println("Final History Size: ${invoker.historySize()}")
+        }
+    } else {
+        println("[Warning] No warehouses loaded to run telemetry flow.")
     }
 
     println("\nDone")
