@@ -56,22 +56,18 @@ private fun isValidWarehouseRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!hasRequiredWarehouseFields(columns)) {
-       // println("Warning: Missing warehouse ID, name or regional zone -> $originalLine")
         return false
     }
 
     if (!isValidWarehouseLatitude(columns[WAREHOUSE_LATITUDE_INDEX])) {
-     //   println("Warning: Invalid latitude -> $originalLine")
         return false
     }
 
     if (!isValidWarehouseLongitude(columns[WAREHOUSE_LONGITUDE_INDEX])) {
-      //  println("Warning: Invalid longitude -> $originalLine")
         return false
     }
 
