@@ -41,17 +41,14 @@ private fun isValidPackageRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-     //   println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!hasRequiredPackageFields(columns)) {
-       // println("Warning: Missing package ID or destination hub ID -> $originalLine")
         return false
     }
 
     if (!isValidPackageWeight(columns[PACKAGE_WEIGHT_INDEX])) {
-       // println("Warning: Invalid package weight -> $originalLine")
         return false
     }
 

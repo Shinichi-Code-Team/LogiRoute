@@ -7,13 +7,16 @@ import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.*
 import com.example.logiroute.domain.builder.DomainGraphBuilder
 import com.example.logiroute.domain.command.AssignPackageToQueueCommand
-import com.example.logiroute.domain.command.CommandInvoker
+import com.example.logiroute.domain.command.DispatchVehicleCommand
+import com.example.logiroute.domain.command.StackCommandInvoker
+import com.example.logiroute.domain.command.TreeCommandInvoker
 import com.example.logiroute.domain.logic.algorithm.routing.*
 import com.example.logiroute.domain.logic.algorithm.sorting.PackageSelectionSort
 import com.example.logiroute.domain.logic.packagepricing.basepricing.EcoStrategy
 import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.request.*
+import com.example.logiroute.domain.model.result.VehicleAssignment
 import com.example.logiroute.domain.usecase.*
 
 fun main() {
@@ -23,23 +26,14 @@ fun main() {
     val routeRepository = CSVRouteRepository(loader, warehouseRepository)
     val vehicleRepository = CSVVehicleRepository(loader, FleetWriter("fleet.csv"), warehouseRepository)
 
-    // قراءة البيانات وتغليفها بـ try-catch لمنع الانهيار بسبب أي بيانات تالفة في CSV
     val graph = try {
-        DomainGraphBuilder(
-            packageRepository,
-            routeRepository,
-            warehouseRepository,
-            vehicleRepository
-        ).build()
+        DomainGraphBuilder(packageRepository, routeRepository, warehouseRepository, vehicleRepository).build()
     } catch (e: Exception) {
-        println("[Warning] Failed to build domain graph from CSV: ${e.message}")
+        println("Failed to build graph: ${e.message}")
         return
     }
 
-    if (graph.packages.isEmpty() || graph.warehouses.isEmpty()) {
-        println("[Warning] Graph is empty. Check CSV resources.")
-        return
-    }
+    if (graph.packages.isEmpty() || graph.warehouses.isEmpty()) return
 
     val pathConstructor = PathConstructor()
     val bfsRouter = BfsRouter(warehouseRepository, pathConstructor)
@@ -59,132 +53,116 @@ fun main() {
     val estimateCost = EstimateDispatchCostUseCase()
     val dispatchVehicle = DispatchVehicleUseCase()
 
-    val opportunities = detectConsolidation(graph.packages)
-    val opportunity = opportunities.firstOrNull() ?: return
-    val packages = prioritizeConsolidation(opportunity)
+    println("\n========== USE CASE FLOW ==========")
 
-    val shipment = ShipmentGroupRequest(
-        packages = packages,
-        origin = opportunity.mainPackage.origin,
-        destination = opportunity.mainPackage.destination,
-        service = ShipmentService.EXPRESS
-    )
+    val opportunity = detectConsolidation(graph.packages).firstOrNull()
 
-    val selectedRoute = selectRoute(shipment)
-    val routePackages = packages.filter { it.destination in selectedRoute.path }
-    val minCapacity = routePackages.maxOfOrNull { it.weight } ?: return
+    if (opportunity != null) {
+        val packages = prioritizeConsolidation(opportunity)
 
-    val vehicles = findVehicles(
-        FindStationedVehiclesRequest(shipment.origin.id, minCapacity)
-    )
+        val shipment = ShipmentGroupRequest(
+            packages = packages,
+            origin = opportunity.mainPackage.origin,
+            destination = opportunity.mainPackage.destination,
+            service = ShipmentService.EXPRESS
+        )
 
-    val assignments = assignVehicles(routePackages, vehicles)
-    val finalAssignments = rebalanceLoads(assignments)
-    val routeEvaluation = evaluateRoute(selectedRoute)
+        val selectedRoute = selectRoute(shipment)
+        val routePackages = packages.filter { it.destination in selectedRoute.path }
+        val minCapacity = routePackages.maxOfOrNull { it.weight }
 
-    println("\nShipment")
-    println("Packages: ${routePackages.map { it.id }}")
-    println("Route: ${selectedRoute.path.joinToString(" -> ") { it.id }}")
-    println("Objective: ${selectedRoute.routingObjective}")
+        if (minCapacity != null) {
+            val vehicles = findVehicles(FindStationedVehiclesRequest(shipment.origin.id, minCapacity))
+            val assignments = rebalanceLoads(assignVehicles(routePackages, vehicles))
+            val routeEvaluation = evaluateRoute(selectedRoute)
 
-    finalAssignments.forEach {
-        val cost = estimateCost(it.vehicle, routeEvaluation)
-        val loaded = dispatchVehicle(shipment.origin, it)
-        println("${it.vehicle.id}: ${loaded.map { pkg -> pkg.id }} | Cost: $cost")
+            println("\nShipment")
+            println("Packages: ${routePackages.map { it.id }}")
+            println("Route: ${selectedRoute.path.joinToString(" -> ") { it.id }}")
+            println("Objective: ${selectedRoute.routingObjective}")
+
+            assignments.forEach {
+                val cost = estimateCost(it.vehicle, routeEvaluation)
+                val loaded = dispatchVehicle(shipment.origin, it)
+                println("${it.vehicle.id}: ${loaded.map { pkg -> pkg.id }} | Cost: $cost")
+            }
+
+            val pricing = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
+            graph.packages.firstOrNull()?.let {
+                println("Package price: ${pricing(it, routeEvaluation.totalDistanceKm)}")
+            }
+        }
     }
 
     val source = graph.warehouses.first()
-    val destination = graph.warehouses.firstOrNull { it != source } ?: return
+    val destination = graph.warehouses.firstOrNull { it != source }
 
-    val shortestPath = findOptimalPath(source, destination)
-    val fewestHopsPath = findFewestHops(source, destination)
-
-    println("\nRouting")
-    println("Optimal: ${shortestPath.joinToString(" -> ") { it.id }}")
-    println("Fewest hops: ${fewestHopsPath.joinToString(" -> ") { it.id }}")
-
-    graph.vehicles.firstOrNull()?.let { vehicle ->
-        val utilization = calculateUtilization(vehicle)
-        println("\nUtilization: ${vehicle.id} = ${utilization.utilizationPercentage}%")
+    if (destination != null) {
+        println("\nRouting")
+        println("Optimal: ${findOptimalPath(source, destination).joinToString(" -> ") { it.id }}")
+        println("Fewest hops: ${findFewestHops(source, destination).joinToString(" -> ") { it.id }}")
     }
 
-    val pricing = CalculatePricingUseCase(RoutePricingEngine(EcoStrategy()))
-    graph.packages.firstOrNull()?.let {
-        val price = pricing(it, routeEvaluation.totalDistanceKm)
-        println("Package price: $price")
+    graph.vehicles.firstOrNull()?.let {
+        val utilization = calculateUtilization(it)
+        println("\nUtilization: ${it.id} = ${utilization.utilizationPercentage}%")
     }
 
-    val loadFactorUseCase = GetWarehouseLoadFactorUseCase(warehouseRepository)
+    val loadFactor = GetWarehouseLoadFactorUseCase(warehouseRepository)
+
     graph.warehouses.firstOrNull { it.stationedVehicles.isNotEmpty() }?.let {
         try {
-            val factor = loadFactorUseCase(GetWarehouseLoadFactorRequest(it.id))
-            println("Warehouse load factor: $factor")
-        } catch (e: Exception) {
-            println("Could not calculate load factor: ${e.message}")
-        }
+            println("Warehouse load factor: ${loadFactor(GetWarehouseLoadFactorRequest(it.id))}")
+        } catch (_: Exception) {}
     }
 
     val findBackhaul = FindBackhaulCandidatesUseCase(packageRepository)
     val optimizeBackhaul = OptimizeBackhaulUseCase()
 
-    graph.vehicles.firstOrNull()?.let { vehicle ->
-        val returnPath = listOf(vehicle.currentHub)
-        val candidates = findBackhaul(vehicle, vehicle.currentHub, returnPath)
-        val plan = optimizeBackhaul(vehicle, candidates, returnPath)
+    graph.vehicles.firstOrNull()?.let {
+        val returnPath = listOf(it.currentHub)
+        val candidates = findBackhaul(it, it.currentHub, returnPath)
+        val plan = optimizeBackhaul(it, candidates, returnPath)
 
         println("\nBackhaul")
         println("Candidates: ${candidates.size}")
-        println("Selected: ${plan.selectedPackages.map { it.id }}")
+        println("Selected: ${plan.selectedPackages.map { pkg -> pkg.id }}")
     }
 
-    val analyzeTree = AnalyzeTreePerformanceUseCase()
-    val treeReport = analyzeTree()
+    val treeReport = AnalyzeTreePerformanceUseCase()()
 
     println("\nTree")
     println("Unbalanced height: ${treeReport.unbalancedHeight}")
     println("Balanced height: ${treeReport.balancedHeight}")
 
-    val traceLineage = TraceHubLineageUseCase()
     val sampleHub = com.example.logiroute.com.example.logiroute.domain.model.request.HubNode(
         warehouse = source,
         hubType = com.example.logiroute.com.example.logiroute.domain.model.request.HubType.GLOBAL_HUB
     )
 
-    val lineage = traceLineage(sampleHub)
-    println("Lineage: ${lineage.map { it.warehouse.id }}")
+    println("Lineage: ${TraceHubLineageUseCase()(sampleHub).map { it.warehouse.id }}")
 
     val detectEmergency = DetectEmergencyCargoRescueOpportunitiesUseCase(
-        packageRepository,
-        vehicleRepository,
-        warehouseRepository,
-        findOptimalPath
+        packageRepository, vehicleRepository, warehouseRepository, findOptimalPath
     )
-
     val executeEmergency = ExecuteEmergencyCargoPrioritizationUseCase(packageRepository)
 
     graph.packages.firstOrNull { it.priority == Priority.URGENT }?.let { urgent ->
         try {
-            val rescue = detectEmergency(DetectEmergencyCargoRescueRequest(urgent.origin.id))
-            rescue.firstOrNull()?.let {
+            detectEmergency(DetectEmergencyCargoRescueRequest(urgent.origin.id)).firstOrNull()?.let {
                 val plan = executeEmergency(ExecuteEmergencyCargoPrioritizationRequest(it))
                 println("\nEmergency: ${plan.loadedUrgentPackages.map { pkg -> pkg.id }}")
             }
-        } catch (e: Exception) {
-            println("Emergency rescue check skipped: ${e.message}")
-        }
+        } catch (_: Exception) {}
     }
 
     val assignToQueue = AssignPackageToCargoQueueUseCase()
     val samplePackage = graph.packages.first()
 
-    val addedToQueue = assignToQueue(samplePackage.origin, samplePackage)
-    println("\nQueue assignment: $addedToQueue")
+    println("\nQueue assignment: ${assignToQueue(samplePackage.origin, samplePackage)}")
 
     val addVehicle = AddVehicleToHubUseCase(vehicleRepository)
-
-    graph.vehicles.firstOrNull()?.let {
-        println("Vehicle added: ${addVehicle(it)}")
-    }
+    graph.vehicles.firstOrNull()?.let { println("Vehicle added: ${addVehicle(it)}") }
 
     val reroutePackage = ReroutePackageUseCase(packageRepository, warehouseRepository)
 
@@ -193,97 +171,175 @@ fun main() {
             try {
                 val rerouted = reroutePackage(pkg.id, newDestination.id)
                 println("Rerouted: ${rerouted.id} -> ${rerouted.destination.id}")
-            } catch (e: Exception) {
-                println("Reroute skipped: ${e.message}")
-            }
+            } catch (_: Exception) {}
         }
     }
-    println("\n=== Telemetry & Undo/Redo Testing (Real Domain Data) ===")
 
-    val invoker = CommandInvoker()
-    val testWarehouse = graph.warehouses.firstOrNull()
+    val testWarehouse = graph.warehouses.firstOrNull() ?: return
+    val template = graph.packages.firstOrNull() ?: return
+    val initialQueue = testWarehouse.cargoQueue.toList()
 
-    if (testWarehouse != null) {
-        val sampleTemplate = graph.packages.firstOrNull()
+    println("\n========== SUBTASK 5: STACK VS TREE ==========")
 
-        if (sampleTemplate != null) {
-            val pkgA = sampleTemplate.copy(id = "PKG-TEST-001", origin = testWarehouse)
-            val pkgB = sampleTemplate.copy(id = "PKG-TEST-002", origin = testWarehouse)
-            val pkgC = sampleTemplate.copy(id = "PKG-TEST-003", origin = testWarehouse)
+    val stack = StackCommandInvoker()
 
-            println("\n--- 1. Testing Empty Stacks ---")
-            println("[Telemetry] Undo on empty stack -> Result: ${invoker.undoLast()}")
-            println("[Telemetry] Redo on empty stack -> Result: ${invoker.redoLast()}")
+    val stackA = AssignPackageToQueueCommand(
+        assignToQueue, testWarehouse, template.copy(id = "STACK-A", origin = testWarehouse)
+    )
+    val stackB = AssignPackageToQueueCommand(
+        assignToQueue, testWarehouse, template.copy(id = "STACK-B", origin = testWarehouse)
+    )
+    val stackC = AssignPackageToQueueCommand(
+        assignToQueue, testWarehouse, template.copy(id = "STACK-C", origin = testWarehouse)
+    )
 
-            println("\n--- 2. Testing Command Execution ---")
-            println("[Telemetry] Initial Queue Size: ${testWarehouse.cargoQueue.size}")
+    println("\n--- STACK ---")
+    println("Empty -> Undo: ${stack.undo()} | Redo: ${stack.redo()}")
 
-            val cmd1 = AssignPackageToQueueCommand(
-                assignPackageToCargoQueueUseCase = assignToQueue,
-                warehouse = testWarehouse,
-                packageItem = pkgA
-            )
-            val cmd2 = AssignPackageToQueueCommand(
-                assignPackageToCargoQueueUseCase = assignToQueue,
-                warehouse = testWarehouse,
-                packageItem = pkgB
-            )
+    stack.executeCommand(stackA)
+    stack.executeCommand(stackB)
 
-            try {
-                invoker.executeCommand(cmd1)
-                println("[Execute Log] Cmd1 Executed (${pkgA.id}) -> Success | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
-            } catch (e: Exception) {
-                println("[Execute Log] Cmd1 (${pkgA.id}) Failed: ${e.message} | Queue Size: ${testWarehouse.cargoQueue.size}")
-            }
+    println("Execute A & B -> History: ${stack.historySize()}")
 
-            try {
-                invoker.executeCommand(cmd2)
-                println("[Execute Log] Cmd2 Executed (${pkgB.id}) -> Success | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
-            } catch (e: Exception) {
-                println("[Execute Log] Cmd2 (${pkgB.id}) Failed: ${e.message} | Queue Size: ${testWarehouse.cargoQueue.size}")
-            }
+    stack.undo()
+    println("Undo B -> History: ${stack.historySize()}")
 
-            println("\n--- 3. Testing Multiple Undo Operations ---")
-            val undo1 = invoker.undoLast()
-            println("[Undo Log] 1st Undo Executed -> Result: $undo1 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+    stack.executeCommand(stackC)
 
-            val undo2 = invoker.undoLast()
-            println("[Undo Log] 2nd Undo Executed -> Result: $undo2 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+    println("Execute C after Undo")
+    println("Redo old B: ${stack.redo()}")
+    println("STACK RESULT -> old B future is lost")
 
-            println("\n--- 4. Testing Multiple Redo Operations ---")
-            val redo1 = invoker.redoLast()
-            println("[Redo Log] 1st Redo Executed -> Result: $redo1 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+    testWarehouse.restoreCargoQueue(initialQueue)
 
-            val redo2 = invoker.redoLast()
-            println("[Redo Log] 2nd Redo Executed -> Result: $redo2 | Queue Size: ${testWarehouse.cargoQueue.size} | History Size: ${invoker.historySize()}")
+    val tree = TreeCommandInvoker()
 
-            println("\n--- 5. Testing Redo History Clearance ---")
-            invoker.undoLast()
-            println("[Telemetry] Undo executed. History Size before new command: ${invoker.historySize()}")
+    val treeA = AssignPackageToQueueCommand(
+        assignToQueue, testWarehouse, template.copy(id = "TREE-A", origin = testWarehouse)
+    )
+    val treeB = AssignPackageToQueueCommand(
+        assignToQueue, testWarehouse, template.copy(id = "TREE-B", origin = testWarehouse)
+    )
+    val treeC = AssignPackageToQueueCommand(
+        assignToQueue, testWarehouse, template.copy(id = "TREE-C", origin = testWarehouse)
+    )
 
-            val cmd3 = AssignPackageToQueueCommand(
-                assignPackageToCargoQueueUseCase = assignToQueue,
-                warehouse = testWarehouse,
-                packageItem = pkgC
-            )
+    println("\n--- TREE ---")
+    println("Empty -> Undo: ${tree.undo()} | Redo: ${tree.redo()}")
 
-            try {
-                invoker.executeCommand(cmd3)
-                println("[Execute Log] Cmd3 Executed (${pkgC.id}) -> Success | Queue Size: ${testWarehouse.cargoQueue.size}")
-            } catch (e: Exception) {
-                println("[Execute Log] Cmd3 Failed: ${e.message}")
-            }
+    tree.executeCommand(treeA)
+    tree.executeCommand(treeB)
 
-            val redoResult = invoker.redoLast()
-            println("[Telemetry] Attempting Redo after new command execution (Expected: false) -> Result: $redoResult")
+    println("Execute A & B -> History: ${tree.historySize()}")
 
-            println("\n--- Final Domain Verification ---")
-            println("Final Cargo Queue Size: ${testWarehouse.cargoQueue.size}")
-            println("Final History Size: ${invoker.historySize()}")
-        }
-    } else {
-        println("[Warning] No warehouses loaded to run telemetry flow.")
-    }
+    tree.undo()
+    println("Undo B -> History: ${tree.historySize()}")
 
-    println("\nDone")
+    tree.executeCommand(treeC)
+    println("Execute C after Undo -> History: ${tree.historySize()}")
+
+    tree.undo()
+
+    println("Branches from A: ${tree.branchCount()}")
+    println("Branch 0 -> old B")
+    println("Branch 1 -> new C")
+    println("Redo old B branch: ${tree.redo(0)}")
+    println("TREE RESULT -> B and C are both preserved")
+
+    testWarehouse.restoreCargoQueue(initialQueue)
+
+    println("\n========== STACK VS TREE VISUAL ==========")
+
+    println(
+        """
+STACK:
+
+    A -> B
+    Undo B
+    Execute C
+
+    A -> C
+
+    B is LOST
+
+
+TREE:
+
+       A
+      / \
+     B   C
+
+    B and C are PRESERVED
+        """.trimIndent()
+    )
+
+    println("\n========== DISPATCH UNDO / REDO ==========")
+
+    val baseVehicle = graph.vehicles.firstOrNull() ?: return
+
+    val stackWarehouse = testWarehouse.copy()
+    val stackVehicle = baseVehicle.copy(
+        id = "STACK-DISPATCH",
+        currentHub = stackWarehouse,
+        loadedPackages = mutableListOf()
+    )
+    val stackPkg = template.copy(id = "STACK-DISPATCH-PKG", origin = stackWarehouse)
+
+    stackWarehouse.addPackage(stackPkg)
+
+    val stackAssignment = VehicleAssignment(
+        vehicle = stackVehicle,
+        packages = listOf(stackPkg),
+        totalWeightKg = stackPkg.weight,
+        remainingCapacityKg = stackVehicle.maxCapacityKg - stackPkg.weight
+    )
+
+    val stackDispatchInvoker = StackCommandInvoker()
+    val stackDispatchCommand = DispatchVehicleCommand(dispatchVehicle, stackWarehouse, stackAssignment)
+
+    println("\n--- STACK DISPATCH ---")
+    println("Before -> Warehouse: ${stackWarehouse.cargoQueue.size} | Vehicle: ${stackVehicle.loadedPackages.size}")
+
+    stackDispatchInvoker.executeCommand(stackDispatchCommand)
+    println("Execute -> Warehouse: ${stackWarehouse.cargoQueue.size} | Vehicle: ${stackVehicle.loadedPackages.size}")
+
+    stackDispatchInvoker.undo()
+    println("Undo -> Warehouse: ${stackWarehouse.cargoQueue.size} | Vehicle: ${stackVehicle.loadedPackages.size}")
+
+    stackDispatchInvoker.redo()
+    println("Redo -> Warehouse: ${stackWarehouse.cargoQueue.size} | Vehicle: ${stackVehicle.loadedPackages.size}")
+
+    val treeWarehouse = testWarehouse.copy()
+    val treeVehicle = baseVehicle.copy(
+        id = "TREE-DISPATCH",
+        currentHub = treeWarehouse,
+        loadedPackages = mutableListOf()
+    )
+    val treePkg = template.copy(id = "TREE-DISPATCH-PKG", origin = treeWarehouse)
+
+    treeWarehouse.addPackage(treePkg)
+
+    val treeAssignment = VehicleAssignment(
+        vehicle = treeVehicle,
+        packages = listOf(treePkg),
+        totalWeightKg = treePkg.weight,
+        remainingCapacityKg = treeVehicle.maxCapacityKg - treePkg.weight
+    )
+
+    val treeDispatchInvoker = TreeCommandInvoker()
+    val treeDispatchCommand = DispatchVehicleCommand(dispatchVehicle, treeWarehouse, treeAssignment)
+
+    println("\n--- TREE DISPATCH ---")
+    println("Before -> Warehouse: ${treeWarehouse.cargoQueue.size} | Vehicle: ${treeVehicle.loadedPackages.size}")
+
+    treeDispatchInvoker.executeCommand(treeDispatchCommand)
+    println("Execute -> Warehouse: ${treeWarehouse.cargoQueue.size} | Vehicle: ${treeVehicle.loadedPackages.size}")
+
+    treeDispatchInvoker.undo()
+    println("Undo -> Warehouse: ${treeWarehouse.cargoQueue.size} | Vehicle: ${treeVehicle.loadedPackages.size}")
+
+    treeDispatchInvoker.redo()
+    println("Redo -> Warehouse: ${treeWarehouse.cargoQueue.size} | Vehicle: ${treeVehicle.loadedPackages.size}")
+
+    println("\n========== DONE ==========")
 }
