@@ -5,13 +5,15 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.result.VehicleAssignment
 import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
-private const val MIN_ACCEPTABLE_UTILIZATION = 70.0
-private const val MIN_COST_SAVING_RATIO = 0.25
 
 class AssignPackagesToBestFitVehiclesUseCase(
     private val calculateVehicleUtilizationUseCase:
     CalculateVehicleUtilizationUseCase
 ) {
+    private companion object {
+    const val MIN_ACCEPTABLE_UTILIZATION = 70.0
+    const val MIN_COST_SAVING_RATIO = 0.25
+}
 
     operator fun invoke(
         packages: List<Package>,
