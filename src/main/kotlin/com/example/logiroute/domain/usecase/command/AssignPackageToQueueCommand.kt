@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.usecase.AssignPackageToCargoQueueUseCase
 import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
-
+import  com.example.logiroute.domain.model.result.AssignmentResult
 class AssignPackageToQueueCommand(
     private val assignPackageToCargoQueueUseCase: AssignPackageToCargoQueueUseCase,
     private val warehouse: Warehouse,
@@ -13,11 +13,11 @@ class AssignPackageToQueueCommand(
 
 
     override fun execute() {
-        val wasAssigned = assignPackageToCargoQueueUseCase(
+        val result = assignPackageToCargoQueueUseCase(
             warehouse, packageItem
         )
 
-        if (!wasAssigned) {
+        if (result != AssignmentResult.Success) {
             throw LogisticsException.CommandExecutionException(packageItem.id)
         }
     }
