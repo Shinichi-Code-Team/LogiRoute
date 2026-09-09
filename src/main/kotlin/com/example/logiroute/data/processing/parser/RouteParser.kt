@@ -43,22 +43,18 @@ private fun isValidRouteRaw(
     originalLine: String
 ): Boolean {
     if (!hasExpectedColumnCount(columns, expectedColumnCount)) {
-        println("Warning: Invalid column count -> $originalLine")
         return false
     }
 
     if (!hasRequiredRouteFields(columns)) {
-        println("Warning: Missing route ID, origin, or destination hub ID -> $originalLine")
         return false
     }
 
     if (!isValidRouteDistance(columns[DISTANCE_KM_INDEX])) {
-        println("Warning: Invalid distance value -> $originalLine")
         return false
     }
 
     if (!isValidRouteDelay(columns[TYPICAL_DELAY_MIN_INDEX])) {
-        println("Warning: Invalid delay value -> $originalLine")
         return false
     }
 

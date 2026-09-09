@@ -1,6 +1,6 @@
 package com.example.logiroute.domain.model
 
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.PackageComponent
+import com.example.logiroute.domain.usecase.pricingPackage.servicepricing.PackageComponent
 
 data class Package(
     val id: String,
