@@ -1,8 +1,8 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.logic.algorithm.tree.BalancedBinarySearchTree
-import com.example.logiroute.domain.logic.algorithm.tree.BinarySearchTree
-import com.example.logiroute.domain.model.response.TreePerformanceReport
+import com.example.logiroute.domain.algorithm.tree.BalancedBinarySearchTree
+import com.example.logiroute.domain.algorithm.tree.BinarySearchTree
+import com.example.logiroute.com.example.logiroute.domain.model.result.TreePerformanceReport
 
 private const val TOTAL_PACKAGE_IDS = 1000
 

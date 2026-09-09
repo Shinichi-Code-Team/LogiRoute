@@ -1,6 +1,6 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
+import com.example.logiroute.domain.algorithm.routing.BfsRouter
 import com.example.logiroute.domain.model.Warehouse
 
 class FindFewestHopsRouteUseCase(
