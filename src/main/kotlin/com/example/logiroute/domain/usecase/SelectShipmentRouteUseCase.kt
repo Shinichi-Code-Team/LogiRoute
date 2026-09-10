@@ -1,7 +1,7 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.logic.algorithm.routing.BfsRouter
-import com.example.logiroute.domain.logic.algorithm.routing.DijkstraRouter
+import com.example.logiroute.domain.algorithm.routing.BfsRouter
+import com.example.logiroute.domain.algorithm.routing.DijkstraRouter
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.ShipmentGroupRequest
 import com.example.logiroute.domain.model.request.ShipmentService

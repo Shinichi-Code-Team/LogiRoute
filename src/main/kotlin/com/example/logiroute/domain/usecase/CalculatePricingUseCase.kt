@@ -1,7 +1,7 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.logic.packagepricing.basepricing.RoutePricingEngine
-import com.example.logiroute.domain.logic.packagepricing.servicepricing.PackageComponent
+import com.example.logiroute.domain.usecase.pricingPackage.basepricing.RoutePricingEngine
+import com.example.logiroute.domain.usecase.pricingPackage.servicepricing.PackageComponent
 import com.example.logiroute.domain.model.Package
 
 class CalculatePricingUseCase(
