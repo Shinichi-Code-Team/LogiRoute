@@ -1,12 +1,12 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.processing.loader.Loader
+import com.example.logiroute.data.datasource.RouteDataSource
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
-class CSVRouteRepository(
-    private val loader: Loader,
+class RouteRepositoryImpl(
+    private val routeDataSource: RouteDataSource,
     private val warehouseRepository: WarehouseRepository
 ) : RouteRepository {
 
@@ -15,7 +15,7 @@ class CSVRouteRepository(
             .getAllWarehouses()
             .associateBy { it.id }
 
-        return loader.loadRoutes().mapNotNull { raw ->
+        return routeDataSource.getRoutes().mapNotNull { raw ->
             val origin = warehouseMap[raw.originHubId]
             val destination = warehouseMap[raw.destinationHubId]
 
