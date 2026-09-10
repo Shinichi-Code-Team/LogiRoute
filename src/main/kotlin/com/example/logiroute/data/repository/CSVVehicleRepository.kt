@@ -21,21 +21,25 @@ class CSVVehicleRepository(
         return loader.loadFleets().flatMap { raw ->
             val currentHub = warehouseMap[raw.currentHubId]
 
-            if (currentHub == null) {
-                emptyList()
-            } else {
+            currentHub?.let { validCurrentHub ->
+
                 raw.vehicleIds.map { vehicleId ->
-                    Vehicle(
+
+                    val vehicle = Vehicle(
                         id = vehicleId,
                         maxCapacityKg = raw.maxCapacityKg,
                         costPerKm = raw.costPerKm,
-                        currentHub = currentHub
+                        currentHub = validCurrentHub
                     )
+
+                    validCurrentHub.addVehicle(vehicle)
+
+                    vehicle
                 }
-            }
+
+            } ?: emptyList()
         }
-    }
-    override fun addVehicle(vehicle: Vehicle): Boolean {
+    }    override fun addVehicle(vehicle: Vehicle): Boolean {
         val fleets = loader.loadFleets()
 
         val vehicleExists = fleets
