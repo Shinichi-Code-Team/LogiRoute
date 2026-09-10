@@ -3,6 +3,10 @@ package com.example.logiroute
 import com.example.logiroute.com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
 import com.example.logiroute.com.example.logiroute.domain.usecase.ReroutePackageUseCase
 import com.example.logiroute.com.example.logiroute.domain.usecase.model.request.FindStationedVehiclesRequest
+import com.example.logiroute.data.datasource.csv.CsvPackageDataSource
+import com.example.logiroute.data.datasource.csv.CsvRouteDataSource
+import com.example.logiroute.data.datasource.csv.CsvVehicleDataSource
+import com.example.logiroute.data.datasource.csv.CsvWarehouseDataSource
 import com.example.logiroute.data.processing.loader.Loader
 import com.example.logiroute.data.processing.writer.FleetWriter
 import com.example.logiroute.data.repository.*
@@ -21,13 +25,27 @@ import com.example.logiroute.domain.usecase.pricingPackage.basepricing.RoutePric
 
 fun main() {
     val loader = Loader()
+    val fleetWriter = FleetWriter("fleet.csv")
 
-    val warehouseRepository = CSVWarehouseRepository(loader)
-    val packageRepository = CSVPackageRepository(loader, warehouseRepository)
-    val routeRepository = CSVRouteRepository(loader, warehouseRepository)
-    val vehicleRepository = CSVVehicleRepository(
-        loader,
-        FleetWriter("fleet.csv"),
+    val warehouseDataSource = CsvWarehouseDataSource(loader)
+    val packageDataSource = CsvPackageDataSource(loader)
+    val routeDataSource = CsvRouteDataSource(loader)
+    val vehicleDataSource = CsvVehicleDataSource(loader, fleetWriter)
+
+    val warehouseRepository = WarehouseRepositoryImpl(warehouseDataSource)
+
+    val packageRepository = PackageRepositoryImpl(
+        packageDataSource,
+        warehouseRepository
+    )
+
+    val routeRepository = RouteRepositoryImpl(
+        routeDataSource,
+        warehouseRepository
+    )
+
+    val vehicleRepository = VehicleRepositoryImpl(
+        vehicleDataSource,
         warehouseRepository
     )
 

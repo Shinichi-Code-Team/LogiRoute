@@ -1,15 +1,13 @@
 package com.example.logiroute.data.repository
 
 import com.example.logiroute.data.dataholder.FleetRaw
-import com.example.logiroute.data.processing.loader.Loader
-import com.example.logiroute.data.processing.writer.FleetWriter
+import com.example.logiroute.data.datasource.VehicleDataSource
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
-class CSVVehicleRepository(
-    private val loader: Loader,
-    private val writer: FleetWriter,
+class VehicleRepositoryImpl(
+    private val vehicleDataSource: VehicleDataSource,
     private val warehouseRepository: WarehouseRepository
 ) : VehicleRepository {
 
@@ -18,11 +16,10 @@ class CSVVehicleRepository(
             .getAllWarehouses()
             .associateBy { it.id }
 
-        return loader.loadFleets().flatMap { raw ->
+        return vehicleDataSource.getFleets().flatMap { raw ->
             val currentHub = warehouseMap[raw.currentHubId]
 
             currentHub?.let { validCurrentHub ->
-
                 raw.vehicleIds.map { vehicleId ->
 
                     val vehicle = Vehicle(
@@ -36,11 +33,12 @@ class CSVVehicleRepository(
 
                     vehicle
                 }
-
             } ?: emptyList()
         }
-    }    override fun addVehicle(vehicle: Vehicle): Boolean {
-        val fleets = loader.loadFleets()
+    }
+
+    override fun addVehicle(vehicle: Vehicle): Boolean {
+        val fleets = vehicleDataSource.getFleets()
 
         val vehicleExists = fleets
             .flatMap { it.vehicleIds }
@@ -57,7 +55,7 @@ class CSVVehicleRepository(
             costPerKm = vehicle.costPerKm
         )
 
-        writer.writeFleet(fleets + newFleet)
+        vehicleDataSource.saveFleets(fleets + newFleet)
 
         return true
     }
