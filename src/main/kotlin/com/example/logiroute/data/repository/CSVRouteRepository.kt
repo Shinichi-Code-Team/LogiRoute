@@ -19,16 +19,21 @@ class CSVRouteRepository(
             val origin = warehouseMap[raw.originHubId]
             val destination = warehouseMap[raw.destinationHubId]
 
-            if (origin == null || destination == null) {
-                null
-            } else {
-                Route(
-                    id = raw.id,
-                    distanceKm = raw.distanceKm,
-                    typicalDelayMin = raw.typicalDelayMin,
-                    origin = origin,
-                    destination = destination
-                )
+            origin?.let { validOrigin ->
+                destination?.let { validDestination ->
+
+                    val route = Route(
+                        id = raw.id,
+                        distanceKm = raw.distanceKm,
+                        typicalDelayMin = raw.typicalDelayMin,
+                        origin = validOrigin,
+                        destination = validDestination
+                    )
+
+                    validOrigin.addOutgoingRoute(route)
+
+                    route
+                }
             }
         }
     }

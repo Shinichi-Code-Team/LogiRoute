@@ -20,21 +20,25 @@ class CSVPackageRepository(
         return loader.loadPackages().mapNotNull { raw ->
             val origin = warehouseMap[raw.originHubId]
             val destination = warehouseMap[raw.destinationHubId]
+
             origin?.let { validOrigin ->
                 destination?.let { validDestination ->
-                    Package(
+
+                    val packageItem = Package(
                         id = raw.id,
                         weight = raw.weight,
                         origin = validOrigin,
                         destination = validDestination,
                         priority = mapPriority(raw.priority)
                     )
+
+                    validOrigin.addPackage(packageItem)
+
+                    packageItem
                 }
             }
-
         }
     }
-
     private fun mapPriority(priorityRaw: PriorityRaw): Priority {
         return when (priorityRaw) {
             PriorityRaw.LOW -> Priority.LOW
