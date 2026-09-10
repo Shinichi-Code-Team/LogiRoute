@@ -1,15 +1,15 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.processing.loader.Loader
+import com.example.logiroute.data.datasource.WarehouseDataSource
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 
-class CSVWarehouseRepository(
-    private val loader: Loader
+class WarehouseRepositoryImpl(
+    private val warehouseDataSource: WarehouseDataSource
 ) : WarehouseRepository {
 
     private val warehouses: List<Warehouse> =
-        loader.loadWarehouses().map { raw ->
+        warehouseDataSource.getWarehouses().map { raw ->
             Warehouse(
                 id = raw.id,
                 name = raw.name,
