@@ -39,7 +39,6 @@ class PackageRepositoryImpl(
             }
         }
     }
-
     private fun mapPriority(priorityRaw: PriorityRaw): Priority {
         return when (priorityRaw) {
             PriorityRaw.LOW -> Priority.LOW
