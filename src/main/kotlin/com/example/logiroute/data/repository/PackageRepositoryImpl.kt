@@ -1,15 +1,17 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.dataholder.PriorityRaw
-import com.example.logiroute.data.datasource.PackageDataSource
+import com.example.logiroute.data.remote.datasource.RemotePackageDataSource
+import com.example.logiroute.data.remote.dto.`package`.PackageResponseDto
+import com.example.logiroute.data.remote.mapper.PackageDtoMapper
 import com.example.logiroute.domain.model.Package
-import com.example.logiroute.domain.model.Priority
+import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 class PackageRepositoryImpl(
-    private val packageDataSource: PackageDataSource,
-    private val warehouseRepository: WarehouseRepository
+    private val remoteDataSource: RemotePackageDataSource,
+    private val warehouseRepository: WarehouseRepository,
+    private val dtoMapper: PackageDtoMapper
 ) : PackageRepository {
 
     override fun getAllPackages(): List<Package> {
@@ -17,33 +19,35 @@ class PackageRepositoryImpl(
             .getAllWarehouses()
             .associateBy { it.id }
 
-        return packageDataSource.getPackages().mapNotNull { raw ->
-            val origin = warehouseMap[raw.originHubId]
-            val destination = warehouseMap[raw.destinationHubId]
-
-            origin?.let { validOrigin ->
-                destination?.let { validDestination ->
-
-                    val packageItem = Package(
-                        id = raw.id,
-                        weight = raw.weight,
-                        origin = validOrigin,
-                        destination = validDestination,
-                        priority = mapPriority(raw.priority)
-                    )
-
-                    validOrigin.addPackage(packageItem)
-
-                    packageItem
-                }
+        return remoteDataSource
+            .getPackages()
+            .mapNotNull { dto ->
+                mapRemotePackage(
+                    dto = dto,
+                    warehouseMap = warehouseMap
+                )
             }
-        }
     }
-    private fun mapPriority(priorityRaw: PriorityRaw): Priority {
-        return when (priorityRaw) {
-            PriorityRaw.LOW -> Priority.LOW
-            PriorityRaw.STANDARD -> Priority.STANDARD
-            PriorityRaw.URGENT -> Priority.URGENT
-        }
+
+    private fun mapRemotePackage(
+        dto: PackageResponseDto,
+        warehouseMap: Map<String, Warehouse>
+    ): Package? {
+
+        val origin = warehouseMap[dto.originHubId]
+            ?: return null
+
+        val destination = warehouseMap[dto.destinationHubId]
+            ?: return null
+
+        val packageItem = dtoMapper.toDomain(
+            dto = dto,
+            origin = origin,
+            destination = destination
+        )
+
+        origin.addPackage(packageItem)
+
+        return packageItem
     }
 }
