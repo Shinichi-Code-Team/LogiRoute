@@ -1,13 +1,17 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.datasource.RouteDataSource
+import com.example.logiroute.data.remote.datasource.RemoteRouteDataSource
+import com.example.logiroute.data.remote.dto.route.RouteResponseDto
+import com.example.logiroute.data.remote.mapper.RouteDtoMapper
 import com.example.logiroute.domain.model.Route
+import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 class RouteRepositoryImpl(
-    private val routeDataSource: RouteDataSource,
-    private val warehouseRepository: WarehouseRepository
+    private val remoteDataSource: RemoteRouteDataSource,
+    private val warehouseRepository: WarehouseRepository,
+    private val dtoMapper: RouteDtoMapper
 ) : RouteRepository {
 
     override fun getAllRoutes(): List<Route> {
@@ -15,26 +19,35 @@ class RouteRepositoryImpl(
             .getAllWarehouses()
             .associateBy { it.id }
 
-        return routeDataSource.getRoutes().mapNotNull { raw ->
-            val origin = warehouseMap[raw.originHubId]
-            val destination = warehouseMap[raw.destinationHubId]
-
-            origin?.let { validOrigin ->
-                destination?.let { validDestination ->
-
-                    val route = Route(
-                        id = raw.id,
-                        distanceKm = raw.distanceKm,
-                        typicalDelayMin = raw.typicalDelayMin,
-                        origin = validOrigin,
-                        destination = validDestination
-                    )
-
-                    validOrigin.addOutgoingRoute(route)
-
-                    route
-                }
+        return remoteDataSource
+            .getRoutes()
+            .mapNotNull { dto ->
+                mapRemoteRoute(
+                    dto = dto,
+                    warehouseMap = warehouseMap
+                )
             }
-        }
+    }
+
+    private fun mapRemoteRoute(
+        dto: RouteResponseDto,
+        warehouseMap: Map<String, Warehouse>
+    ): Route? {
+
+        val origin = warehouseMap[dto.originHubId]
+            ?: return null
+
+        val destination = warehouseMap[dto.destinationHubId]
+            ?: return null
+
+        val route = dtoMapper.toDomain(
+            dto = dto,
+            origin = origin,
+            destination = destination
+        )
+
+        origin.addOutgoingRoute(route)
+
+        return route
     }
 }
