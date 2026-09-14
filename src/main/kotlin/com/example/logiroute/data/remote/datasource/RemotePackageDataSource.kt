@@ -1,4 +1,8 @@
 package com.example.logiroute.data.remote.datasource
 
-class PackageRemoteDataSource {
+import com.example.logiroute.data.remote.dto.`package`.PackageResponseDto
+
+
+interface RemotePackageDataSource {
+     fun getPackages(): List<PackageResponseDto>
 }
