@@ -1,14 +1,17 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.dataholder.FleetRaw
-import com.example.logiroute.data.datasource.VehicleDataSource
+import com.example.logiroute.data.remote.datasource.RemoteVehicleDataSource
+import com.example.logiroute.data.remote.dto.vehicle.VehicleResponseDto
+import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
 import com.example.logiroute.domain.model.Vehicle
+import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 class VehicleRepositoryImpl(
-    private val vehicleDataSource: VehicleDataSource,
-    private val warehouseRepository: WarehouseRepository
+    private val remoteDataSource: RemoteVehicleDataSource,
+    private val warehouseRepository: WarehouseRepository,
+    private val dtoMapper: VehicleDtoMapper
 ) : VehicleRepository {
 
     override fun getAllVehicles(): List<Vehicle> {
@@ -16,47 +19,26 @@ class VehicleRepositoryImpl(
             .getAllWarehouses()
             .associateBy { it.id }
 
-        return vehicleDataSource.getFleets().flatMap { raw ->
-            val currentHub = warehouseMap[raw.currentHubId]
-
-            currentHub?.let { validCurrentHub ->
-                raw.vehicleIds.map { vehicleId ->
-
-                    val vehicle = Vehicle(
-                        id = vehicleId,
-                        maxCapacityKg = raw.maxCapacityKg,
-                        costPerKm = raw.costPerKm,
-                        currentHub = validCurrentHub
-                    )
-
-                    validCurrentHub.addVehicle(vehicle)
-
-                    vehicle
-                }
-            } ?: emptyList()
-        }
+        return remoteDataSource
+            .getVehicles()
+            .mapNotNull { dto ->
+                mapRemoteVehicle(dto = dto, warehouseMap = warehouseMap)
+            }
     }
 
     override fun addVehicle(vehicle: Vehicle): Boolean {
-        val fleets = vehicleDataSource.getFleets()
+        TODO("Wire to Supabase create endpoint once RemoteVehicleDataSource supports it")
+    }
 
-        val vehicleExists = fleets
-            .flatMap { it.vehicleIds }
-            .any { it == vehicle.id }
+    private fun mapRemoteVehicle(
+        dto: VehicleResponseDto,
+        warehouseMap: Map<String, Warehouse>
+    ): Vehicle? {
+        val currentHub = warehouseMap[dto.currentHubId] ?: return null
 
-        if (vehicleExists) {
-            return false
-        }
+        val vehicle = dtoMapper.toDomain(dto = dto, currentHub = currentHub)
+        currentHub.addVehicle(vehicle)
 
-        val newFleet = FleetRaw(
-            vehicleIds = listOf(vehicle.id),
-            currentHubId = vehicle.currentHub.id,
-            maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm
-        )
-
-        vehicleDataSource.saveFleets(fleets + newFleet)
-
-        return true
+        return vehicle
     }
 }
