@@ -1,3 +1,12 @@
 package com.example.logiroute.data.remote.dto.`package`
 
-data class CreatePackageRequestDto()
+//import kotlinx.serialization.Serializable
+
+//@Serializable
+data class CreatePackageRequestDto(
+    val id: String,
+    val weight: Double,
+    val originHubId: String,
+    val destinationHubId: String,
+    val priority: PriorityDto
+)
