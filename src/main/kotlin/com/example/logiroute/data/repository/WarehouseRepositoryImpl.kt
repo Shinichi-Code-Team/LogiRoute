@@ -1,11 +1,11 @@
 package com.example.logiroute.data.repository
 
-import com.example.logiroute.data.datasource.WarehouseDataSource
+import com.example.logiroute.data.csv.datasource.CsvWarehouseDataSource
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 class WarehouseRepositoryImpl(
-    private val warehouseDataSource: WarehouseDataSource
+    private val warehouseDataSource: CsvWarehouseDataSource
 ) : WarehouseRepository {
 
     private val warehouses: List<Warehouse> =
