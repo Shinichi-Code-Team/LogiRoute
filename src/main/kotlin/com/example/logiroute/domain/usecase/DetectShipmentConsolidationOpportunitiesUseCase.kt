@@ -45,7 +45,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         )
     }
 
-    suspend private fun findCompatiblePackages(
+     private suspend fun findCompatiblePackages(
         mainPackage: Package,
         currentWarehouse: Warehouse,
         mainRoute: List<Warehouse>
@@ -56,7 +56,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
             .filter { candidate -> isCandidateRouteCompatible(mainRoute, candidate, currentWarehouse) }
     }
 
-    private fun isCandidateRouteCompatible(
+    private suspend fun isCandidateRouteCompatible(
         mainRoute: List<Warehouse>,
         candidatePackage: Package,
         currentWarehouse: Warehouse
