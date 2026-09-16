@@ -1,8 +1,8 @@
 package com.example.logiroute.data.remote.dto.route
 
-//import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializable
 
-//@Serializable
+@Serializable
 data class RouteResponseDto(
     val id: String,
     val originHubId: String,

@@ -6,11 +6,15 @@ import com.example.logiroute.domain.model.Warehouse
 class FindFewestHopsRouteUseCase(
     private val bfsRouter: BfsRouter
 ) {
-    operator fun invoke(
+
+    suspend operator fun invoke(
         source: Warehouse,
         destination: Warehouse
     ): List<Warehouse> {
-        return bfsRouter.findRoute(source, destination)
-    }
 
+        return bfsRouter.findRoute(
+            source,
+            destination
+        )
+    }
 }

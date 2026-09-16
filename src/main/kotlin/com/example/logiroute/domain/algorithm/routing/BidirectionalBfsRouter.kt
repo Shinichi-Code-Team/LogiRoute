@@ -4,17 +4,25 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 class BidirectionalBfsRouter(
-    private val warehousesRepository: WarehouseRepository,
+    private val warehousesRepository: WarehouseRepository
 ) : Router {
-    val warehouses = warehousesRepository.getAllWarehouses()
-    val forwardAdjacencyMap = buildForwardAdjacencyMap()
-    val backwardAdjacencyMap = buildBackwardAdjacencyMap()
+
     var lastEvaluatedNodesCount: Int = 0
         private set
 
-    override fun findRoute(
-        source: Warehouse, destination: Warehouse
+    override suspend fun findRoute(
+        source: Warehouse,
+        destination: Warehouse
     ): List<Warehouse> {
+
+        val warehouses =
+            warehousesRepository.getAllWarehouses()
+
+        val forwardAdjacencyMap =
+            buildForwardAdjacencyMap(warehouses)
+
+        val backwardAdjacencyMap =
+            buildBackwardAdjacencyMap(warehouses)
 
         lastEvaluatedNodesCount = 0
 
@@ -23,15 +31,30 @@ class BidirectionalBfsRouter(
             return listOf(source)
         }
 
-        if (!isValidSearch(source, destination)) {
+        if (
+            !isValidSearch(
+                source,
+                destination,
+                forwardAdjacencyMap,
+                backwardAdjacencyMap
+            )
+        ) {
             return emptyList()
         }
 
-        val forwardState = createSearchState(source)
+        val forwardState =
+            createSearchState(source)
 
-        val backwardState = createSearchState(destination)
+        val backwardState =
+            createSearchState(destination)
 
-        val meetingPoint = searchForMeetingPoint(forwardState, backwardState)
+        val meetingPoint =
+            searchForMeetingPoint(
+                forwardState,
+                backwardState,
+                forwardAdjacencyMap,
+                backwardAdjacencyMap
+            )
 
         updateEvaluatedNodesCount(
             forwardState,
@@ -39,6 +62,7 @@ class BidirectionalBfsRouter(
         )
 
         return meetingPoint?.let {
+
             reconstructPath(
                 source = source,
                 destination = destination,
@@ -46,18 +70,20 @@ class BidirectionalBfsRouter(
                 forwardParentMap = forwardState.parentMap,
                 backwardParentMap = backwardState.parentMap
             )
+
         } ?: emptyList()
     }
 
-
     private fun isValidSearch(
         source: Warehouse,
-        destination: Warehouse
+        destination: Warehouse,
+        forwardAdjacencyMap: Map<Warehouse, List<Warehouse>>,
+        backwardAdjacencyMap: Map<Warehouse, List<Warehouse>>
     ): Boolean {
+
         return source in forwardAdjacencyMap &&
                 destination in backwardAdjacencyMap
     }
-
 
     private fun createSearchState(
         start: Warehouse
@@ -77,10 +103,11 @@ class BidirectionalBfsRouter(
         return state
     }
 
-
     private fun searchForMeetingPoint(
         forwardState: SearchState,
-        backwardState: SearchState
+        backwardState: SearchState,
+        forwardAdjacencyMap: Map<Warehouse, List<Warehouse>>,
+        backwardAdjacencyMap: Map<Warehouse, List<Warehouse>>
     ): Warehouse? {
 
         while (
@@ -151,7 +178,6 @@ class BidirectionalBfsRouter(
         }
     }
 
-
     private fun findBestIntersection(
         forwardState: SearchState,
         backwardState: SearchState
@@ -180,7 +206,6 @@ class BidirectionalBfsRouter(
         }
     }
 
-
     private fun updateEvaluatedNodesCount(
         forwardState: SearchState,
         backwardState: SearchState
@@ -190,7 +215,6 @@ class BidirectionalBfsRouter(
             forwardState.evaluatedNodes +
                     backwardState.evaluatedNodes
     }
-
 
     private fun reconstructPath(
         source: Warehouse,
@@ -244,7 +268,6 @@ class BidirectionalBfsRouter(
         return path
     }
 
-
     private fun buildBackwardPath(
         destination: Warehouse,
         meetingPoint: Warehouse,
@@ -279,20 +302,36 @@ class BidirectionalBfsRouter(
         var evaluatedNodes: Int = 0
     )
 
-    private fun buildForwardAdjacencyMap(): Map<Warehouse, List<Warehouse>> {
+    private fun buildForwardAdjacencyMap(
+        warehouses: List<Warehouse>
+    ): Map<Warehouse, List<Warehouse>> {
+
         return warehouses.associateWith { warehouse ->
-            warehouse.outgoingRoutes.map { it.destination }
+            warehouse.outgoingRoutes.map {
+                it.destination
+            }
         }
     }
 
-    private fun buildBackwardAdjacencyMap(): Map<Warehouse, List<Warehouse>> {
-        val backwardMap = warehouses.associateWith { mutableListOf<Warehouse>() }
-        for (warehouse in warehouses) {
-            for (route in warehouse.outgoingRoutes) {
-                backwardMap.getValue(route.destination).add(route.origin)
+    private fun buildBackwardAdjacencyMap(
+        warehouses: List<Warehouse>
+    ): Map<Warehouse, List<Warehouse>> {
+
+        val backwardMap =
+            warehouses.associateWith {
+                mutableListOf<Warehouse>()
             }
 
+        for (warehouse in warehouses) {
+
+            for (route in warehouse.outgoingRoutes) {
+
+                backwardMap
+                    .getValue(route.destination)
+                    .add(route.origin)
+            }
         }
+
         return backwardMap
     }
 }
