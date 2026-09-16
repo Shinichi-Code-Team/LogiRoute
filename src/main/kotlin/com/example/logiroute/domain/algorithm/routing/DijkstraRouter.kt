@@ -10,18 +10,18 @@ class DijkstraRouter(
     private val routeWeight: (Route) -> Double
 ) : Router {
 
-    private val adjacencyMap = buildWeightedAdjacencyMap()
-
     override suspend fun findRoute(
         source: Warehouse,
         destination: Warehouse
     ): List<Warehouse> {
 
+        val adjacencyMap = buildWeightedAdjacencyMap()
+
         if (source == destination) {
             return listOf(source)
         }
 
-        val state = createInitialState()
+        val state = createInitialState(adjacencyMap)
 
         if (source !in state.distances || destination !in state.distances) {
             return emptyList()
@@ -31,7 +31,8 @@ class DijkstraRouter(
 
         runDijkstra(
             destination = destination,
-            state = state
+            state = state,
+            adjacencyMap = adjacencyMap
         )
 
         if (destination !in state.parents) {
@@ -45,7 +46,9 @@ class DijkstraRouter(
         )
     }
 
-    private fun createInitialState(): DijkstraState {
+    private fun createInitialState(
+        adjacencyMap: Map<Warehouse, List<Route>>
+    ): DijkstraState {
 
         val allWarehouses = adjacencyMap
             .flatMap { (warehouse, routes) ->
@@ -71,7 +74,8 @@ class DijkstraRouter(
 
     private fun runDijkstra(
         destination: Warehouse,
-        state: DijkstraState
+        state: DijkstraState,
+        adjacencyMap: Map<Warehouse, List<Route>>
     ) {
 
         while (hasReachableWarehouse(state)) {
@@ -131,18 +135,18 @@ class DijkstraRouter(
         state: DijkstraState
     ): Warehouse {
 
-            return state.distances
-                .filter { (warehouse, _) ->
-                    warehouse !in state.visited
-                }
-                .minByOrNull { (_, cost) ->
-                    cost
-                }
-                ?.key
-                ?: error("No reachable warehouse found")
-        }
+        return state.distances
+            .filter { (warehouse, _) ->
+                warehouse !in state.visited
+            }
+            .minByOrNull { (_, cost) ->
+                cost
+            }
+            ?.key
+            ?: error("No reachable warehouse found")
+    }
 
-    private fun buildWeightedAdjacencyMap():
+    private suspend fun buildWeightedAdjacencyMap():
             Map<Warehouse, List<Route>> {
 
         return warehousesRepository
