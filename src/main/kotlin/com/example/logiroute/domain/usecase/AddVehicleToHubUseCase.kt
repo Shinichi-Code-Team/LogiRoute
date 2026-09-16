@@ -7,7 +7,7 @@ class AddVehicleToHubUseCase(
     private val vehicleRepository: VehicleRepository
 
 ) {
-    operator fun invoke(vehicle: Vehicle): Boolean {
+    suspend  operator fun invoke(vehicle: Vehicle): Boolean {
         return vehicleRepository.addVehicle(vehicle)
     }
 

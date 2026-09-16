@@ -9,7 +9,7 @@ class FindBackhaulCandidatesUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         vehicle: Vehicle,
         currentHub: Warehouse,
         returnPath: List<Warehouse>
