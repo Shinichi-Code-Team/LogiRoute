@@ -18,7 +18,7 @@ class DetectEmergencyCargoRescueOpportunitiesUseCase(
     private val findOptimalPathUseCase: FindOptimalPathUseCase
 ) {
 
-    operator fun invoke(request: DetectEmergencyCargoRescueRequest): List<RescueOpportunity> {
+    suspend operator fun invoke(request: DetectEmergencyCargoRescueRequest): List<RescueOpportunity> {
         val currentWarehouse = fetchValidatedWarehouse(request.warehouseId)
         val urgentPackages = fetchValidatedUrgentPackages(currentWarehouse.id)
         val availableVehicles = fetchValidatedAvailableVehicles(currentWarehouse.id)
@@ -38,7 +38,7 @@ class DetectEmergencyCargoRescueOpportunitiesUseCase(
             ?: throw LogisticsException.WarehouseNotFoundException(warehouseId)
     }
 
-    private fun fetchValidatedUrgentPackages(warehouseId: String): List<Package> {
+     private suspend fun fetchValidatedUrgentPackages(warehouseId: String): List<Package> {
         val packages = packageRepository.getAllPackages()
             .filter { it.origin.id == warehouseId && it.priority == Priority.URGENT }
         if (packages.isEmpty()) {
@@ -47,7 +47,7 @@ class DetectEmergencyCargoRescueOpportunitiesUseCase(
         return packages
     }
 
-    private fun fetchValidatedAvailableVehicles(warehouseId: String): List<Vehicle> {
+     private suspend fun fetchValidatedAvailableVehicles(warehouseId: String): List<Vehicle> {
         val vehicles = vehicleRepository.getAllVehicles()
             .filter { it.currentHub.id == warehouseId }
         if (vehicles.isEmpty()) {

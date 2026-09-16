@@ -8,18 +8,18 @@ class EvaluateRouteUseCase(
     private val routeRepository: RouteRepository
 ) {
 
-    operator fun invoke(path: List<Warehouse>): Double {
+    suspend operator fun invoke(path: List<Warehouse>): Double {
         if (path.size < 2) return 0.0
         return calculateTotalRouteDistance(path)
     }
 
-    private fun calculateTotalRouteDistance(path: List<Warehouse>): Double {
+    private suspend fun calculateTotalRouteDistance(path: List<Warehouse>): Double {
         return path.zipWithNext().sumOf { (origin, destination) ->
             fetchSegmentDistance(origin, destination)
         }
     }
 
-    private fun fetchSegmentDistance(origin: Warehouse, destination: Warehouse): Double {
+    private suspend fun fetchSegmentDistance(origin: Warehouse, destination: Warehouse): Double {
         val segment = routeRepository.getAllRoutes().find { route ->
             route.origin.id == origin.id && route.destination.id == destination.id
         } ?: throw LogisticsException.RouteSegmentNotFoundException(

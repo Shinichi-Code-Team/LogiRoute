@@ -10,13 +10,13 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
     private val findOptimalPathUseCase: FindOptimalPathUseCase
 ) {
 
-    operator fun invoke(warehouse: Warehouse): List<ConsolidationOpportunityRequest> {
+    suspend operator fun invoke(warehouse: Warehouse): List<ConsolidationOpportunityRequest> {
         val packages = packageRepository.getAllPackages().filter { it.origin.id == warehouse.id }
         val opportunities = mapPackagesToOpportunities(packages, warehouse)
         return filterSubOpportunities(opportunities)
     }
 
-    private fun mapPackagesToOpportunities(
+    private suspend fun mapPackagesToOpportunities(
         packages: List<Package>,
         warehouse: Warehouse
     ): List<ConsolidationOpportunityRequest> {
@@ -25,7 +25,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         }
     }
 
-    private fun buildOpportunityForPackage(
+     private suspend fun buildOpportunityForPackage(
         mainPackage: Package,
         currentWarehouse: Warehouse
     ): ConsolidationOpportunityRequest? {
@@ -45,7 +45,7 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         )
     }
 
-    private fun findCompatiblePackages(
+    suspend private fun findCompatiblePackages(
         mainPackage: Package,
         currentWarehouse: Warehouse,
         mainRoute: List<Warehouse>

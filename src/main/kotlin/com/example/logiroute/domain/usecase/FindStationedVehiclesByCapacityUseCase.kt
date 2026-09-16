@@ -9,7 +9,7 @@ class FindStationedVehiclesByCapacityUseCase(
     private val vehicleRepository: VehicleRepository
 ) {
 
-    operator fun invoke(request: FindStationedVehiclesRequest): List<Vehicle> {
+    suspend operator fun invoke(request: FindStationedVehiclesRequest): List<Vehicle> {
         if (request.minCapacity <= 0.0) {
             throw LogisticsException.InvalidCapacityException(request.minCapacity)
         }

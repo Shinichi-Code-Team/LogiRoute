@@ -11,7 +11,7 @@ class ExecuteEmergencyCargoPrioritizationUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    operator fun invoke(request: ExecuteEmergencyCargoPrioritizationRequest): EmergencyDispatchPlan {
+    suspend operator fun invoke(request: ExecuteEmergencyCargoPrioritizationRequest): EmergencyDispatchPlan {
         val vehicle = request.opportunity.availableVehicle
         val urgentPackage = request.opportunity.urgentPackage
         val currentVehiclePackages = fetchCurrentVehiclePackages(request.opportunity.currentWarehouse.id)
@@ -32,7 +32,7 @@ class ExecuteEmergencyCargoPrioritizationUseCase(
         return buildEmergencyDispatchPlan(vehicle, loadedPackages, offloadedPackages)
     }
 
-    private fun fetchCurrentVehiclePackages(warehouseId: String): List<Package> {
+    private suspend fun fetchCurrentVehiclePackages(warehouseId: String): List<Package> {
         return packageRepository.getAllPackages()
             .filter { it.origin.id == warehouseId }
     }

@@ -10,7 +10,7 @@ class ReroutePackageUseCase(
     private val warehouseRepository: WarehouseRepository
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         packageId: String,
         newDestinationId: String
     ): Package {
@@ -23,7 +23,7 @@ class ReroutePackageUseCase(
         return createUpdatedPackage(packageItem, newDestination)
     }
 
-    private fun findPackageById(packageId: String): Package {
+    private suspend fun findPackageById(packageId: String): Package {
         return packageRepository.getAllPackages()
             .find { it.id == packageId }
             ?: throw IllegalArgumentException("Package not found: $packageId")
