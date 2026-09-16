@@ -1,8 +1,7 @@
 package com.example.logiroute.data.remote.dto.`package`
+import kotlinx.serialization.Serializable
 
-//import kotlinx.serialization.Serializable
-
-//@Serializable
+@Serializable
 enum class PriorityDto {
     LOW,
     STANDARD,
