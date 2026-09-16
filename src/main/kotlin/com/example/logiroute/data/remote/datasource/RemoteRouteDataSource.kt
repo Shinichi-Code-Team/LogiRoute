@@ -6,16 +6,18 @@ import com.example.logiroute.data.remote.dto.route.UpdateRouteRequestDto
 
 interface RemoteRouteDataSource {
 
-    fun getRoutes(): List<RouteResponseDto>
+    suspend fun getRoutes(): List<RouteResponseDto>
 
-    fun getRouteById(id: String): RouteResponseDto?
+    suspend fun getRouteById(id: String): RouteResponseDto?
 
-    fun createRoute(request: CreateRouteRequestDto): RouteResponseDto
+    suspend fun createRoute(
+        request: CreateRouteRequestDto
+    ): RouteResponseDto
 
-    fun updateRoute(
+    suspend fun updateRoute(
         id: String,
         request: UpdateRouteRequestDto
     ): RouteResponseDto
 
-    fun deleteRoute(id: String)
+    suspend fun deleteRoute(id: String)
 }
