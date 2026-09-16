@@ -8,29 +8,36 @@ import com.example.logiroute.domain.model.Warehouse
 
 class VehicleDtoMapper {
 
-    fun toDomain(dto: VehicleResponseDto, currentHub: Warehouse): Vehicle {
+    fun toDomain(
+        dto: VehicleResponseDto,
+        warehouse: Warehouse
+    ): Vehicle {
         return Vehicle(
             id = dto.id,
             maxCapacityKg = dto.maxCapacityKg,
             costPerKm = dto.costPerKm,
-            currentHub = currentHub
+            currentHub = warehouse
         )
     }
 
-    fun toCreateRequest(vehicle: Vehicle): CreateVehicleRequestDto {
+    fun toCreateRequest(
+        vehicle: Vehicle
+    ): CreateVehicleRequestDto {
         return CreateVehicleRequestDto(
             id = vehicle.id,
+            currentHubId = vehicle.currentHub.id,
             maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm,
-            currentHubId = vehicle.currentHub.id
+            costPerKm = vehicle.costPerKm
         )
     }
 
-    fun toUpdateRequest(vehicle: Vehicle): UpdateVehicleRequestDto {
+    fun toUpdateRequest(
+        vehicle: Vehicle
+    ): UpdateVehicleRequestDto {
         return UpdateVehicleRequestDto(
+            currentHubId = vehicle.currentHub.id,
             maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm,
-            currentHubId = vehicle.currentHub.id
+            costPerKm = vehicle.costPerKm
         )
     }
 }
