@@ -19,4 +19,14 @@ class RouteDtoMapper {
             typicalDelayMin = dto.typicalDelayMin
         )
     }
+
+    fun toDto(route: Route): RouteResponseDto {
+        return RouteResponseDto(
+            id = route.id,
+            originHubId = route.origin.id,
+            destinationHubId = route.destination.id,
+            distanceKm = route.distanceKm,
+            typicalDelayMin = route.typicalDelayMin
+        )
+    }
 }
