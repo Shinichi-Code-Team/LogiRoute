@@ -1,9 +1,7 @@
 package com.example.logiroute.data.repository
 
 import com.example.logiroute.data.remote.datasource.RemoteRouteDataSource
-import com.example.logiroute.data.remote.dto.route.CreateRouteRequestDto
 import com.example.logiroute.data.remote.dto.route.RouteResponseDto
-import com.example.logiroute.data.remote.dto.route.UpdateRouteRequestDto
 import com.example.logiroute.data.remote.mapper.RouteDtoMapper
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
@@ -17,9 +15,7 @@ class RouteRepositoryImpl(
 ) : RouteRepository {
 
     override suspend fun getAllRoutes(): List<Route> {
-        val warehouseMap = warehouseRepository
-            .getAllWarehouses()
-            .associateBy { it.id }
+        val warehouseMap = getWarehouseMap()
 
         return remoteDataSource
             .getRoutes()
@@ -32,60 +28,49 @@ class RouteRepositoryImpl(
         val dto = remoteDataSource.getRouteById(id)
             ?: return null
 
-        val warehouseMap = warehouseRepository
-            .getAllWarehouses()
-            .associateBy { it.id }
-
-        return mapRemoteRoute(dto, warehouseMap)
+        return mapRemoteRoute(
+            dto = dto,
+            warehouseMap = getWarehouseMap()
+        )
     }
 
     override suspend fun createRoute(route: Route): Route {
-        val request = CreateRouteRequestDto(
-            id = route.id,
-            originHubId = route.origin.id,
-            destinationHubId = route.destination.id,
-            distanceKm = route.distanceKm,
-            typicalDelayMin = route.typicalDelayMin
-        )
-
+        val request = dtoMapper.toCreateRequest(route)
         val dto = remoteDataSource.createRoute(request)
 
-        return dtoMapper.toDomain(
+        return mapRemoteRoute(
             dto = dto,
-            origin = route.origin,
-            destination = route.destination
-        )
+            warehouseMap = getWarehouseMap()
+        ) ?: error("Unable to resolve route warehouse references")
     }
 
     override suspend fun updateRoute(
         id: String,
         route: Route
     ): Route {
-        val request = UpdateRouteRequestDto(
-            originHubId = route.origin.id,
-            destinationHubId = route.destination.id,
-            distanceKm = route.distanceKm,
-            typicalDelayMin = route.typicalDelayMin
-        )
-
+        val request = dtoMapper.toUpdateRequest(route)
         val dto = remoteDataSource.updateRoute(id, request)
 
-        return dtoMapper.toDomain(
+        return mapRemoteRoute(
             dto = dto,
-            origin = route.origin,
-            destination = route.destination
-        )
+            warehouseMap = getWarehouseMap()
+        ) ?: error("Unable to resolve route warehouse references")
     }
 
     override suspend fun deleteRoute(id: String) {
         remoteDataSource.deleteRoute(id)
     }
 
+    private suspend fun getWarehouseMap(): Map<String, Warehouse> {
+        return warehouseRepository
+            .getAllWarehouses()
+            .associateBy { it.id }
+    }
+
     private fun mapRemoteRoute(
         dto: RouteResponseDto,
         warehouseMap: Map<String, Warehouse>
     ): Route? {
-
         val origin = warehouseMap[dto.originHubId]
             ?: return null
 

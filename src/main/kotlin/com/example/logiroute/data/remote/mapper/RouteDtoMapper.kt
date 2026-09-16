@@ -1,6 +1,8 @@
 package com.example.logiroute.data.remote.mapper
 
+import com.example.logiroute.data.remote.dto.route.CreateRouteRequestDto
 import com.example.logiroute.data.remote.dto.route.RouteResponseDto
+import com.example.logiroute.data.remote.dto.route.UpdateRouteRequestDto
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 
@@ -20,9 +22,18 @@ class RouteDtoMapper {
         )
     }
 
-    fun toDto(route: Route): RouteResponseDto {
-        return RouteResponseDto(
+    fun toCreateRequest(route: Route): CreateRouteRequestDto {
+        return CreateRouteRequestDto(
             id = route.id,
+            originHubId = route.origin.id,
+            destinationHubId = route.destination.id,
+            distanceKm = route.distanceKm,
+            typicalDelayMin = route.typicalDelayMin
+        )
+    }
+
+    fun toUpdateRequest(route: Route): UpdateRouteRequestDto {
+        return UpdateRouteRequestDto(
             originHubId = route.origin.id,
             destinationHubId = route.destination.id,
             distanceKm = route.distanceKm,
