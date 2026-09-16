@@ -1,4 +1,4 @@
-package com.example.logiroute.com.example.logiroute.domain.usecase
+package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse
@@ -14,6 +14,7 @@ class ReroutePackageUseCase(
         packageId: String,
         newDestinationId: String
     ): Package {
+
         val packageItem = findPackageById(packageId)
         val newDestination = findWarehouseById(newDestinationId)
 
@@ -29,28 +30,47 @@ class ReroutePackageUseCase(
             ?: throw IllegalArgumentException("Package not found: $packageId")
     }
 
-    private fun findWarehouseById(warehouseId: String): Warehouse {
+    private suspend fun findWarehouseById(warehouseId: String): Warehouse {
         return warehouseRepository.getAllWarehouses()
             .find { it.id == warehouseId }
             ?: throw IllegalArgumentException("Warehouse not found: $warehouseId")
     }
 
-    private fun validateRerouteEligibility(packageItem: Package, newDestinationId: String) {
+    private fun validateRerouteEligibility(
+        packageItem: Package,
+        newDestinationId: String
+    ) {
         if (packageItem.destination.id == newDestinationId) {
-            throw IllegalArgumentException("Package already destined to this warehouse")
+            throw IllegalArgumentException(
+                "Package already destined to this warehouse"
+            )
         }
     }
 
-    private fun transferPackageToNewDestination(packageItem: Package, newDestination: Warehouse) {
+    private fun transferPackageToNewDestination(
+        packageItem: Package,
+        newDestination: Warehouse
+    ) {
         val removed = packageItem.origin.removePackage(packageItem)
+
         if (!removed) {
-            throw IllegalStateException("Failed to remove package from origin warehouse")
+            throw IllegalStateException(
+                "Failed to remove package from origin warehouse"
+            )
         }
-        val updatedPackage = createUpdatedPackage(packageItem, newDestination)
+
+        val updatedPackage = createUpdatedPackage(
+            packageItem,
+            newDestination
+        )
+
         newDestination.addPackage(updatedPackage)
     }
 
-    private fun createUpdatedPackage(packageItem: Package, newDestination: Warehouse): Package {
+    private fun createUpdatedPackage(
+        packageItem: Package,
+        newDestination: Warehouse
+    ): Package {
         return packageItem.copy(destination = newDestination)
     }
 }

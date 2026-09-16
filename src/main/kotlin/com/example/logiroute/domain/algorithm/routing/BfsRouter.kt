@@ -11,15 +11,23 @@ class BfsRouter(
     var evaluatedNodes = 0
         private set
 
-    override fun findRoute(source: Warehouse, destination: Warehouse): List<Warehouse> {
+    override suspend fun findRoute(
+        source: Warehouse,
+        destination: Warehouse
+    ): List<Warehouse> {
+
         val adjacencyMap = buildAdjacencyMap()
+
         evaluatedNodes = 0
 
         if (source == destination) {
             return listOf(source)
         }
 
-        if (!adjacencyMap.containsKey(source) || !adjacencyMap.containsKey(destination)) {
+        if (
+            !adjacencyMap.containsKey(source) ||
+            !adjacencyMap.containsKey(destination)
+        ) {
             return emptyList()
         }
 
@@ -33,6 +41,7 @@ class BfsRouter(
         var isReachable = false
 
         while (queue.isNotEmpty()) {
+
             val current = queue.removeFirst()
             evaluatedNodes++
 
@@ -41,10 +50,13 @@ class BfsRouter(
                 break
             }
 
-            val neighbors = adjacencyMap[current] ?: emptyList()
+            val neighbors =
+                adjacencyMap[current] ?: emptyList()
 
             for (neighbor in neighbors) {
+
                 if (neighbor !in visited) {
+
                     visited.add(neighbor)
                     parentMap[neighbor] = current
                     queue.add(neighbor)
@@ -63,10 +75,16 @@ class BfsRouter(
         )
     }
 
-    private fun buildAdjacencyMap(): Map<Warehouse, List<Warehouse>> {
-        val warehouses = warehouseRepository.getAllWarehouses()
+    private suspend fun buildAdjacencyMap():
+            Map<Warehouse, List<Warehouse>> {
+
+        val warehouses =
+            warehouseRepository.getAllWarehouses()
+
         return warehouses.associateWith { warehouse ->
-            warehouse.outgoingRoutes.map { it.destination }
+            warehouse.outgoingRoutes.map {
+                it.destination
+            }
         }
     }
 }

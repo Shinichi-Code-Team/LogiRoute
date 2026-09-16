@@ -12,7 +12,7 @@ class DijkstraRouter(
 
     private val adjacencyMap = buildWeightedAdjacencyMap()
 
-    override fun findRoute(
+    override suspend fun findRoute(
         source: Warehouse,
         destination: Warehouse
     ): List<Warehouse> {
