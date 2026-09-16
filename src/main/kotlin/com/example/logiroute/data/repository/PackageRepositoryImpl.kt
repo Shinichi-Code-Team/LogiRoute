@@ -14,26 +14,65 @@ class PackageRepositoryImpl(
     private val dtoMapper: PackageDtoMapper
 ) : PackageRepository {
 
-    override fun getAllPackages(): List<Package> {
-        val warehouseMap = warehouseRepository
-            .getAllWarehouses()
-            .associateBy { it.id }
+    override suspend fun getAllPackages(): List<Package> {
+        val warehouseMap = getWarehouseMap()
 
         return remoteDataSource
             .getPackages()
             .mapNotNull { dto ->
-                mapRemotePackage(
-                    dto = dto,
-                    warehouseMap = warehouseMap
-                )
+                mapRemotePackage(dto, warehouseMap)
             }
+    }
+
+    override suspend fun getPackageById(id: String): Package? {
+        val dto = remoteDataSource.getPackageById(id)
+            ?: return null
+
+        return mapRemotePackage(
+            dto = dto,
+            warehouseMap = getWarehouseMap()
+        )
+    }
+
+    override suspend fun createPackage(
+        packageItem: Package
+    ): Package {
+        val request = dtoMapper.toCreateRequest(packageItem)
+        val dto = remoteDataSource.createPackage(request)
+
+        return mapRemotePackage(
+            dto = dto,
+            warehouseMap = getWarehouseMap()
+        ) ?: error("Unable to resolve package warehouse references")
+    }
+
+    override suspend fun updatePackage(
+        id: String,
+        packageItem: Package
+    ): Package {
+        val request = dtoMapper.toUpdateRequest(packageItem)
+        val dto = remoteDataSource.updatePackage(id, request)
+
+        return mapRemotePackage(
+            dto = dto,
+            warehouseMap = getWarehouseMap()
+        ) ?: error("Unable to resolve package warehouse references")
+    }
+
+    override suspend fun deletePackage(id: String) {
+        remoteDataSource.deletePackage(id)
+    }
+
+    private suspend fun getWarehouseMap(): Map<String, Warehouse> {
+        return warehouseRepository
+            .getAllWarehouses()
+            .associateBy { it.id }
     }
 
     private fun mapRemotePackage(
         dto: PackageResponseDto,
         warehouseMap: Map<String, Warehouse>
     ): Package? {
-
         val origin = warehouseMap[dto.originHubId]
             ?: return null
 
