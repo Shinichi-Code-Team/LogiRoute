@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class WarehouseResponseDto(
+data class CreateWarehouseRequestDto(
     val id: String,
     val name: String,
     @SerialName("regional_zone")
