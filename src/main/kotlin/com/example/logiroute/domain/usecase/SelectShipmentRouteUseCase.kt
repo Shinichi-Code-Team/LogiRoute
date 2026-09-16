@@ -14,11 +14,12 @@ class SelectShipmentRouteUseCase(
     private val bfsRouter: BfsRouter
 ) {
 
-    operator fun invoke(
+    suspend operator fun invoke(
         shipment: ShipmentGroupRequest
     ): ShipmentRouteResult {
 
         val path = selectPath(shipment)
+
         if (path.isEmpty()) {
             throw LogisticsException.RouteNotFoundException(
                 "No route found from ${shipment.origin.id} to ${shipment.destination.id}"
@@ -26,38 +27,35 @@ class SelectShipmentRouteUseCase(
         }
 
         val objective = selectRoutingObjective(shipment.service)
+
         return ShipmentRouteResult(
             path = path,
             routingObjective = objective
         )
     }
 
-    private fun selectPath(
+    private suspend fun selectPath(
         shipment: ShipmentGroupRequest
     ): List<Warehouse> {
 
         return when (shipment.service) {
+
             ShipmentService.ECO ->
                 distanceRouter.findRoute(
                     source = shipment.origin,
-                    destination =
-                        shipment.destination
+                    destination = shipment.destination
                 )
 
             ShipmentService.EXPRESS ->
-
                 delayRouter.findRoute(
                     source = shipment.origin,
-                    destination =
-                        shipment.destination
+                    destination = shipment.destination
                 )
 
             ShipmentService.FRAGILE ->
-
                 bfsRouter.findRoute(
                     source = shipment.origin,
-                    destination =
-                        shipment.destination
+                    destination = shipment.destination
                 )
         }
     }
@@ -67,6 +65,7 @@ class SelectShipmentRouteUseCase(
     ): String {
 
         return when (service) {
+
             ShipmentService.ECO ->
                 "MIN_DISTANCE"
 
