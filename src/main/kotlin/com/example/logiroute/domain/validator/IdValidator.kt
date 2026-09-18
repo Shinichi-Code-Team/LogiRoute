@@ -1,13 +1,9 @@
 package com.example.logiroute.domain.validator
 
-sealed interface IdValidationError : ValidationError {
-    data object NullOrBlank : IdValidationError
+class IdValidator(
+    private val pattern: Regex
+) : Validator<String?, IdValidationError> {
 
-    data class InvalidFormat(
-        val value: String
-    ) : IdValidationError
-}
-class IdValidator( private val pattern: Regex ) : Validator<String?, IdValidationError> {
     override fun validate(
         value: String?
     ): ValidationResult<IdValidationError> {

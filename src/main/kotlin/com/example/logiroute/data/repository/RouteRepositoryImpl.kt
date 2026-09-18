@@ -5,6 +5,7 @@ import com.example.logiroute.data.remote.dto.route.RouteResponseDto
 import com.example.logiroute.data.remote.mapper.RouteDtoMapper
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
@@ -46,10 +47,15 @@ class RouteRepositoryImpl(
 
     override suspend fun updateRoute(
         id: String,
-        route: Route
+        input: UpdateRouteInput
     ): Route {
-        val request = dtoMapper.toUpdateRequest(route)
-        val dto = remoteDataSource.updateRoute(id, request)
+
+        val request = dtoMapper.toUpdateRequest(input)
+
+        val dto = remoteDataSource.updateRoute(
+            id = id,
+            request = request
+        )
 
         return mapRemoteRoute(
             dto = dto,
