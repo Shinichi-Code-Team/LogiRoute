@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.WarehouseUpdateValidator
+import com.example.logiroute.domain.validator.warehouse.WarehouseUpdateValidator
 
 class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -16,8 +16,13 @@ class UpdateWarehouseUseCase(
         input: UpdateWarehouseInput
     ): Warehouse {
 
+        val validationInput = WarehouseUpdateValidator.Input(
+            id = id,
+            update = input
+        )
+
         return when (
-            val result = warehouseUpdateValidator.validate(id, input)
+            val result = warehouseUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid ->
                 warehouseRepository.updateWarehouse(

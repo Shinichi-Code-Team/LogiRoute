@@ -2,11 +2,13 @@ package com.example.logiroute.domain.validator.warehouse
 
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.validator.IdValidator
-import com.example.logiroute.domain.validator.NonBlankValidator
 import com.example.logiroute.domain.validator.LatitudeValidator
 import com.example.logiroute.domain.validator.LongitudeValidator
+import com.example.logiroute.domain.validator.NonBlankValidator
+import com.example.logiroute.domain.validator.ValidationError
 import com.example.logiroute.domain.validator.ValidationResult
 import com.example.logiroute.domain.validator.Validator
+import com.example.logiroute.domain.validator.WarehouseValidationError
 
 class WarehouseCreateValidator(
     private val idValidator: IdValidator,
@@ -19,27 +21,22 @@ class WarehouseCreateValidator(
         value: Warehouse
     ): ValidationResult<WarehouseValidationError> {
 
-        val errors = mutableListOf<WarehouseValidationError>()
+        val errors = listOfNotNull(
+            idValidator.validate(value.id)
+                .toError(WarehouseValidationError.InvalidId),
 
-        if (idValidator.validate(value.id) is ValidationResult.Invalid) {
-            errors.add(WarehouseValidationError.InvalidId)
-        }
+            nonBlankValidator.validate(value.name)
+                .toError(WarehouseValidationError.InvalidName),
 
-        if (nonBlankValidator.validate(value.name) is ValidationResult.Invalid) {
-            errors.add(WarehouseValidationError.InvalidName)
-        }
+            nonBlankValidator.validate(value.regionalZone)
+                .toError(WarehouseValidationError.InvalidRegionalZone),
 
-        if (nonBlankValidator.validate(value.regionalZone) is ValidationResult.Invalid) {
-            errors.add(WarehouseValidationError.InvalidRegionalZone)
-        }
+            latitudeValidator.validate(value.latitude)
+                .toError(WarehouseValidationError.InvalidLatitude),
 
-        if (latitudeValidator.validate(value.latitude) is ValidationResult.Invalid) {
-            errors.add(WarehouseValidationError.InvalidLatitude)
-        }
-
-        if (longitudeValidator.validate(value.longitude) is ValidationResult.Invalid) {
-            errors.add(WarehouseValidationError.InvalidLongitude)
-        }
+            longitudeValidator.validate(value.longitude)
+                .toError(WarehouseValidationError.InvalidLongitude)
+        )
 
         return if (errors.isEmpty()) {
             ValidationResult.Valid
@@ -48,3 +45,11 @@ class WarehouseCreateValidator(
         }
     }
 }
+
+private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
+    error: T
+): T? =
+    when (this) {
+        ValidationResult.Valid -> null
+        is ValidationResult.Invalid -> error
+    }

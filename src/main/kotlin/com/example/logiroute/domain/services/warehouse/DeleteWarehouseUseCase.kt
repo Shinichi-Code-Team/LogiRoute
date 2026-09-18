@@ -5,22 +5,21 @@ import com.example.logiroute.domain.validator.IdValidator
 import com.example.logiroute.domain.validator.ValidationResult
 
 class DeleteWarehouseUseCase(
-    private val repository: WarehouseRepository,
+    private val warehouseRepository: WarehouseRepository,
     private val idValidator: IdValidator
 ) {
 
-    suspend operator fun invoke(id: String) {
+    suspend operator fun invoke(
+        id: String
+    ) {
 
         when (idValidator.validate(id)) {
-            ValidationResult.Valid -> Unit
 
-            is ValidationResult.Invalid -> {
-                throw IllegalArgumentException(
-                    "Invalid warehouse ID: $id"
-                )
-            }
+            ValidationResult.Valid ->
+                warehouseRepository.deleteWarehouse(id)
+
+            is ValidationResult.Invalid ->
+                throw IllegalArgumentException("Invalid warehouse ID")
         }
-
-        repository.deleteWarehouse(id)
     }
 }

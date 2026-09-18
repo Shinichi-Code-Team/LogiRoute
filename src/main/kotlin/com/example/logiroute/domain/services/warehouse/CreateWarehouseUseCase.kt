@@ -6,22 +6,24 @@ import com.example.logiroute.domain.validator.ValidationResult
 import com.example.logiroute.domain.validator.warehouse.WarehouseCreateValidator
 
 class CreateWarehouseUseCase(
-    private val repository: WarehouseRepository,
-    private val validator: WarehouseCreateValidator
+    private val warehouseRepository: WarehouseRepository,
+    private val warehouseCreateValidator: WarehouseCreateValidator
 ) {
 
-    suspend operator fun invoke(warehouse: Warehouse): Warehouse {
+    suspend operator fun invoke(
+        warehouse: Warehouse
+    ): Warehouse {
 
-        when (val result = validator.validate(warehouse)) {
-            ValidationResult.Valid -> Unit
+        return when (
+            val result = warehouseCreateValidator.validate(warehouse)
+        ) {
+            ValidationResult.Valid ->
+                warehouseRepository.createWarehouse(warehouse)
 
-            is ValidationResult.Invalid -> {
+            is ValidationResult.Invalid ->
                 throw IllegalArgumentException(
-                    "Invalid warehouse: ${result.errors}"
+                    result.errors.joinToString()
                 )
-            }
         }
-
-        return repository.createWarehouse(warehouse)
     }
 }
