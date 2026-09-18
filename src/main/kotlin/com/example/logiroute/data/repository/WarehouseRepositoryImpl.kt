@@ -5,6 +5,7 @@ import com.example.logiroute.data.remote.mapper.WarehouseDtoMapper
 import com.example.logiroute.data.remote.dto.warehouse.CreateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.UpdateWarehouseRequestDto
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
 
 class WarehouseRepositoryImpl(
@@ -40,10 +41,10 @@ class WarehouseRepositoryImpl(
 
     override suspend fun updateWarehouse(
         id: String,
-        warehouse: Warehouse
+        input: UpdateWarehouseInput
     ): Warehouse {
 
-        val request = dtoMapper.toUpdateRequest(warehouse)
+        val request = dtoMapper.toUpdateRequest(input)
 
         val dto = remoteDataSource.updateWarehouse(
             id = id,
