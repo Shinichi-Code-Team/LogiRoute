@@ -2,16 +2,27 @@ package com.example.logiroute.domain.services.`package`
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.validator.IdValidator
+import com.example.logiroute.domain.validator.ValidationResult
 
 class ReadPackageUseCase(
-    private val packageRepository: PackageRepository
+    private val packageRepository: PackageRepository,
+    private val idValidator: IdValidator
 ) {
 
-    suspend fun getAll(): List<Package> {
-        return packageRepository.getAllPackages()
-    }
+    suspend operator fun invoke(
+        id: String
+    ): Package? {
 
-    suspend fun getById(id: String): Package? {
-        return packageRepository.getPackageById(id)
+        return when (idValidator.validate(id)) {
+
+            ValidationResult.Valid ->
+                packageRepository.getPackageById(id)
+
+            is ValidationResult.Invalid ->
+                throw IllegalArgumentException(
+                    "Invalid package ID"
+                )
+        }
     }
 }

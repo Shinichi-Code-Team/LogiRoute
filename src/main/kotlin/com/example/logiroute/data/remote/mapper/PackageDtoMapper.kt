@@ -7,6 +7,7 @@ import com.example.logiroute.data.remote.dto.`package`.UpdatePackageRequestDto
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdatePackageInput
 
 class PackageDtoMapper {
 
@@ -37,13 +38,15 @@ class PackageDtoMapper {
     }
 
     fun toUpdateRequest(
-        packageItem: Package
+        input: UpdatePackageInput
     ): UpdatePackageRequestDto {
         return UpdatePackageRequestDto(
-            weight = packageItem.weight,
-            originHubId = packageItem.origin.id,
-            destinationHubId = packageItem.destination.id,
-            priority = mapPriorityToDto(packageItem.priority)
+            weight = input.weight,
+            originHubId = input.originHubId,
+            destinationHubId = input.destinationHubId,
+            priority = input.priority?.let {
+                mapPriorityToDto(it)
+            }
         )
     }
 

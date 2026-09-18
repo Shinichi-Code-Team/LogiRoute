@@ -5,6 +5,7 @@ import com.example.logiroute.data.remote.dto.`package`.PackageResponseDto
 import com.example.logiroute.data.remote.mapper.PackageDtoMapper
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
@@ -48,10 +49,15 @@ class PackageRepositoryImpl(
 
     override suspend fun updatePackage(
         id: String,
-        packageItem: Package
+        input: UpdatePackageInput
     ): Package {
-        val request = dtoMapper.toUpdateRequest(packageItem)
-        val dto = remoteDataSource.updatePackage(id, request)
+
+        val request = dtoMapper.toUpdateRequest(input)
+
+        val dto = remoteDataSource.updatePackage(
+            id = id,
+            request = request
+        )
 
         return mapRemotePackage(
             dto = dto,
