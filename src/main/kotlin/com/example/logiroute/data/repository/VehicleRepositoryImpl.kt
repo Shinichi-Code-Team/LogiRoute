@@ -4,6 +4,7 @@ import com.example.logiroute.data.remote.datasource.vehicle.RemoteVehicleDataSou
 import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
@@ -66,17 +67,16 @@ class VehicleRepositoryImpl(
     }
 
     override suspend fun updateVehicle(
-        vehicle: Vehicle
+        id: String,
+        input: UpdateVehicleInput
     ): Boolean {
 
-        mapper
-            .toUpdateRequest(vehicle)
-            .let {
-                remoteDataSource.updateVehicle(
-                    id = vehicle.id,
-                    request = it
-                )
-            }
+        val request = mapper.toUpdateRequest(input)
+
+        remoteDataSource.updateVehicle(
+            id = id,
+            request = request
+        )
 
         return true
     }
