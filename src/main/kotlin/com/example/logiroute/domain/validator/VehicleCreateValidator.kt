@@ -1,12 +1,6 @@
-package com.example.logiroute.domain.validator.vehicle
+package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.Vehicle
-import com.example.logiroute.domain.validator.IdValidator
-import com.example.logiroute.domain.validator.PositiveDoubleValidator
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.Validator
-import com.example.logiroute.domain.validator.VehicleValidationError
 
 class VehicleCreateValidator(
     private val vehicleIdValidator: IdValidator,

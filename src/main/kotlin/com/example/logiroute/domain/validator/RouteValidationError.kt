@@ -1,6 +1,4 @@
-package com.example.logiroute.domain.validator.route
-
-import com.example.logiroute.domain.validator.ValidationError
+package com.example.logiroute.domain.validator
 
 sealed interface RouteValidationError : ValidationError {
 

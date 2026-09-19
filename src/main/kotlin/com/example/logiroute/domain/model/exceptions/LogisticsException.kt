@@ -1,6 +1,10 @@
 package com.example.logiroute.domain.usecase.model.exceptions
 
-open class LogisticsException(message: String) : Exception(message) {
+import com.example.logiroute.domain.validator.ValidationError
+
+open class LogisticsException(
+    message: String
+) : Exception(message) {
 
     companion object {
         const val INVALID_CAPACITY_EXCEPTION =
@@ -28,34 +32,64 @@ open class LogisticsException(message: String) : Exception(message) {
             "Failed to execute command for package:"
     }
 
-    class InvalidCapacityException(capacity: Double) :
-        LogisticsException("$INVALID_CAPACITY_EXCEPTION $capacity")
+    class EntityValidationException(
+        val errors: List<ValidationError>
+    ) : LogisticsException(
+        errors.joinToString()
+    )
 
-    class ZeroFleetCapacityException(warehouseId: String) :
-        LogisticsException("$ZERO_FLEET_CAPACITY_EXCEPTION Warehouse ID: $warehouseId")
+    class InvalidCapacityException(
+        capacity: Double
+    ) : LogisticsException(
+        "$INVALID_CAPACITY_EXCEPTION $capacity"
+    )
 
-    class NoUrgentPackagesException(warehouseId: String) :
-        LogisticsException("$NO_URGENT_PACKAGES_EXCEPTION $warehouseId")
+    class ZeroFleetCapacityException(
+        warehouseId: String
+    ) : LogisticsException(
+        "$ZERO_FLEET_CAPACITY_EXCEPTION Warehouse ID: $warehouseId"
+    )
 
-    class NoSuitableVehicleException(warehouseId: String) :
-        LogisticsException("$NO_SUITABLE_VEHICLE_EXCEPTION $warehouseId")
+    class NoUrgentPackagesException(
+        warehouseId: String
+    ) : LogisticsException(
+        "$NO_URGENT_PACKAGES_EXCEPTION $warehouseId"
+    )
 
-    class WarehouseNotFoundException(warehouseId: String) :
-        LogisticsException("$WAREHOUSE_NOT_FOUND_EXCEPTION $warehouseId")
+    class NoSuitableVehicleException(
+        warehouseId: String
+    ) : LogisticsException(
+        "$NO_SUITABLE_VEHICLE_EXCEPTION $warehouseId"
+    )
+
+    class WarehouseNotFoundException(
+        warehouseId: String
+    ) : LogisticsException(
+        "$WAREHOUSE_NOT_FOUND_EXCEPTION $warehouseId"
+    )
 
     class RootHubNotFoundException :
-        LogisticsException(ROOT_HUB_NOT_FOUND_EXCEPTION)
+        LogisticsException(
+            ROOT_HUB_NOT_FOUND_EXCEPTION
+        )
 
-    class InvalidHubHierarchyException(details: String) :
-        LogisticsException("$INVALID_HUB_HIERARCHY_EXCEPTION $details")
+    class InvalidHubHierarchyException(
+        details: String
+    ) : LogisticsException(
+        "$INVALID_HUB_HIERARCHY_EXCEPTION $details"
+    )
 
-    class RouteNotFoundException(message: String) :
-        LogisticsException(message)
+    class RouteNotFoundException(
+        message: String
+    ) : LogisticsException(message)
 
-    class RouteSegmentNotFoundException(message: String) :
-        LogisticsException(message)
+    class RouteSegmentNotFoundException(
+        message: String
+    ) : LogisticsException(message)
 
-
-    class CommandExecutionException(packageId: String) :
-        LogisticsException("$COMMAND_EXECUTION_EXCEPTION $packageId")
+    class CommandExecutionException(
+        packageId: String
+    ) : LogisticsException(
+        "$COMMAND_EXECUTION_EXCEPTION $packageId"
+    )
 }

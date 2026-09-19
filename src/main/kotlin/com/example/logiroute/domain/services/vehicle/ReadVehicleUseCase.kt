@@ -1,7 +1,8 @@
-package com.example.logiroute.domain.services.crud.vehicle
+package com.example.logiroute.domain.services.vehicle
 
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.IdValidator
 import com.example.logiroute.domain.validator.ValidationResult
 
@@ -12,17 +13,24 @@ class ReadVehicleUseCase(
 
     suspend operator fun invoke(
         id: String
-    ): Vehicle? {
+    ): Result<Vehicle?> {
 
-        return when (idValidator.validate(id)) {
+        return when (
+            val validationResult = idValidator.validate(id)
+        ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    vehicleRepository.getVehicleById(id)
+                }
+            }
 
-            ValidationResult.Valid ->
-                vehicleRepository.getVehicleById(id)
-
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    "Invalid vehicle ID"
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
+            }
         }
     }
 }

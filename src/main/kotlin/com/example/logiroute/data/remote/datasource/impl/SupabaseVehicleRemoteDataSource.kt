@@ -4,7 +4,6 @@ import com.example.logiroute.data.remote.dto.vehicle.CreateVehicleRequestDto
 import com.example.logiroute.data.remote.dto.vehicle.UpdateVehicleRequestDto
 import com.example.logiroute.data.remote.dto.vehicle.VehicleResponseDto
 import com.example.logiroute.data.remote.provider.SupabaseClientProvider
-import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 
 class SupabaseVehicleRemoteDataSource : RemoteVehicleDataSource {
@@ -58,9 +57,7 @@ class SupabaseVehicleRemoteDataSource : RemoteVehicleDataSource {
             .decodeSingle<VehicleResponseDto>()
     }
 
-    override suspend fun deleteVehicle(
-        id: String
-    ): Boolean {
+    override suspend fun deleteVehicle(id: String) {
 
         vehicleTable.delete {
             filter {
@@ -68,6 +65,5 @@ class SupabaseVehicleRemoteDataSource : RemoteVehicleDataSource {
             }
         }
 
-        return true
     }
 }

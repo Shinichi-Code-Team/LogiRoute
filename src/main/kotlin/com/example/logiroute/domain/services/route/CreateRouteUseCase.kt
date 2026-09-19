@@ -2,8 +2,9 @@ package com.example.logiroute.domain.services.route
 
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.repository.RouteRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validator.RouteCreateValidator
 import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.route.RouteCreateValidator
 
 class CreateRouteUseCase(
     private val routeRepository: RouteRepository,
@@ -12,17 +13,25 @@ class CreateRouteUseCase(
 
     suspend operator fun invoke(
         route: Route
-    ): Route {
+    ): Result<Route> {
 
-        return when (val result = routeCreateValidator.validate(route)) {
+        return when (
+            val validationResult =
+                routeCreateValidator.validate(route)
+        ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    routeRepository.createRoute(route)
+                }
+            }
 
-            ValidationResult.Valid ->
-                routeRepository.createRoute(route)
-
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    result.errors.joinToString()
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
+            }
         }
     }
 }

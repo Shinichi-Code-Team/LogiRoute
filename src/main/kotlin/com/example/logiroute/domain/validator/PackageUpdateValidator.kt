@@ -1,12 +1,6 @@
-package com.example.logiroute.domain.validator.packages
+package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.request.UpdatePackageInput
-import com.example.logiroute.domain.validator.IdValidator
-import com.example.logiroute.domain.validator.PositiveDoubleValidator
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.Validator
-import com.example.logiroute.domain.validator.PackageValidationError
 
 class PackageUpdateValidator(
     private val packageIdValidator: IdValidator,

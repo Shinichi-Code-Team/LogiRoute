@@ -1,6 +1,7 @@
 package com.example.logiroute.domain.services.`package`
 
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.IdValidator
 import com.example.logiroute.domain.validator.ValidationResult
 
@@ -11,17 +12,24 @@ class DeletePackageUseCase(
 
     suspend operator fun invoke(
         id: String
-    ) {
+    ): Result<Unit> {
 
-        when (idValidator.validate(id)) {
+        return when (
+            val validationResult = idValidator.validate(id)
+        ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    packageRepository.deletePackage(id)
+                }
+            }
 
-            ValidationResult.Valid ->
-                packageRepository.deletePackage(id)
-
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    "Invalid package ID"
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
+            }
         }
     }
 }
