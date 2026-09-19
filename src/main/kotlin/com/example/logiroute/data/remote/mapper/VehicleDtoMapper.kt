@@ -5,6 +5,7 @@ import com.example.logiroute.data.remote.dto.vehicle.UpdateVehicleRequestDto
 import com.example.logiroute.data.remote.dto.vehicle.VehicleResponseDto
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdateVehicleInput
 
 class VehicleDtoMapper {
 
@@ -32,12 +33,12 @@ class VehicleDtoMapper {
     }
 
     fun toUpdateRequest(
-        vehicle: Vehicle
+        input: UpdateVehicleInput
     ): UpdateVehicleRequestDto {
         return UpdateVehicleRequestDto(
-            currentHubId = vehicle.currentHub.id,
-            maxCapacityKg = vehicle.maxCapacityKg,
-            costPerKm = vehicle.costPerKm
+            currentHubId = input.currentHubId,
+            maxCapacityKg = input.maxCapacityKg,
+            costPerKm = input.costPerKm
         )
     }
 }

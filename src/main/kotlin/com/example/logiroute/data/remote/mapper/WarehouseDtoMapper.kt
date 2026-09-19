@@ -4,6 +4,7 @@ import com.example.logiroute.data.remote.dto.warehouse.CreateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.UpdateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.WarehouseResponseDto
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 
 class WarehouseDtoMapper {
 
@@ -30,13 +31,13 @@ class WarehouseDtoMapper {
     }
 
     fun toUpdateRequest(
-        warehouse: Warehouse
+        input: UpdateWarehouseInput
     ): UpdateWarehouseRequestDto {
         return UpdateWarehouseRequestDto(
-            name = warehouse.name,
-            regionalZone = warehouse.regionalZone,
-            latitude = warehouse.latitude,
-            longitude = warehouse.longitude
+            name = input.name,
+            regionalZone = input.regionalZone,
+            latitude = input.latitude,
+            longitude = input.longitude
         )
     }
 }
