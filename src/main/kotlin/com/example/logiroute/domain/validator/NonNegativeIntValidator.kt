@@ -1,7 +1,14 @@
 package com.example.logiroute.domain.validator
 
-class NonNegativeIntValidator :
-    Validator<Int?, NonNegativeIntValidationError> {
+sealed interface NonNegativeIntValidationError : ValidationError {
+    data object Null : NonNegativeIntValidationError
+
+    data class Negative(
+        val value: Int
+    ) : NonNegativeIntValidationError
+}
+
+class NonNegativeIntValidator : Validator<Int?, NonNegativeIntValidationError> {
 
     override fun validate(
         value: Int?
