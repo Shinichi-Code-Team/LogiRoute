@@ -1,14 +1,6 @@
-package com.example.logiroute.domain.validator.warehouse
+package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.validator.IdValidator
-import com.example.logiroute.domain.validator.LatitudeValidator
-import com.example.logiroute.domain.validator.LongitudeValidator
-import com.example.logiroute.domain.validator.NonBlankValidator
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.Validator
-import com.example.logiroute.domain.validator.WarehouseValidationError
 
 class WarehouseCreateValidator(
     private val idValidator: IdValidator,

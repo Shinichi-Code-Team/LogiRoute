@@ -1,12 +1,6 @@
-package com.example.logiroute.domain.validator.route
+package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.Route
-import com.example.logiroute.domain.validator.IdValidator
-import com.example.logiroute.domain.validator.NonNegativeIntValidator
-import com.example.logiroute.domain.validator.PositiveDoubleValidator
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.Validator
 
 class RouteCreateValidator(
     private val routeIdValidator: IdValidator,
