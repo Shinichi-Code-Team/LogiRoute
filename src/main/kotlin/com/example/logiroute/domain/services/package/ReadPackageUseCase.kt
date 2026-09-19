@@ -2,6 +2,7 @@ package com.example.logiroute.domain.services.`package`
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.IdValidator
 import com.example.logiroute.domain.validator.ValidationResult
 
@@ -12,17 +13,24 @@ class ReadPackageUseCase(
 
     suspend operator fun invoke(
         id: String
-    ): Package? {
+    ): Result<Package?> {
 
-        return when (idValidator.validate(id)) {
+        return when (
+            val validationResult = idValidator.validate(id)
+        ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    packageRepository.getPackageById(id)
+                }
+            }
 
-            ValidationResult.Valid ->
-                packageRepository.getPackageById(id)
-
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    "Invalid package ID"
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
+            }
         }
     }
 }

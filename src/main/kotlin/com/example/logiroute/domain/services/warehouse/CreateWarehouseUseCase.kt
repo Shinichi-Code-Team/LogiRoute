@@ -2,8 +2,9 @@ package com.example.logiroute.domain.services.warehouse
 
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.warehouse.WarehouseCreateValidator
+import com.example.logiroute.domain.validator.WarehouseCreateValidator
 
 class CreateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -12,18 +13,25 @@ class CreateWarehouseUseCase(
 
     suspend operator fun invoke(
         warehouse: Warehouse
-    ): Warehouse {
+    ): Result<Warehouse> {
 
         return when (
-            val result = warehouseCreateValidator.validate(warehouse)
+            val validationResult =
+                warehouseCreateValidator.validate(warehouse)
         ) {
-            ValidationResult.Valid ->
-                warehouseRepository.createWarehouse(warehouse)
+            ValidationResult.Valid -> {
+                runCatching {
+                    warehouseRepository.createWarehouse(warehouse)
+                }
+            }
 
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    result.errors.joinToString()
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
+            }
         }
     }
 }
