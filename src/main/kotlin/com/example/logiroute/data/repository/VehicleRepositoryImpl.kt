@@ -3,10 +3,10 @@ package com.example.logiroute.data.repository
 import com.example.logiroute.data.remote.datasource.vehicle.RemoteVehicleDataSource
 import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
 import com.example.logiroute.domain.model.Vehicle
-import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 
 class VehicleRepositoryImpl(
     private val remoteDataSource: RemoteVehicleDataSource,
@@ -43,8 +43,7 @@ class VehicleRepositoryImpl(
             ?: return null
 
         val warehouse = warehouseRepository
-            .getAllWarehouses()
-            .firstOrNull { it.id == dto.currentHubId }
+            .getWarehouseById(dto.currentHubId)
             ?: return null
 
         return mapper.toDomain(
@@ -55,36 +54,45 @@ class VehicleRepositoryImpl(
 
     override suspend fun addVehicle(
         vehicle: Vehicle
-    ): Boolean {
+    ): Vehicle {
 
-        mapper
-            .toCreateRequest(vehicle)
-            .let {
-                remoteDataSource.createVehicle(it)
-            }
+        val request = mapper.toCreateRequest(vehicle)
 
-        return true
+        val dto = remoteDataSource.createVehicle(request)
+
+        return mapper.toDomain(
+            dto = dto,
+            warehouse = vehicle.currentHub
+        )
     }
 
     override suspend fun updateVehicle(
         id: String,
         input: UpdateVehicleInput
-    ): Boolean {
+    ): Vehicle {
 
         val request = mapper.toUpdateRequest(input)
 
-        remoteDataSource.updateVehicle(
+        val dto = remoteDataSource.updateVehicle(
             id = id,
             request = request
         )
 
-        return true
+        val warehouse = warehouseRepository
+            .getWarehouseById(dto.currentHubId)
+            ?: throw LogisticsException.WarehouseNotFoundException(
+                dto.currentHubId
+            )
+
+        return mapper.toDomain(
+            dto = dto,
+            warehouse = warehouse
+        )
     }
 
     override suspend fun deleteVehicle(
         id: String
-    ): Boolean {
-
-        return remoteDataSource.deleteVehicle(id)
+    ) {
+        remoteDataSource.deleteVehicle(id)
     }
 }

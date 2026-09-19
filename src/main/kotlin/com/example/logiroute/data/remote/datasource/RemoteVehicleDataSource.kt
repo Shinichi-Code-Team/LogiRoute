@@ -10,14 +10,9 @@ interface RemoteVehicleDataSource {
 
     suspend fun getVehicleById(id: String): VehicleResponseDto?
 
-    suspend fun createVehicle(
-        request: CreateVehicleRequestDto
-    ): VehicleResponseDto
+    suspend fun createVehicle(request: CreateVehicleRequestDto): VehicleResponseDto
 
-    suspend fun updateVehicle(
-        id: String,
-        request: UpdateVehicleRequestDto
-    ): VehicleResponseDto
+    suspend fun updateVehicle(id: String, request: UpdateVehicleRequestDto): VehicleResponseDto
 
-    suspend fun deleteVehicle(id: String): Boolean
+    suspend fun deleteVehicle(id: String)
 }
