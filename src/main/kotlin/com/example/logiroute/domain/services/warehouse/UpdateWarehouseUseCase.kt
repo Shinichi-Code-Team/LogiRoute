@@ -3,8 +3,9 @@ package com.example.logiroute.domain.services.warehouse
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.warehouse.WarehouseUpdateValidator
+import com.example.logiroute.domain.validator.WarehouseUpdateValidator
 
 class UpdateWarehouseUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -14,7 +15,7 @@ class UpdateWarehouseUseCase(
     suspend operator fun invoke(
         id: String,
         input: UpdateWarehouseInput
-    ): Warehouse {
+    ): Result<Warehouse> {
 
         val validationInput = WarehouseUpdateValidator.Input(
             id = id,
@@ -22,18 +23,25 @@ class UpdateWarehouseUseCase(
         )
 
         return when (
-            val result = warehouseUpdateValidator.validate(validationInput)
+            val validationResult =
+                warehouseUpdateValidator.validate(validationInput)
         ) {
-            ValidationResult.Valid ->
-                warehouseRepository.updateWarehouse(
-                    id = id,
-                    input = input
-                )
+            ValidationResult.Valid -> {
+                runCatching {
+                    warehouseRepository.updateWarehouse(
+                        id = id,
+                        input = input
+                    )
+                }
+            }
 
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    result.errors.joinToString()
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
+            }
         }
     }
 }

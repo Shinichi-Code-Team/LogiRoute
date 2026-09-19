@@ -9,9 +9,9 @@ interface VehicleRepository {
 
      suspend fun getVehicleById(id: String): Vehicle?
 
-     suspend fun addVehicle(vehicle: Vehicle): Boolean
+     suspend fun addVehicle(vehicle: Vehicle): Vehicle
 
-     suspend fun updateVehicle(id: String, input: UpdateVehicleInput): Boolean
+     suspend fun updateVehicle(id: String, input: UpdateVehicleInput): Vehicle
 
-     suspend fun deleteVehicle(id: String): Boolean
+     suspend fun deleteVehicle(id: String)
 }

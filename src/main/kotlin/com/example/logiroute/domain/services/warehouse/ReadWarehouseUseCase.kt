@@ -1,6 +1,8 @@
 package com.example.logiroute.domain.services.warehouse
 
+import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.IdValidator
 import com.example.logiroute.domain.validator.ValidationResult
 
@@ -11,12 +13,24 @@ class ReadWarehouseUseCase(
 
     suspend operator fun invoke(
         id: String
-    ) = when (idValidator.validate(id)) {
+    ): Result<Warehouse?> {
 
-        ValidationResult.Valid ->
-            warehouseRepository.getWarehouseById(id)
+        return when (
+            val validationResult = idValidator.validate(id)
+        ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    warehouseRepository.getWarehouseById(id)
+                }
+            }
 
-        is ValidationResult.Invalid ->
-            throw IllegalArgumentException("Invalid warehouse ID")
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
+                )
+            }
+        }
     }
 }

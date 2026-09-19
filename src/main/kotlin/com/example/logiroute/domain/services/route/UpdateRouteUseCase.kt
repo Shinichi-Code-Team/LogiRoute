@@ -3,8 +3,9 @@ package com.example.logiroute.domain.services.route
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.repository.RouteRepository
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validator.RouteUpdateValidator
 import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.route.RouteUpdateValidator
 
 class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
@@ -14,28 +15,33 @@ class UpdateRouteUseCase(
     suspend operator fun invoke(
         id: String,
         input: UpdateRouteInput
-    ): Route {
+    ): Result<Route> {
 
-        val validationInput =
-            RouteUpdateValidator.Input(
-                id = id,
-                update = input
-            )
+        val validationInput = RouteUpdateValidator.Input(
+            id = id,
+            update = input
+        )
 
         return when (
-            val result = routeUpdateValidator.validate(validationInput)
+            val validationResult =
+                routeUpdateValidator.validate(validationInput)
         ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    routeRepository.updateRoute(
+                        id = id,
+                        input = input
+                    )
+                }
+            }
 
-            ValidationResult.Valid ->
-                routeRepository.updateRoute(
-                    id = id,
-                    input = input
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
                 )
-
-            is ValidationResult.Invalid ->
-                throw IllegalArgumentException(
-                    result.errors.joinToString()
-                )
+            }
         }
     }
 }
