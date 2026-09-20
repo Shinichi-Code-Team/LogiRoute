@@ -2,42 +2,30 @@ package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.Package
 
-class PackageCreateValidator(
-    private val packageIdValidator: IdValidator,
-    private val warehouseIdValidator: IdValidator,
-    private val positiveDoubleValidator: PositiveDoubleValidator
-) : Validator<Package, PackageValidationError> {
+class PackageCreateValidator : Validator<Package> {
 
     override fun validate(
         value: Package
-    ): ValidationResult<PackageValidationError> {
+    ): ValidationResult {
 
         val errors = listOfNotNull(
-            packageIdValidator.validate(value.id)
-                .toError(PackageValidationError.InvalidId),
-
-            positiveDoubleValidator.validate(value.weight)
-                .toError(PackageValidationError.InvalidWeight),
-
-            warehouseIdValidator.validate(value.origin.id)
-                .toError(PackageValidationError.InvalidOriginHubId),
-
-            warehouseIdValidator.validate(value.destination.id)
-                .toError(PackageValidationError.InvalidDestinationHubId)
+            ValidationRules.validatePackageId(
+                value = value.id
+            ),
+            ValidationRules.validatePositiveDouble(
+                value = value.weight,
+                field = ValidationField.WEIGHT
+            ),
+            ValidationRules.validateWarehouseId(
+                value = value.origin.id,
+                field = ValidationField.ORIGIN_HUB_ID
+            ),
+            ValidationRules.validateWarehouseId(
+                value = value.destination.id,
+                field = ValidationField.DESTINATION_HUB_ID
+            )
         )
 
-        return if (errors.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(errors)
-        }
+        return errors.toValidationResult()
     }
 }
-
-private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
-    error: T
-): T? =
-    when (this) {
-        ValidationResult.Valid -> null
-        is ValidationResult.Invalid -> error
-    }

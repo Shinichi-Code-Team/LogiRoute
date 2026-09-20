@@ -1,4 +1,6 @@
 package com.example.logiroute.domain.validator
 
-interface ValidationError {
-}
+data class ValidationError(
+    val field: ValidationField,
+    val reason: ValidationReason
+)

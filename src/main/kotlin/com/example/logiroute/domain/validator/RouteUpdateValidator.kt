@@ -3,11 +3,9 @@ package com.example.logiroute.domain.validator
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 
 class RouteUpdateValidator(
-    private val routeIdValidator: IdValidator,
-    private val warehouseIdValidator: IdValidator,
-    private val positiveDoubleValidator: PositiveDoubleValidator,
-    private val nonNegativeIntValidator: NonNegativeIntValidator
-) : Validator<RouteUpdateValidator.Input, RouteValidationError> {
+    private val atLeastOneFieldValidator: AtLeastOneFieldValidator =
+        AtLeastOneFieldValidator()
+) : Validator<RouteUpdateValidator.Input> {
 
     data class Input(
         val id: String?,
@@ -16,61 +14,51 @@ class RouteUpdateValidator(
 
     override fun validate(
         value: Input
-    ): ValidationResult<RouteValidationError> {
+    ): ValidationResult {
 
-        val idErrors = listOfNotNull(
-            routeIdValidator.validate(value.id)
-                .toError(RouteValidationError.InvalidId)
-        )
-
-        val fieldErrors = listOfNotNull(
+        val errors = listOfNotNull(
+            ValidationRules.validateRouteId(
+                value = value.id
+            ),
 
             value.update.originHubId?.let {
-                warehouseIdValidator.validate(it)
-                    .toError(RouteValidationError.InvalidOriginHubId)
+                ValidationRules.validateWarehouseId(
+                    value = it,
+                    field = ValidationField.ORIGIN_HUB_ID
+                )
             },
 
             value.update.destinationHubId?.let {
-                warehouseIdValidator.validate(it)
-                    .toError(RouteValidationError.InvalidDestinationHubId)
+                ValidationRules.validateWarehouseId(
+                    value = it,
+                    field = ValidationField.DESTINATION_HUB_ID
+                )
             },
 
             value.update.distanceKm?.let {
-                positiveDoubleValidator.validate(it)
-                    .toError(RouteValidationError.InvalidDistanceKm)
+                ValidationRules.validatePositiveDouble(
+                    value = it,
+                    field = ValidationField.DISTANCE_KM
+                )
             },
 
             value.update.typicalDelayMin?.let {
-                nonNegativeIntValidator.validate(it)
-                    .toError(RouteValidationError.InvalidTypicalDelayMin)
-            }
+                ValidationRules.validateNonNegativeInt(
+                    value = it,
+                    field = ValidationField.TYPICAL_DELAY_MIN
+                )
+            },
+
+            atLeastOneFieldValidator.validate(
+                values = mapOf(
+                    "originHubId" to value.update.originHubId,
+                    "destinationHubId" to value.update.destinationHubId,
+                    "distanceKm" to value.update.distanceKm,
+                    "typicalDelayMin" to value.update.typicalDelayMin
+                )
+            )
         )
 
-        val noFieldsError =
-            if (
-                value.update.originHubId == null &&
-                value.update.destinationHubId == null &&
-                value.update.distanceKm == null &&
-                value.update.typicalDelayMin == null
-            ) {
-                listOf(RouteValidationError.NoFieldsProvided)
-            } else {
-                emptyList()
-            }
-
-        val errors = idErrors + fieldErrors + noFieldsError
-
-        return if (errors.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(errors)
-        }
+        return errors.toValidationResult()
     }
 }
-private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
-    error: T
-): T? =
-    when (this) {
-        ValidationResult.Valid -> null
-        is ValidationResult.Invalid -> error
-    }

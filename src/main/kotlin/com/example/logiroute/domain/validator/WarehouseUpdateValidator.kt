@@ -3,11 +3,9 @@ package com.example.logiroute.domain.validator
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 
 class WarehouseUpdateValidator(
-    private val idValidator: IdValidator,
-    private val nonBlankValidator: NonBlankValidator,
-    private val latitudeValidator: LatitudeValidator,
-    private val longitudeValidator: LongitudeValidator
-) : Validator<WarehouseUpdateValidator.Input, WarehouseValidationError> {
+    private val atLeastOneFieldValidator: AtLeastOneFieldValidator =
+        AtLeastOneFieldValidator()
+) : Validator<WarehouseUpdateValidator.Input> {
 
     data class Input(
         val id: String?,
@@ -16,62 +14,49 @@ class WarehouseUpdateValidator(
 
     override fun validate(
         value: Input
-    ): ValidationResult<WarehouseValidationError> {
+    ): ValidationResult {
 
-        val idErrors = listOfNotNull(
-            idValidator.validate(value.id)
-                .toError(WarehouseValidationError.InvalidId)
-        )
-
-        val fieldErrors = listOfNotNull(
+        val errors = listOfNotNull(
+            ValidationRules.validateWarehouseId(
+                value = value.id
+            ),
 
             value.update.name?.let {
-                nonBlankValidator.validate(it)
-                    .toError(WarehouseValidationError.InvalidName)
+                ValidationRules.validateNonBlank(
+                    value = it,
+                    field = ValidationField.NAME
+                )
             },
 
             value.update.regionalZone?.let {
-                nonBlankValidator.validate(it)
-                    .toError(WarehouseValidationError.InvalidRegionalZone)
+                ValidationRules.validateNonBlank(
+                    value = it,
+                    field = ValidationField.REGIONAL_ZONE
+                )
             },
 
             value.update.latitude?.let {
-                latitudeValidator.validate(it)
-                    .toError(WarehouseValidationError.InvalidLatitude)
+                ValidationRules.validateLatitude(
+                    value = it
+                )
             },
 
             value.update.longitude?.let {
-                longitudeValidator.validate(it)
-                    .toError(WarehouseValidationError.InvalidLongitude)
-            }
+                ValidationRules.validateLongitude(
+                    value = it
+                )
+            },
+
+            atLeastOneFieldValidator.validate(
+                values = mapOf(
+                    "name" to value.update.name,
+                    "regionalZone" to value.update.regionalZone,
+                    "latitude" to value.update.latitude,
+                    "longitude" to value.update.longitude
+                )
+            )
         )
 
-        val noFieldsError =
-            if (
-                value.update.name == null &&
-                value.update.regionalZone == null &&
-                value.update.latitude == null &&
-                value.update.longitude == null
-            ) {
-                listOf(WarehouseValidationError.NoFieldsProvided)
-            } else {
-                emptyList()
-            }
-
-        val errors = idErrors + fieldErrors + noFieldsError
-
-        return if (errors.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(errors)
-        }
+        return errors.toValidationResult()
     }
 }
-
-private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
-    error: T
-): T? =
-    when (this) {
-        ValidationResult.Valid -> null
-        is ValidationResult.Invalid -> error
-    }

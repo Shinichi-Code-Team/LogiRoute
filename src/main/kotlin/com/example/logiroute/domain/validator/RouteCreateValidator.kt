@@ -2,46 +2,34 @@ package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.Route
 
-class RouteCreateValidator(
-    private val routeIdValidator: IdValidator,
-    private val warehouseIdValidator: IdValidator,
-    private val positiveDoubleValidator: PositiveDoubleValidator,
-    private val nonNegativeIntValidator: NonNegativeIntValidator
-) : Validator<Route, RouteValidationError> {
+class RouteCreateValidator : Validator<Route> {
 
     override fun validate(
         value: Route
-    ): ValidationResult<RouteValidationError> {
+    ): ValidationResult {
 
         val errors = listOfNotNull(
-            routeIdValidator.validate(value.id)
-                .toError(RouteValidationError.InvalidId),
-
-            warehouseIdValidator.validate(value.origin.id)
-                .toError(RouteValidationError.InvalidOriginHubId),
-
-            warehouseIdValidator.validate(value.destination.id)
-                .toError(RouteValidationError.InvalidDestinationHubId),
-
-            positiveDoubleValidator.validate(value.distanceKm)
-                .toError(RouteValidationError.InvalidDistanceKm),
-
-            nonNegativeIntValidator.validate(value.typicalDelayMin)
-                .toError(RouteValidationError.InvalidTypicalDelayMin)
+            ValidationRules.validateRouteId(
+                value = value.id
+            ),
+            ValidationRules.validateWarehouseId(
+                value = value.origin.id,
+                field = ValidationField.ORIGIN_HUB_ID
+            ),
+            ValidationRules.validateWarehouseId(
+                value = value.destination.id,
+                field = ValidationField.DESTINATION_HUB_ID
+            ),
+            ValidationRules.validatePositiveDouble(
+                value = value.distanceKm,
+                field = ValidationField.DISTANCE_KM
+            ),
+            ValidationRules.validateNonNegativeInt(
+                value = value.typicalDelayMin,
+                field = ValidationField.TYPICAL_DELAY_MIN
+            )
         )
 
-        return if (errors.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(errors)
-        }
+        return errors.toValidationResult()
     }
 }
-
-private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
-    error: T
-): T? =
-    when (this) {
-        ValidationResult.Valid -> null
-        is ValidationResult.Invalid -> error
-    }

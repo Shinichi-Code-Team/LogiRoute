@@ -3,10 +3,9 @@ package com.example.logiroute.domain.validator
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 
 class PackageUpdateValidator(
-    private val packageIdValidator: IdValidator,
-    private val warehouseIdValidator: IdValidator,
-    private val positiveDoubleValidator: PositiveDoubleValidator
-) : Validator<PackageUpdateValidator.Input, PackageValidationError> {
+    private val atLeastOneFieldValidator: AtLeastOneFieldValidator =
+        AtLeastOneFieldValidator()
+) : Validator<PackageUpdateValidator.Input> {
 
     data class Input(
         val id: String?,
@@ -15,57 +14,44 @@ class PackageUpdateValidator(
 
     override fun validate(
         value: Input
-    ): ValidationResult<PackageValidationError> {
+    ): ValidationResult {
 
-        val idErrors = listOfNotNull(
-            packageIdValidator.validate(value.id)
-                .toError(PackageValidationError.InvalidId)
-        )
-
-        val fieldErrors = listOfNotNull(
+        val errors = listOfNotNull(
+            ValidationRules.validatePackageId(
+                value = value.id
+            ),
 
             value.update.weight?.let {
-                positiveDoubleValidator.validate(it)
-                    .toError(PackageValidationError.InvalidWeight)
+                ValidationRules.validatePositiveDouble(
+                    value = it,
+                    field = ValidationField.WEIGHT
+                )
             },
 
             value.update.originHubId?.let {
-                warehouseIdValidator.validate(it)
-                    .toError(PackageValidationError.InvalidOriginHubId)
+                ValidationRules.validateWarehouseId(
+                    value = it,
+                    field = ValidationField.ORIGIN_HUB_ID
+                )
             },
 
             value.update.destinationHubId?.let {
-                warehouseIdValidator.validate(it)
-                    .toError(PackageValidationError.InvalidDestinationHubId)
-            }
+                ValidationRules.validateWarehouseId(
+                    value = it,
+                    field = ValidationField.DESTINATION_HUB_ID
+                )
+            },
+
+            atLeastOneFieldValidator.validate(
+                values = mapOf(
+                    "weight" to value.update.weight,
+                    "originHubId" to value.update.originHubId,
+                    "destinationHubId" to value.update.destinationHubId,
+                    "priority" to value.update.priority
+                )
+            )
         )
 
-        val noFieldsError =
-            if (
-                value.update.weight == null &&
-                value.update.originHubId == null &&
-                value.update.destinationHubId == null &&
-                value.update.priority == null
-            ) {
-                listOf(PackageValidationError.NoFieldsProvided)
-            } else {
-                emptyList()
-            }
-
-        val errors = idErrors + fieldErrors + noFieldsError
-
-        return if (errors.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(errors)
-        }
+        return errors.toValidationResult()
     }
 }
-
-private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
-    error: T
-): T? =
-    when (this) {
-        ValidationResult.Valid -> null
-        is ValidationResult.Invalid -> error
-    }
