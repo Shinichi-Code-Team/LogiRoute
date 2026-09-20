@@ -26,6 +26,7 @@ class DeleteVehicleUseCase(
                 Result.failure(
                     LogisticsException.EntityValidationException(validationResult.errors)
                 )
+            }
         }
     }
 }

@@ -26,6 +26,7 @@ class ReadPackageUseCase(
                 Result.failure(
                     LogisticsException.EntityValidationException(validationResult.errors)
                 )
+            }
         }
     }
 }

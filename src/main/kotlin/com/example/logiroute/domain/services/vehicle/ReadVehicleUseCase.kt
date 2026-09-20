@@ -26,6 +26,7 @@ class ReadVehicleUseCase(
                 Result.failure(
                     LogisticsException.EntityValidationException(validationResult.errors)
                 )
+            }
         }
     }
 }
