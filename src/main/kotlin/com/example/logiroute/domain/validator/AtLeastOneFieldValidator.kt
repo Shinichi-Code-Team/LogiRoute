@@ -1,24 +1,17 @@
 package com.example.logiroute.domain.validator
 
-sealed interface AtLeastOneFieldValidationError : ValidationError {
-    data object NoFieldsProvided : AtLeastOneFieldValidationError
-}
+class AtLeastOneFieldValidator {
 
-class AtLeastOneFieldValidator :
-    Validator<Map<String, Any?>, AtLeastOneFieldValidationError> {
-
-    override fun validate(
-        value: Map<String, Any?>
-    ): ValidationResult<AtLeastOneFieldValidationError> {
-
-        if (value.values.none { it != null }) {
-            return ValidationResult.Invalid(
-                errors = listOf(
-                    AtLeastOneFieldValidationError.NoFieldsProvided
-                )
+    fun validate(
+        values: Map<String, Any?>
+    ): ValidationError? {
+        return if (values.values.none { it != null }) {
+            ValidationError(
+                field = ValidationField.UPDATE_FIELDS,
+                reason = ValidationReason.NO_FIELDS_PROVIDED
             )
+        } else {
+            null
         }
-
-        return ValidationResult.Valid
     }
 }

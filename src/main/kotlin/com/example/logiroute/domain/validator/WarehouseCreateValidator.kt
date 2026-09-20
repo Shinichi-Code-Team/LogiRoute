@@ -2,46 +2,32 @@ package com.example.logiroute.domain.validator
 
 import com.example.logiroute.domain.model.Warehouse
 
-class WarehouseCreateValidator(
-    private val idValidator: IdValidator,
-    private val nonBlankValidator: NonBlankValidator,
-    private val latitudeValidator: LatitudeValidator,
-    private val longitudeValidator: LongitudeValidator
-) : Validator<Warehouse, WarehouseValidationError> {
+class WarehouseCreateValidator : Validator<Warehouse> {
 
     override fun validate(
         value: Warehouse
-    ): ValidationResult<WarehouseValidationError> {
+    ): ValidationResult {
 
         val errors = listOfNotNull(
-            idValidator.validate(value.id)
-                .toError(WarehouseValidationError.InvalidId),
-
-            nonBlankValidator.validate(value.name)
-                .toError(WarehouseValidationError.InvalidName),
-
-            nonBlankValidator.validate(value.regionalZone)
-                .toError(WarehouseValidationError.InvalidRegionalZone),
-
-            latitudeValidator.validate(value.latitude)
-                .toError(WarehouseValidationError.InvalidLatitude),
-
-            longitudeValidator.validate(value.longitude)
-                .toError(WarehouseValidationError.InvalidLongitude)
+            ValidationRules.validateWarehouseId(
+                value = value.id
+            ),
+            ValidationRules.validateNonBlank(
+                value = value.name,
+                field = ValidationField.NAME
+            ),
+            ValidationRules.validateNonBlank(
+                value = value.regionalZone,
+                field = ValidationField.REGIONAL_ZONE
+            ),
+            ValidationRules.validateLatitude(
+                value = value.latitude
+            ),
+            ValidationRules.validateLongitude(
+                value = value.longitude
+            )
         )
 
-        return if (errors.isEmpty()) {
-            ValidationResult.Valid
-        } else {
-            ValidationResult.Invalid(errors)
-        }
+        return errors.toValidationResult()
     }
 }
-
-private fun <E : ValidationError, T : Any> ValidationResult<E>.toError(
-    error: T
-): T? =
-    when (this) {
-        ValidationResult.Valid -> null
-        is ValidationResult.Invalid -> error
-    }
