@@ -1,7 +1,14 @@
 package com.example.logiroute.domain.validator
 
-class LongitudeValidator :
-    Validator<Double?, LongitudeValidationError> {
+sealed interface LongitudeValidationError : ValidationError {
+    data object Null : LongitudeValidationError
+
+    data class OutOfRange(
+        val value: Double
+    ) : LongitudeValidationError
+}
+
+class LongitudeValidator : Validator<Double?, LongitudeValidationError> {
 
     override fun validate(
         value: Double?
