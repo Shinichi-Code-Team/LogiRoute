@@ -2,11 +2,10 @@ package com.example.logiroute.data.repository
 
 import com.example.logiroute.data.remote.datasource.RemoteWarehouseDataSource
 import com.example.logiroute.data.remote.mapper.WarehouseDtoMapper
-import com.example.logiroute.data.remote.dto.warehouse.CreateWarehouseRequestDto
-import com.example.logiroute.data.remote.dto.warehouse.UpdateWarehouseRequestDto
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.data.remote.dto.warehouse.WarehouseResponseDto
 
 class WarehouseRepositoryImpl(
     private val remoteDataSource: RemoteWarehouseDataSource,
@@ -14,11 +13,16 @@ class WarehouseRepositoryImpl(
 ) : WarehouseRepository {
 
     override suspend fun getAllWarehouses(): List<Warehouse> {
-        return remoteDataSource
-            .getWarehouses()
-            .map { dtoMapper.toDomain(it) }
+        return remoteDataSource.getWarehouses().mapNotNull { dto ->
+            val missing = missingFields(dto)
+            if (missing.isNotEmpty()) {
+                System.err.println("Skipping warehouse ${dto.id}: missing ${missing.joinToString()}")
+                null
+            } else {
+                dtoMapper.toDomain(dto)
+            }
+        }
     }
-
     override suspend fun getWarehouseById(
         id: String
     ): Warehouse? {
@@ -59,4 +63,10 @@ class WarehouseRepositoryImpl(
     ) {
         remoteDataSource.deleteWarehouse(id)
     }
+    private fun missingFields(dto: WarehouseResponseDto): List<String> =
+        buildList {
+            if (dto.regionalZone.isNullOrBlank()) add("regionalZone")
+            if (dto.latitude == null) add("latitude")
+            if (dto.longitude == null) add("longitude")
+        }
 }
