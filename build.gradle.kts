@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlinJvm)
+    kotlin("jvm") version "2.2.21"
     alias(libs.plugins.kotlinSerialization)
 
     id("io.gitlab.arturbosch.detekt") version "1.23.5"
