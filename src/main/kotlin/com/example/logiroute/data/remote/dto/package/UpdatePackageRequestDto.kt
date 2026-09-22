@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UpdatePackageRequestDto(
+    @SerialName("weight")
     val weight: Double? = null,
 
     @SerialName("origin_hub_id")
@@ -13,5 +14,6 @@ data class UpdatePackageRequestDto(
     @SerialName("destination_hub_id")
     val destinationHubId: String? = null,
 
+    @SerialName("priority")
     val priority: PriorityDto? = null
 )

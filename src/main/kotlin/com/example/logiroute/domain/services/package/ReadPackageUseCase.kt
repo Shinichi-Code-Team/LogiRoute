@@ -10,7 +10,6 @@ import com.example.logiroute.domain.validator.toValidationResult
 class ReadPackageUseCase(
     private val packageRepository: PackageRepository
 ) {
-
     suspend operator fun invoke(id: String): Result<Package?> {
         val validationResult = listOfNotNull(
             ValidationRules.validatePackageId(id)
@@ -26,7 +25,6 @@ class ReadPackageUseCase(
                 Result.failure(
                     LogisticsException.EntityValidationException(validationResult.errors)
                 )
-            }
         }
     }
 }
