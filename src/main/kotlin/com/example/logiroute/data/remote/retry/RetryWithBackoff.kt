@@ -1,13 +1,16 @@
 package com.example.logiroute.data.remote.retry
 
-fun <T> retryWithBackoff(
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+
+suspend fun <T> retryWithBackoff(
     maxRetries: Int = 3,
     initialDelayMs: Long = 1000,
     factor: Double = 2.0,
-    isRetryable: (Throwable) -> Boolean = { true },
+    isRetryable: (Throwable) -> Boolean,
     onRetry: (attempt: Int, delayMs: Long, error: Throwable) -> Unit = { _, _, _ -> },
     onGiveUp: (attempt: Int, error: Throwable, reason: String) -> Unit = { _, _, _ -> },
-    block: () -> T
+    block: suspend () -> T
 ): Result<T> {
 
     require(maxRetries >= 0) {
@@ -34,7 +37,7 @@ fun <T> retryWithBackoff(
     )
 }
 
-private tailrec fun <T> attempt(
+private suspend fun <T> attempt(
     attemptNumber: Int,
     maxRetries: Int,
     delayMs: Long,
@@ -42,11 +45,18 @@ private tailrec fun <T> attempt(
     isRetryable: (Throwable) -> Boolean,
     onRetry: (Int, Long, Throwable) -> Unit,
     onGiveUp: (Int, Throwable, String) -> Unit,
-    block: () -> T
+    block: suspend () -> T
 ): Result<T> {
 
-    val result = runCatching(block)
+    val result = runCatching {
+        block()
+    }
+
     val error = result.exceptionOrNull()
+
+    if (error is CancellationException) {
+        throw error
+    }
 
     return when {
         error == null -> result
@@ -76,7 +86,7 @@ private tailrec fun <T> attempt(
                 error
             )
 
-            Thread.sleep(delayMs)
+            delay(delayMs)
 
             attempt(
                 attemptNumber = attemptNumber + 1,
