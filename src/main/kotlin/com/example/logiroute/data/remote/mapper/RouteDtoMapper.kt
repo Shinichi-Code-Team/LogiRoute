@@ -18,7 +18,7 @@ class RouteDtoMapper {
             id = dto.id,
             origin = origin,
             destination = destination,
-            distanceKm = dto.distanceKm,
+            distanceKm  = dto.distanceKm,
             typicalDelayMin = dto.typicalDelayMin
         )
     }

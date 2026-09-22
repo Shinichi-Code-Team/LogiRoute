@@ -12,12 +12,11 @@ class WarehouseDtoMapper {
         return Warehouse(
             id = dto.id,
             name = dto.name,
-            regionalZone = dto.regionalZone,
-            latitude = dto.latitude,
-            longitude = dto.longitude
+            regionalZone = requireNotNull(dto.regionalZone),
+            latitude = requireNotNull(dto.latitude),
+            longitude = requireNotNull(dto.longitude)
         )
     }
-
     fun toCreateRequest(
         warehouse: Warehouse
     ): CreateWarehouseRequestDto {
