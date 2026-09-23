@@ -14,10 +14,8 @@ class SupabasePackageRemoteDataSource : RemotePackageDataSource {
         SupabaseClientProvider.client.postgrest.from("packages")
 
     override suspend fun getPackages(): List<PackageResponseDto> {
-        return retryRemote {
-            packageTable
-                .select()
-                .decodeList<PackageResponseDto>()
+        return retryRemote(operationName = "Package.getPackages") {
+            packageTable.select().decodeList<PackageResponseDto>()
         }
     }
 
