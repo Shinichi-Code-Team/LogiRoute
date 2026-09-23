@@ -15,13 +15,10 @@ class SupabaseVehicleRemoteDataSource : RemoteVehicleDataSource {
         SupabaseClientProvider.client.postgrest.from("vehicles")
 
     override suspend fun getVehicles(): List<VehicleResponseDto> {
-        return retryRemote {
-            vehicleTable
-                .select()
-                .decodeList<VehicleResponseDto>()
+        return retryRemote(operationName = "Vehicle.getVehicles") {
+            vehicleTable.select().decodeList<VehicleResponseDto>()
         }
     }
-
     override suspend fun getVehicleById(
         id: String
     ): VehicleResponseDto? {
