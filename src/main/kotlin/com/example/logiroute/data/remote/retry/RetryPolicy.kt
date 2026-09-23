@@ -7,13 +7,10 @@ import java.io.IOException
 fun isRetryable(error: Throwable): Boolean {
     return when (error) {
         is PostgrestRestException -> {
-            error.response.status.value in listOf(503, 504)
+            val status = error.response.status.value
+            status == 503 || status == 504
         }
-
-        is HttpRequestTimeoutException -> true
-
-        is IOException -> true
-
+        is HttpRequestTimeoutException, is IOException -> true
         else -> false
     }
 }

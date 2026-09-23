@@ -14,10 +14,8 @@ class SupabaseRouteRemoteDataSource : RemoteRouteDataSource {
         SupabaseClientProvider.client.postgrest.from("routes")
 
     override suspend fun getRoutes(): List<RouteResponseDto> {
-        return retryRemote {
-            routeTable
-                .select()
-                .decodeList<RouteResponseDto>()
+        return retryRemote(operationName = "Route.getRoutes") {
+            routeTable.select().decodeList<RouteResponseDto>()
         }
     }
 
