@@ -1,9 +1,9 @@
 package com.example.logiroute
 
+import com.example.logiroute.data.remote.datasource.SupabaseRouteRemoteDataSource
+import com.example.logiroute.data.remote.datasource.SupabaseVehicleRemoteDataSource
 import com.example.logiroute.data.remote.datasource.impl.SupabasePackageRemoteDataSource
-import com.example.logiroute.data.remote.datasource.impl.SupabaseRouteRemoteDataSource
 import com.example.logiroute.data.remote.datasource.impl.SupabaseWarehouseRemoteDataSource
-import com.example.logiroute.data.remote.datasource.vehicle.SupabaseVehicleRemoteDataSource
 import com.example.logiroute.data.remote.mapper.PackageDtoMapper
 import com.example.logiroute.data.remote.mapper.RouteDtoMapper
 import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
