@@ -22,7 +22,7 @@ dependencies {
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.postgrest)
     implementation(libs.ktor.client.cio)
-
+    testImplementation("com.google.truth:truth:1.4.5")
     testImplementation(kotlin("test"))
 }
 
