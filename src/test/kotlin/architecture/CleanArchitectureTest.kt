@@ -3,6 +3,7 @@ package architecture
 import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.architecture.KoArchitectureCreator.assertArchitecture
 import com.lemonappdev.konsist.api.architecture.Layer
+import com.lemonappdev.konsist.api.verify.assertFalse
 import org.junit.jupiter.api.Test
 
 class CleanArchitectureTest {
@@ -16,6 +17,18 @@ class CleanArchitectureTest {
 
                 domain.dependsOnNothing()
                 data.dependsOn(domain)
+            }
+    }
+
+    @Test
+    fun domain_should_not_import_serialization() {
+        Konsist.scopeFromProject()
+            .files
+            .filter { it.packagee?.name?.contains("domain") == true }
+            .assertFalse {
+                it.imports.any { import ->
+                    import.name.contains("kotlinx.serialization")
+                }
             }
     }
 }
