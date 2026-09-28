@@ -4,6 +4,7 @@ import com.lemonappdev.konsist.api.Konsist
 import com.lemonappdev.konsist.api.architecture.KoArchitectureCreator.assertArchitecture
 import com.lemonappdev.konsist.api.architecture.Layer
 import com.lemonappdev.konsist.api.verify.assertFalse
+import com.lemonappdev.konsist.api.verify.assertTrue
 import org.junit.jupiter.api.Test
 
 class CleanArchitectureTest {
@@ -29,6 +30,18 @@ class CleanArchitectureTest {
                 it.imports.any { import ->
                     import.name.contains("kotlinx.serialization")
                 }
+            }
+    }
+
+    @Test
+    fun usecases_should_end_with_usecase_suffix() {
+        Konsist.scopeFromProject()
+            .classes()
+            .filter {
+                it.packagee?.name?.contains("domain.usecase") == true
+            }
+            .assertTrue {
+                it.name.endsWith("UseCase")
             }
     }
 }
