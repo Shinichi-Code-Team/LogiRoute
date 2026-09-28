@@ -56,4 +56,20 @@ class CleanArchitectureTest {
                 it.name.endsWith("Validator")
             }
     }
+
+    @Test
+    fun usecases_should_have_invoke_operator() {
+        Konsist.scopeFromProject()
+            .classes()
+            .filter {
+                it.packagee?.name?.contains("domain.usecase") == true
+            }
+            .assertTrue { clazz ->
+
+                clazz.functions().any {
+                    it.name == "invoke"
+                }
+
+            }
+    }
 }
