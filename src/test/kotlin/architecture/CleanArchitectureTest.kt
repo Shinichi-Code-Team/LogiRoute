@@ -44,4 +44,16 @@ class CleanArchitectureTest {
                 it.name.endsWith("UseCase")
             }
     }
+
+    @Test
+    fun validators_should_end_with_validator_suffix() {
+        Konsist.scopeFromProject()
+            .classes()
+            .filter {
+                it.packagee?.name?.contains("domain.validator") == true
+            }
+            .assertTrue {
+                it.name.endsWith("Validator")
+            }
+    }
 }
