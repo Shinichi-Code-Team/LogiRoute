@@ -84,4 +84,20 @@ class CleanArchitectureTest {
                 it.name.endsWith("Dto")
             }
     }
+
+    @Test
+    fun dto_classes_should_be_serializable() {
+        Konsist.scopeFromProject()
+            .classes()
+            .filter {
+                it.packagee?.name?.contains("data.remote.dto") == true
+            }
+            .assertTrue { dto ->
+
+                dto.annotations.any {
+                    it.name == "Serializable"
+                }
+
+            }
+    }
 }
