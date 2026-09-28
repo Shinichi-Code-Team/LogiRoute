@@ -72,4 +72,16 @@ class CleanArchitectureTest {
 
             }
     }
+
+    @Test
+    fun dto_classes_should_end_with_dto_suffix() {
+        Konsist.scopeFromProject()
+            .classes()
+            .filter {
+                it.packagee?.name?.contains("data.remote.dto") == true
+            }
+            .assertTrue {
+                it.name.endsWith("Dto")
+            }
+    }
 }
