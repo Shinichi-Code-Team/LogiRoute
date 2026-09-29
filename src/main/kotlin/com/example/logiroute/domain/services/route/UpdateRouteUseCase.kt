@@ -5,7 +5,7 @@ import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.validator.RouteUpdateValidator
-import com.example.logiroute.domain.validator.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResult
 
 class UpdateRouteUseCase(
     private val routeRepository: RouteRepository,
@@ -17,7 +17,7 @@ class UpdateRouteUseCase(
         input: UpdateRouteInput
     ): Result<Route> {
 
-        val validationInput = RouteUpdateValidator.Input(
+        val validationInput = RouteUpdateValidator.inputValidator(
             id = id,
             update = input
         )

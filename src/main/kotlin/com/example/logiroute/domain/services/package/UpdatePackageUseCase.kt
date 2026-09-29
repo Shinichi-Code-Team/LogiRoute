@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.model.exceptions.LogisticsException
-import com.example.logiroute.domain.validator.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.PackageUpdateValidator
 
 class UpdatePackageUseCase(
@@ -17,7 +17,7 @@ class UpdatePackageUseCase(
         input: UpdatePackageInput
     ): Result<Package> {
 
-        val validationInput = PackageUpdateValidator.Input(
+        val validationInput = PackageUpdateValidator.inputValidator(
             id = id,
             update = input
         )

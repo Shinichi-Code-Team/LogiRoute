@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.validator
+package com.example.logiroute.domain.validation
 
 sealed interface ValidationResult {
 
