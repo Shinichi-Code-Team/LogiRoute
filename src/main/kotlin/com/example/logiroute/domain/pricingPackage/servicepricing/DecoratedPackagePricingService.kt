@@ -1,7 +1,7 @@
-package com.example.logiroute.domain.usecase.pricingPackage.servicepricing
+package com.example.logiroute.domain.pricingPackage.servicepricing
 
-import com.example.logiroute.domain.usecase.pricingPackage.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.model.Priority
+import com.example.logiroute.domain.pricingPackage.basepricing.RoutePricingEngine
 
 class DecoratedPackagePricingService(
     private val prcingEngine: RoutePricingEngine

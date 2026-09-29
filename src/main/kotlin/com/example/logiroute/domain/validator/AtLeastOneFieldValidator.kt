@@ -1,5 +1,9 @@
 package com.example.logiroute.domain.validator
 
+import com.example.logiroute.domain.validation.ValidationError
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
+
 class AtLeastOneFieldValidator {
 
     fun validate(

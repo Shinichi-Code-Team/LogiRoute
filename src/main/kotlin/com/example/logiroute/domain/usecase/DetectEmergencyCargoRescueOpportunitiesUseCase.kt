@@ -9,7 +9,7 @@ import com.example.logiroute.domain.model.request.RescueOpportunity
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 
 class DetectEmergencyCargoRescueOpportunitiesUseCase(
     private val packageRepository: PackageRepository,

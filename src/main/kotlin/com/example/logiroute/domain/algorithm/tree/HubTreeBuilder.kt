@@ -4,7 +4,7 @@ import com.example.logiroute.com.example.logiroute.domain.model.request.HubHiera
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubNode
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 
 class HubTreeBuilder {
 

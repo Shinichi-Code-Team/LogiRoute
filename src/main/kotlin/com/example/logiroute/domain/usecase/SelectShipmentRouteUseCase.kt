@@ -6,7 +6,7 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.ShipmentGroupRequest
 import com.example.logiroute.domain.model.request.ShipmentService
 import com.example.logiroute.domain.model.result.ShipmentRouteResult
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 
 class SelectShipmentRouteUseCase(
     private val distanceRouter: DijkstraRouter,

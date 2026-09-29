@@ -1,10 +1,10 @@
 package com.example.logiroute.domain.services.`package`
 
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
-import com.example.logiroute.domain.validator.ValidationResult
-import com.example.logiroute.domain.validator.ValidationRules
-import com.example.logiroute.domain.validator.toValidationResult
+import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validation.toValidationResult
 
 class DeletePackageUseCase(
     private val packageRepository: PackageRepository
