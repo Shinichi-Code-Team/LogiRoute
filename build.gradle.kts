@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.ktor.client.cio)
 
     testImplementation(kotlin("test"))
+    testImplementation("com.lemonappdev:konsist:0.17.3")
 }
 
 kotlin {
