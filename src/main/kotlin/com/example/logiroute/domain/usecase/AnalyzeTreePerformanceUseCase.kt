@@ -4,7 +4,6 @@ import com.example.logiroute.com.example.logiroute.domain.model.result.TreePerfo
 import com.example.logiroute.domain.algorithm.tree.BalancedBinarySearchTree
 import com.example.logiroute.domain.algorithm.tree.BinarySearchTree
 
-private const val TOTAL_PACKAGE_IDS = 1000
 
 class AnalyzeTreePerformanceUseCase {
     private companion object {
@@ -12,6 +11,7 @@ class AnalyzeTreePerformanceUseCase {
         const val SAMPLE_QUARTER_DIVISOR = 4
         const val SAMPLE_HALF_DIVISOR = 2
         const val SAMPLE_THREE_QUARTERS_MULTIPLIER = 3
+
     }
 
     operator fun invoke(): TreePerformanceReport {

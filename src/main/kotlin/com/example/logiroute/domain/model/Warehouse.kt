@@ -1,5 +1,9 @@
 package com.example.logiroute.domain.model
 
+import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validator.ValidationField
+import com.example.logiroute.domain.validator.ValidationRules
+
 data class Warehouse(
     val id: String,
     val name: String,
@@ -7,6 +11,36 @@ data class Warehouse(
     val latitude: Double,
     val longitude: Double
 ) {
+
+    init {
+        val errors = listOfNotNull(
+            ValidationRules.validateWarehouseId(
+                value = id
+            ),
+
+            ValidationRules.validateNonBlank(
+                value = name,
+                field = ValidationField.NAME
+            ),
+
+            ValidationRules.validateNonBlank(
+                value = regionalZone,
+                field = ValidationField.REGIONAL_ZONE
+            ),
+
+            ValidationRules.validateLatitude(
+                value = latitude
+            ),
+
+            ValidationRules.validateLongitude(
+                value = longitude
+            )
+        )
+
+        if (errors.isNotEmpty()) {
+            throw LogisticsException.EntityValidationException(errors)
+        }
+    }
 
     private val mutableCargoQueue = mutableListOf<Package>()
     val cargoQueue: List<Package>
@@ -55,7 +89,8 @@ data class Warehouse(
         return vehicle.currentHub === this &&
                 mutableStationedVehicles.none { it.id == vehicle.id }
     }
-    fun removePackage(packageItem: Package) : Boolean {
+
+    fun removePackage(packageItem: Package): Boolean {
         return mutableCargoQueue.remove(packageItem)
     }
 
