@@ -1,17 +1,17 @@
 package com.example.logiroute.domain.model
 
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
-import com.example.logiroute.domain.usecase.pricingPackage.servicepricing.PackageComponent
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationRules
+import com.example.logiroute.domain.pricingPackage.servicepricing.PackageComponent
+import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationRules
 
-data class Package(
-    val id: String,
-    val weight: Double,
-    val origin: Warehouse,
-    val destination: Warehouse,
-    val priority: Priority
-) : PackageComponent {
+data class Package  constructor(
+     val id: String,
+     val weight: Double,
+     val origin: Warehouse,
+     val destination: Warehouse,
+     val priority: Priority
+) : PackageComponent  {
 
     init {
         val errors = listOfNotNull(

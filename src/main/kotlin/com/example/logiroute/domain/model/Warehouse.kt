@@ -1,8 +1,8 @@
 package com.example.logiroute.domain.model
 
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationRules
+import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationRules
 
 data class Warehouse(
     val id: String,

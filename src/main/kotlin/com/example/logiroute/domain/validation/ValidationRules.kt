@@ -1,4 +1,7 @@
-package com.example.logiroute.domain.validator
+package com.example.logiroute.domain.validation
+
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
 
 object ValidationRules {
 

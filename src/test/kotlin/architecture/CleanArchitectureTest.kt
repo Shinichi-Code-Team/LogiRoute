@@ -11,7 +11,7 @@ class CleanArchitectureTest {
 
     @Test
     fun domain_should_not_depend_on_data_layer() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .assertArchitecture {
                 val domain = Layer("Domain", "..domain..")
                 val data = Layer("Data", "..data..")
@@ -23,7 +23,7 @@ class CleanArchitectureTest {
 
     @Test
     fun domain_should_not_import_serialization() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .files
             .filter { it.packagee?.name?.contains("domain") == true }
             .assertFalse {
@@ -35,7 +35,7 @@ class CleanArchitectureTest {
 
     @Test
     fun usecases_should_end_with_usecase_suffix() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .classes()
             .filter {
                 it.packagee?.name?.contains("domain.usecase") == true
@@ -47,7 +47,7 @@ class CleanArchitectureTest {
 
     @Test
     fun validators_should_end_with_validator_suffix() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .classes()
             .filter {
                 it.packagee?.name?.contains("domain.validator") == true
@@ -59,7 +59,7 @@ class CleanArchitectureTest {
 
     @Test
     fun usecases_should_have_invoke_operator() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .classes()
             .filter {
                 it.packagee?.name?.contains("domain.usecase") == true
@@ -75,7 +75,7 @@ class CleanArchitectureTest {
 
     @Test
     fun dto_classes_should_end_with_dto_suffix() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .classes()
             .filter {
                 it.packagee?.name?.contains("data.remote.dto") == true
@@ -87,7 +87,7 @@ class CleanArchitectureTest {
 
     @Test
     fun dto_classes_should_be_serializable() {
-        Konsist.scopeFromProject()
+        Konsist.scopeFromProduction()
             .classes()
             .filter {
                 it.packagee?.name?.contains("data.remote.dto") == true

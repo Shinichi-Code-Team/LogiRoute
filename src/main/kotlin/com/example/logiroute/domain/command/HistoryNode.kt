@@ -1,4 +1,5 @@
-package com.example.logiroute.domain.usecase.command
+package com.example.logiroute.domain.command
+
 
 data class HistoryNode(
     val command: Command?,
