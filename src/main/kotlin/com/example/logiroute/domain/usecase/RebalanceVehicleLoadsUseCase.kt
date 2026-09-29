@@ -4,10 +4,11 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.result.VehicleAssignment
 
-private const val LOW_UTILIZATION_THRESHOLD = 40.0
 
 class RebalanceVehicleLoadsUseCase {
-
+    private companion object {
+        private const val LOW_UTILIZATION_THRESHOLD = 40.0
+    }
     operator fun invoke(
         assignments: List<VehicleAssignment>
     ): List<VehicleAssignment> {
