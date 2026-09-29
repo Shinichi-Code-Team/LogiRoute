@@ -75,4 +75,46 @@ object SampleData {
         }
 
     val emptyWarehouse = northWarehouse
+
+    // Vehicles Data (Week 2)
+    val normalLoadVehicle = Vehicle(
+        id = "VEH-101",
+        maxCapacityKg = 10000.0,
+        costPerKm = 2.5,
+        currentHub = centralWarehouse,
+        loadedPackages = mutableListOf(urgentPackage)
+    )
+
+    val heavyLoadVehicle = Vehicle(
+        id = "VEH-204",
+        maxCapacityKg = 10000.0,
+        costPerKm = 3.8,
+        currentHub = northWarehouse,
+        loadedPackages = mutableListOf(urgentPackage, standardPackage)
+    )
+
+    val overloadedVehicle = Vehicle(
+        id = "VEH-999",
+        maxCapacityKg = 10000.0,
+        costPerKm = 4.2,
+        currentHub = southWarehouse,
+        loadedPackages = mutableListOf(urgentPackage, standardPackage, lowPackage)
+    )
+
+    // Routes Data (Week 2)
+    val shortRoute = Route(
+        id = "RT-101",
+        origin = centralWarehouse,
+        destination = northWarehouse,
+        distanceKm = 15.5,
+        typicalDelayMin = 20
+    )
+
+    val longRouteWithDelay = Route(
+        id = "RT-202",
+        origin = centralWarehouse,
+        destination = southWarehouse,
+        distanceKm = 42.0,
+        typicalDelayMin = 75
+    )
 }
