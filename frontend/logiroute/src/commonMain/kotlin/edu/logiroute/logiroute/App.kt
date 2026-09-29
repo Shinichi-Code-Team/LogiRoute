@@ -57,7 +57,8 @@ fun App() {
                 }
             }
 
-            WeekOneComponentsTestSuite()
+            //WeekOneComponentsTestSuite()
+            WeekTwoComponentsTestSuite()
         }
     }
 }
