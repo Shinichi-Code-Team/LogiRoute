@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase.model.exceptions
+package com.example.logiroute.domain.model.exceptions
 
 import com.example.logiroute.domain.validator.ValidationError
 

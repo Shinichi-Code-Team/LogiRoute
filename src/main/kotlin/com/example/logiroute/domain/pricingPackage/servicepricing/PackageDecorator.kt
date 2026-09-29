@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase.pricingPackage.servicepricing
+package com.example.logiroute.domain.pricingPackage.servicepricing
 
 abstract class PackageDecorator(
     protected val wrappedComponent: PackageComponent

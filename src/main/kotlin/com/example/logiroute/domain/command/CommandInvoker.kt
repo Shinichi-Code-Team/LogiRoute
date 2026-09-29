@@ -1,4 +1,6 @@
-package com.example.logiroute.domain.usecase.command
+package com.example.logiroute.domain.command
+
+import com.example.logiroute.domain.command.Command
 
 interface CommandInvoker {
 

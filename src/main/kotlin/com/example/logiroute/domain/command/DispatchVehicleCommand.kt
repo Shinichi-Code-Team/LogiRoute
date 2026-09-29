@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase.command
+package com.example.logiroute.domain.command
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse

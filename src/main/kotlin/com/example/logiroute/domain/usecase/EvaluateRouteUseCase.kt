@@ -2,7 +2,7 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 
 class EvaluateRouteUseCase(
     private val routeRepository: RouteRepository

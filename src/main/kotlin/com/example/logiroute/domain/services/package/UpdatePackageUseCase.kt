@@ -3,7 +3,7 @@ package com.example.logiroute.domain.services.`package`
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.ValidationResult
 import com.example.logiroute.domain.validator.PackageUpdateValidator
 

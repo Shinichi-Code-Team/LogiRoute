@@ -1,9 +1,9 @@
 package com.example.logiroute.domain.services.vehicle
 
 import com.example.logiroute.domain.model.Vehicle
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.usecase.model.exceptions.LogisticsException
 import com.example.logiroute.domain.validator.ValidationResult
 import com.example.logiroute.domain.validator.VehicleUpdateValidator
 
