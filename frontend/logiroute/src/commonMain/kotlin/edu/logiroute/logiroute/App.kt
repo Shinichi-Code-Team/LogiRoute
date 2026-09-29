@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import edu.logiroute.logiroute.components.PackagePriorityBadge
+import edu.logiroute.logiroute.components.RouteDetailCard
+import edu.logiroute.logiroute.components.VehicleCapacityIndicator
+import edu.logiroute.logiroute.components.VehicleDetailCard
 import edu.logiroute.logiroute.components.WarehouseIdentityBadge
 import edu.logiroute.logiroute.components.WarehouseSummaryCard
 import edu.logiroute.logiroute.previews.SampleData
@@ -99,5 +102,51 @@ private fun WeekOneComponentsTestSuite() {
         )
         WarehouseSummaryCard(warehouse = SampleData.warehouseWithCargo)
         WarehouseSummaryCard(warehouse = SampleData.emptyWarehouse)
+    }
+}
+
+@Composable
+private fun WeekTwoComponentsTestSuite() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ByteBloomTokens.BackgroundBase)
+            .verticalScroll(rememberScrollState())
+            .padding(ByteBloomTokens.SpaceExtraLarge),
+        verticalArrangement = Arrangement.spacedBy(ByteBloomTokens.SpaceExtraLarge)
+    ) {
+        Text(
+            text = "Week 2 Fleet & Route Test Lounge",
+            color = ByteBloomTokens.TextPrimary,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        // Capacity Indicators
+        Text(
+            text = "1. Vehicle Capacity Indicators",
+            color = ByteBloomTokens.TextSecondary,
+            style = MaterialTheme.typography.titleMedium
+        )
+        VehicleCapacityIndicator(currentLoadKg = 2500.0, maxCapacityKg = 10000.0)
+        VehicleCapacityIndicator(currentLoadKg = 8200.0, maxCapacityKg = 10000.0)
+        VehicleCapacityIndicator(currentLoadKg = 10500.0, maxCapacityKg = 10000.0)
+
+        Text(
+            text = "2. Vehicle Detail Cards",
+            color = ByteBloomTokens.TextSecondary,
+            style = MaterialTheme.typography.titleMedium
+        )
+        VehicleDetailCard(vehicle = SampleData.normalLoadVehicle, currentLoadKg = 2500.0)
+        VehicleDetailCard(vehicle = SampleData.heavyLoadVehicle, currentLoadKg = 8200.0)
+        VehicleDetailCard(vehicle = SampleData.overloadedVehicle, currentLoadKg = 10500.0)
+
+        Text(
+            text = "3. Route Detail Cards",
+            color = ByteBloomTokens.TextSecondary,
+            style = MaterialTheme.typography.titleMedium
+        )
+        RouteDetailCard(route = SampleData.shortRoute)
+        RouteDetailCard(route = SampleData.longRouteWithDelay)
     }
 }
