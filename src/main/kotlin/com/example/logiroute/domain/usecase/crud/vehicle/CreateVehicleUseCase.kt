@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.services.vehicle
+package com.example.logiroute.domain.usecase.crud.vehicle
 
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.repository.VehicleRepository

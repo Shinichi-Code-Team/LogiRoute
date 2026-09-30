@@ -1,7 +1,7 @@
 package domain.usecase.vehicle
 
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.services.vehicle.DeleteVehicleUseCase
+import com.example.logiroute.domain.usecase.crud.vehicle.DeleteVehicleUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

@@ -3,7 +3,7 @@ package domain.usecase.vehicle
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.services.vehicle.ReadVehicleUseCase
+import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.services.warehouse
+package com.example.logiroute.domain.usecase.crud.warehouse
 
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.WarehouseRepository

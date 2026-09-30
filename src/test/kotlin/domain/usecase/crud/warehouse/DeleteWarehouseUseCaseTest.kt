@@ -1,8 +1,8 @@
-package domain.usecase.warehouse
+package domain.usecase.crud.warehouse
 
 
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.services.warehouse.DeleteWarehouseUseCase
+import com.example.logiroute.domain.usecase.crud.warehouse.DeleteWarehouseUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

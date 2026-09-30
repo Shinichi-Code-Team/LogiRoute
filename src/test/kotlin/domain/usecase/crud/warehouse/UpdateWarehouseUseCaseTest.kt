@@ -1,9 +1,9 @@
-package domain.usecase.warehouse
+package domain.usecase.crud.warehouse
 
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.services.warehouse.UpdateWarehouseUseCase
+import com.example.logiroute.domain.usecase.crud.warehouse.UpdateWarehouseUseCase
 import com.example.logiroute.domain.validator.WarehouseUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify

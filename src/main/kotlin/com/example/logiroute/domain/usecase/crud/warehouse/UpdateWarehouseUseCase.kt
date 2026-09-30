@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.services.warehouse
+package com.example.logiroute.domain.usecase.crud.warehouse
 
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput

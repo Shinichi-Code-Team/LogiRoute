@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.services.vehicle.UpdateVehicleUseCase
+import com.example.logiroute.domain.usecase.crud.vehicle.UpdateVehicleUseCase
 import com.example.logiroute.domain.validator.VehicleUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
