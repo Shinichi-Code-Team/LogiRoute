@@ -1,9 +1,10 @@
 package domain.validator
 
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationReason
-import com.example.logiroute.domain.validator.ValidationRules
+import com.example.logiroute.domain.validation.ValidationError
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
+import com.example.logiroute.domain.validation.ValidationRules
+
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

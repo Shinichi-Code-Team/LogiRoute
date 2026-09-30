@@ -1,4 +1,4 @@
-package usecase
+package domain.usecase
 
 import com.example.logiroute.domain.usecase.AnalyzeTreePerformanceUseCase
 import org.junit.jupiter.api.Test

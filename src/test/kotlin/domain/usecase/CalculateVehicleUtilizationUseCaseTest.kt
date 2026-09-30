@@ -1,4 +1,4 @@
-package usecase
+package domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority

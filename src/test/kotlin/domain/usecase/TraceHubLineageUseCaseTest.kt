@@ -1,4 +1,4 @@
-package usecase
+package domain.usecase
 
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubNode
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubType

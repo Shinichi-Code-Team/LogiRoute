@@ -1,10 +1,10 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationReason
-import com.example.logiroute.domain.validator.ValidationResult
+import com.example.logiroute.domain.validation.ValidationError
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
+import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.WarehouseUpdateValidator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -13,7 +13,7 @@ class WarehouseUpdateValidatorTest {
     private val validator = WarehouseUpdateValidator()
     @Test
     fun `valid warehouse update passes`() {
-        val input = WarehouseUpdateValidator.Input(
+        val input = WarehouseUpdateValidator.inputValidator(
             id = "WH-123",
             update = UpdateWarehouseInput(name = "Amman")
         )
@@ -42,7 +42,7 @@ class WarehouseUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = WarehouseUpdateValidator.Input(
+            val input = WarehouseUpdateValidator.inputValidator(
                 id = "WH-123",
                 update = update
             )
@@ -56,7 +56,7 @@ class WarehouseUpdateValidatorTest {
 
     @Test
     fun `invalid warehouse id returns error`() {
-        val input = WarehouseUpdateValidator.Input(
+        val input = WarehouseUpdateValidator.inputValidator(
             id = "wrong-id",
             update = UpdateWarehouseInput(name = "Amman")
         )
@@ -76,7 +76,7 @@ class WarehouseUpdateValidatorTest {
 
     @Test
     fun `empty warehouse update returns no fields error`() {
-        val input = WarehouseUpdateValidator.Input(
+        val input = WarehouseUpdateValidator.inputValidator(
             id = "WH-123",
             update = UpdateWarehouseInput()
         )

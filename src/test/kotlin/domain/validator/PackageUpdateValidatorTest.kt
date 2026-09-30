@@ -1,11 +1,11 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdatePackageInput
+import com.example.logiroute.domain.validation.ValidationError
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
+import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.PackageUpdateValidator
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationReason
-import com.example.logiroute.domain.validator.ValidationResult
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -15,7 +15,7 @@ class PackageUpdateValidatorTest {
 
     @Test
     fun `valid package update passes`() {
-        val input = PackageUpdateValidator.Input(
+        val input = PackageUpdateValidator.inputValidator(
             id = "PKG-123456",
             update = UpdatePackageInput(weight = 10.0)
         )
@@ -41,7 +41,7 @@ class PackageUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = PackageUpdateValidator.Input(
+            val input = PackageUpdateValidator.inputValidator(
                 id = "PKG-123456",
                 update = update
             )
@@ -56,7 +56,7 @@ class PackageUpdateValidatorTest {
     @Test
     fun `invalid package id returns error`() {
         // Given
-        val input = PackageUpdateValidator.Input(
+        val input = PackageUpdateValidator.inputValidator(
             id = "wrong-id",
             update = UpdatePackageInput(weight = 10.0)
         )
@@ -76,7 +76,7 @@ class PackageUpdateValidatorTest {
 
     @Test
     fun `empty package update returns no fields error`() {
-        val input = PackageUpdateValidator.Input(
+        val input = PackageUpdateValidator.inputValidator(
             id = "PKG-123456",
             update = UpdatePackageInput()
         )

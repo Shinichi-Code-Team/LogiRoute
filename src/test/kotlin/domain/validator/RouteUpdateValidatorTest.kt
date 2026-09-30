@@ -1,11 +1,12 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdateRouteInput
+import com.example.logiroute.domain.validation.ValidationError
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
+import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.RouteUpdateValidator
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationReason
-import com.example.logiroute.domain.validator.ValidationResult
+
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -15,7 +16,7 @@ class RouteUpdateValidatorTest {
 
     @Test
     fun `valid route update passes`() {
-        val input = RouteUpdateValidator.Input(
+        val input = RouteUpdateValidator.inputValidator(
             id = "RT-12345",
             update = UpdateRouteInput(distanceKm = 10.0)
         )
@@ -44,7 +45,7 @@ class RouteUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = RouteUpdateValidator.Input(
+            val input = RouteUpdateValidator.inputValidator(
                 id = "RT-12345",
                 update = update
             )
@@ -59,7 +60,7 @@ class RouteUpdateValidatorTest {
     @Test
     fun `invalid route id returns error`() {
         // Given
-        val input = RouteUpdateValidator.Input(
+        val input = RouteUpdateValidator.inputValidator(
             id = "wrong-id",
             update = UpdateRouteInput(distanceKm = 10.0)
         )
@@ -83,7 +84,7 @@ class RouteUpdateValidatorTest {
 
     @Test
     fun `empty route update returns no fields error`() {
-        val input = RouteUpdateValidator.Input(
+        val input = RouteUpdateValidator.inputValidator(
             id = "RT-12345",
             update = UpdateRouteInput()
         )
