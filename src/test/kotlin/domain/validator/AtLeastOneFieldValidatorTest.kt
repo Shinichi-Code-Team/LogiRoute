@@ -1,4 +1,4 @@
-package validator
+package domain.validator
 
 import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.ValidationError

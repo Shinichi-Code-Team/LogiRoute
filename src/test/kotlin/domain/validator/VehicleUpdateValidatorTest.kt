@@ -1,51 +1,47 @@
-package validator
+package domain.validator
 
-import com.example.logiroute.domain.model.request.UpdateRouteInput
-import com.example.logiroute.domain.validator.RouteUpdateValidator
+import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.validator.ValidationError
 import com.example.logiroute.domain.validator.ValidationField
 import com.example.logiroute.domain.validator.ValidationReason
 import com.example.logiroute.domain.validator.ValidationResult
+import com.example.logiroute.domain.validator.VehicleUpdateValidator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class RouteUpdateValidatorTest {
+class VehicleUpdateValidatorTest {
 
-    private val validator = RouteUpdateValidator()
+    private val validator = VehicleUpdateValidator()
 
     @Test
-    fun `valid route update passes`() {
-        val input = RouteUpdateValidator.Input(
-            id = "RT-12345",
-            update = UpdateRouteInput(distanceKm = 10.0)
+    fun `valid vehicle update passes`() {
+        val input = VehicleUpdateValidator.Input(
+            id = "TRK-1234",
+            update = UpdateVehicleInput(maxCapacityKg = 500.0)
         )
         val result = validator.validate(input)
         assertEquals(ValidationResult.Valid, result)
     }
 
     @Test
-    fun `invalid route update fields return errors`() {
+    fun `invalid vehicle update fields return errors`() {
         val cases = listOf(
-            UpdateRouteInput(originHubId = "bad-id") to ValidationError(
-                ValidationField.ORIGIN_HUB_ID,
-                ValidationReason.INVALID_FORMAT
-            ),
-            UpdateRouteInput(destinationHubId = "bad-id") to ValidationError(
-                ValidationField.DESTINATION_HUB_ID,
-                ValidationReason.INVALID_FORMAT
-            ),
-            UpdateRouteInput(distanceKm = 0.0) to ValidationError(
-                ValidationField.DISTANCE_KM,
+            UpdateVehicleInput(maxCapacityKg = 0.0) to ValidationError(
+                ValidationField.MAX_CAPACITY_KG,
                 ValidationReason.MUST_BE_POSITIVE
             ),
-            UpdateRouteInput(typicalDelayMin = -1) to ValidationError(
-                ValidationField.TYPICAL_DELAY_MIN,
-                ValidationReason.MUST_BE_NON_NEGATIVE
+            UpdateVehicleInput(costPerKm = 0.0) to ValidationError(
+                ValidationField.COST_PER_KM,
+                ValidationReason.MUST_BE_POSITIVE
+            ),
+            UpdateVehicleInput(currentHubId = "bad-id") to ValidationError(
+                ValidationField.CURRENT_HUB_ID,
+                ValidationReason.INVALID_FORMAT
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = RouteUpdateValidator.Input(
-                id = "RT-12345",
+            val input = VehicleUpdateValidator.Input(
+                id = "TRK-1234",
                 update = update
             )
 
@@ -57,17 +53,13 @@ class RouteUpdateValidatorTest {
     }
 
     @Test
-    fun `invalid route id returns error`() {
-        // Given
-        val input = RouteUpdateValidator.Input(
+    fun `invalid vehicle id returns error`() {
+        val input = VehicleUpdateValidator.Input(
             id = "wrong-id",
-            update = UpdateRouteInput(distanceKm = 10.0)
+            update = UpdateVehicleInput(maxCapacityKg = 500.0)
         )
 
-        // When
         val result = validator.validate(input)
-
-        // Then
         assertEquals(
             ValidationResult.Invalid(
                 listOf(
@@ -82,10 +74,10 @@ class RouteUpdateValidatorTest {
     }
 
     @Test
-    fun `empty route update returns no fields error`() {
-        val input = RouteUpdateValidator.Input(
-            id = "RT-12345",
-            update = UpdateRouteInput()
+    fun `empty vehicle update returns no fields error`() {
+        val input = VehicleUpdateValidator.Input(
+            id = "TRK-1234",
+            update = UpdateVehicleInput()
         )
         val result = validator.validate(input)
         assertEquals(
