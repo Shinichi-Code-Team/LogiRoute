@@ -11,7 +11,7 @@ import com.example.logiroute.domain.model.exceptions.LogisticsException
 class VehicleRepositoryImpl(
     private val remoteDataSource: RemoteVehicleDataSource,
     private val warehouseRepository: WarehouseRepository,
-    private val mapper: VehicleDtoMapper
+    private val dtoMapper: VehicleDtoMapper
 ) : VehicleRepository {
 
     override suspend fun getAllVehicles(): List<Vehicle> {
@@ -27,7 +27,7 @@ class VehicleRepositoryImpl(
                 val warehouse = warehouses[dto.currentHubId]
                     ?: return@mapNotNull null
 
-                mapper.toDomain(
+                dtoMapper.toDomain(
                     dto = dto,
                     warehouse = warehouse
                 )
@@ -46,7 +46,7 @@ class VehicleRepositoryImpl(
             .getWarehouseById(dto.currentHubId)
             ?: return null
 
-        return mapper.toDomain(
+        return dtoMapper.toDomain(
             dto = dto,
             warehouse = warehouse
         )
@@ -56,11 +56,11 @@ class VehicleRepositoryImpl(
         vehicle: Vehicle
     ): Vehicle {
 
-        val request = mapper.toCreateRequest(vehicle)
+        val request = dtoMapper.toCreateRequest(vehicle)
 
         val dto = remoteDataSource.createVehicle(request)
 
-        return mapper.toDomain(
+        return dtoMapper.toDomain(
             dto = dto,
             warehouse = vehicle.currentHub
         )
@@ -71,7 +71,7 @@ class VehicleRepositoryImpl(
         input: UpdateVehicleInput
     ): Vehicle {
 
-        val request = mapper.toUpdateRequest(input)
+        val request = dtoMapper.toUpdateRequest(input)
 
         val dto = remoteDataSource.updateVehicle(
             id = id,
@@ -84,7 +84,7 @@ class VehicleRepositoryImpl(
                 dto.currentHubId
             )
 
-        return mapper.toDomain(
+        return dtoMapper.toDomain(
             dto = dto,
             warehouse = warehouse
         )
