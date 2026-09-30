@@ -1,0 +1,47 @@
+package com.example.logiroute.domain.usecase.crud.warehouse
+
+import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.UpdateWarehouseInput
+import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validator.WarehouseUpdateValidator
+
+class UpdateWarehouseUseCase(
+    private val warehouseRepository: WarehouseRepository,
+    private val warehouseUpdateValidator: WarehouseUpdateValidator
+) {
+
+    suspend operator fun invoke(
+        id: String,
+        input: UpdateWarehouseInput
+    ): Result<Warehouse> {
+
+        val validationInput = WarehouseUpdateValidator.inputValidator(
+            id = id,
+            update = input
+        )
+
+        return when (
+            val validationResult =
+                warehouseUpdateValidator.validate(validationInput)
+        ) {
+            ValidationResult.Valid -> {
+                runCatching {
+                    warehouseRepository.updateWarehouse(
+                        id = id,
+                        input = input
+                    )
+                }
+            }
+
+            is ValidationResult.Invalid -> {
+                Result.failure(
+                    LogisticsException.EntityValidationException(
+                        validationResult.errors
+                    )
+                )
+            }
+        }
+    }
+}

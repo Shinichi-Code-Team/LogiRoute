@@ -1,10 +1,11 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
-import com.example.logiroute.domain.validator.ValidationError
-import com.example.logiroute.domain.validator.ValidationField
-import com.example.logiroute.domain.validator.ValidationReason
-import com.example.logiroute.domain.validator.ValidationResult
+import com.example.logiroute.domain.validation.ValidationError
+import com.example.logiroute.domain.validation.ValidationField
+import com.example.logiroute.domain.validation.ValidationReason
+import com.example.logiroute.domain.validation.ValidationResult
+
 import com.example.logiroute.domain.validator.VehicleUpdateValidator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -15,7 +16,7 @@ class VehicleUpdateValidatorTest {
 
     @Test
     fun `valid vehicle update passes`() {
-        val input = VehicleUpdateValidator.Input(
+        val input = VehicleUpdateValidator.inputValidator(
             id = "TRK-1234",
             update = UpdateVehicleInput(maxCapacityKg = 500.0)
         )
@@ -40,7 +41,7 @@ class VehicleUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = VehicleUpdateValidator.Input(
+            val input = VehicleUpdateValidator.inputValidator(
                 id = "TRK-1234",
                 update = update
             )
@@ -54,7 +55,7 @@ class VehicleUpdateValidatorTest {
 
     @Test
     fun `invalid vehicle id returns error`() {
-        val input = VehicleUpdateValidator.Input(
+        val input = VehicleUpdateValidator.inputValidator(
             id = "wrong-id",
             update = UpdateVehicleInput(maxCapacityKg = 500.0)
         )
@@ -75,7 +76,7 @@ class VehicleUpdateValidatorTest {
 
     @Test
     fun `empty vehicle update returns no fields error`() {
-        val input = VehicleUpdateValidator.Input(
+        val input = VehicleUpdateValidator.inputValidator(
             id = "TRK-1234",
             update = UpdateVehicleInput()
         )
