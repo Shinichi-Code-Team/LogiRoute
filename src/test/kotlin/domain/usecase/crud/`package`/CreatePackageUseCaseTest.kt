@@ -4,11 +4,11 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.services.`package`.CreatePackageUseCase
+import com.example.logiroute.domain.usecase.crud.`package`.CreatePackageUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -27,7 +27,7 @@ class CreatePackageUseCaseTest {
     )
 
     @Test
-    fun `repository success returns successful result`() = runBlocking {
+    fun `repository success returns successful result`() = runTest {
         // Given
         coEvery { repository.createPackage(packageItem) } returns packageItem
 
@@ -41,7 +41,7 @@ class CreatePackageUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val exception = RuntimeException("Create failed")
         coEvery { repository.createPackage(packageItem) } throws exception

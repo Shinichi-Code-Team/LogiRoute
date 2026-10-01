@@ -26,6 +26,8 @@ dependencies {
     testImplementation("com.lemonappdev:konsist:0.17.3")
     testImplementation("io.mockk:mockk:1.14.11")
     implementation("io.insert-koin:koin-core:4.2.2")
+    testImplementation(libs.kotlinx.coroutines.test)
+
 }
 
 kotlin {

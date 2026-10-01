@@ -1,4 +1,4 @@
-package domain.usecase.vehicle
+package domain.usecase.crud.vehicle
 
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
@@ -7,7 +7,7 @@ import com.example.logiroute.domain.usecase.crud.vehicle.CreateVehicleUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,7 +18,7 @@ class CreateVehicleUseCaseTest {
     private val useCase = CreateVehicleUseCase(repository)
 
     @Test
-    fun `repository success returns successful result`() = runBlocking {
+    fun `repository success returns successful result`() = runTest {
         // Given
         val warehouse = Warehouse(
             id = "WH-123",
@@ -52,7 +52,7 @@ class CreateVehicleUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val warehouse = Warehouse(
             id = "WH-123",

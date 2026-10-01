@@ -7,7 +7,7 @@ import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -18,7 +18,7 @@ class ReadVehicleUseCaseTest {
     private val useCase = ReadVehicleUseCase(repository)
 
     @Test
-    fun `valid id returns vehicle successfully`() = runBlocking {
+    fun `valid id returns vehicle successfully`() = runTest {
         // Given
         val id = "TRK-1234"
 
@@ -54,7 +54,7 @@ class ReadVehicleUseCaseTest {
     }
 
     @Test
-    fun `invalid id returns failed result without calling repository`() = runBlocking {
+    fun `invalid id returns failed result without calling repository`() = runTest {
         // Given
         val id = "wrong-id"
 
@@ -70,7 +70,7 @@ class ReadVehicleUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val id = "TRK-1234"
         val exception = RuntimeException("Read failed")

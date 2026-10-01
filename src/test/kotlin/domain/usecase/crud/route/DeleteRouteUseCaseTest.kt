@@ -1,11 +1,11 @@
 package domain.usecase.crud.route
 
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.services.route.DeleteRouteUseCase
+import com.example.logiroute.domain.usecase.crud.route.DeleteRouteUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -17,7 +17,7 @@ class DeleteRouteUseCaseTest {
     private val id = "RT-12345"
 
     @Test
-    fun `valid id deletes route successfully`() = runBlocking {
+    fun `valid id deletes route successfully`() = runTest {
         // Given
         coEvery { repository.deleteRoute(id) } returns Unit
 
@@ -30,7 +30,7 @@ class DeleteRouteUseCaseTest {
     }
 
     @Test
-    fun `invalid id returns failed result without calling repository`() = runBlocking {
+    fun `invalid id returns failed result without calling repository`() = runTest {
         // Given
         val invalidId = "wrong-id"
 
@@ -43,7 +43,7 @@ class DeleteRouteUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val exception = RuntimeException("Delete failed")
         coEvery { repository.deleteRoute(id) } throws exception

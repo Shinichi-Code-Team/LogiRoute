@@ -3,11 +3,11 @@ package domain.usecase.crud.route
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.services.route.ReadRouteUseCase
+import com.example.logiroute.domain.usecase.crud.route.ReadRouteUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -27,7 +27,7 @@ class ReadRouteUseCaseTest {
     )
 
     @Test
-    fun `valid id returns route successfully`() = runBlocking {
+    fun `valid id returns route successfully`() = runTest {
         // Given
         coEvery { repository.getRouteById(id) } returns route
 
@@ -41,7 +41,7 @@ class ReadRouteUseCaseTest {
     }
 
     @Test
-    fun `invalid id returns failed result without calling repository`() = runBlocking {
+    fun `invalid id returns failed result without calling repository`() = runTest {
         // Given
         val invalidId = "wrong-id"
 
@@ -54,7 +54,7 @@ class ReadRouteUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val exception = RuntimeException("Read failed")
         coEvery { repository.getRouteById(id) } throws exception

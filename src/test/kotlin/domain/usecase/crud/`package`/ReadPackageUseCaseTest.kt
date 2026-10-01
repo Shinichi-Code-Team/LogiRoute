@@ -4,11 +4,12 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.services.`package`.ReadPackageUseCase
+import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -28,7 +29,7 @@ class ReadPackageUseCaseTest {
     )
 
     @Test
-    fun `valid id returns package successfully`() = runBlocking {
+    fun `valid id returns package successfully`() = runTest {
         // Given
         coEvery { repository.getPackageById(id) } returns packageItem
 
@@ -55,7 +56,7 @@ class ReadPackageUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val exception = RuntimeException("Read failed")
         coEvery { repository.getPackageById(id) } throws exception

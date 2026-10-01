@@ -8,7 +8,7 @@ import com.example.logiroute.domain.validator.WarehouseUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -24,7 +24,7 @@ class UpdateWarehouseUseCaseTest {
     )
 
     @Test
-    fun `valid update returns warehouse successfully`() = runBlocking {
+    fun `valid update returns warehouse successfully`() = runTest {
         // Given
         val id = "WH-123"
 
@@ -57,7 +57,7 @@ class UpdateWarehouseUseCaseTest {
     }
 
     @Test
-    fun `invalid update returns failed result without calling repository`() = runBlocking {
+    fun `invalid update returns failed result without calling repository`() = runTest {
         // Given
         val id = "WH-123"
 
@@ -77,7 +77,7 @@ class UpdateWarehouseUseCaseTest {
     }
 
     @Test
-    fun `empty update returns failed result without calling repository`() = runBlocking {
+    fun `empty update returns failed result without calling repository`() = runTest {
         // Given
         val id = "WH-123"
         val input = UpdateWarehouseInput()
@@ -94,7 +94,7 @@ class UpdateWarehouseUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val id = "WH-123"
 

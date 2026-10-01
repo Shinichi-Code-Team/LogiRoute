@@ -3,11 +3,11 @@ package domain.usecase.crud.route
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.services.route.CreateRouteUseCase
+import com.example.logiroute.domain.usecase.crud.route.CreateRouteUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -26,7 +26,7 @@ class CreateRouteUseCaseTest {
     )
 
     @Test
-    fun `repository success returns successful result`() = runBlocking {
+    fun `repository success returns successful result`() = runTest {
         // Given
         coEvery { repository.createRoute(route) } returns route
 
@@ -40,7 +40,7 @@ class CreateRouteUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val exception = RuntimeException("Create failed")
         coEvery { repository.createRoute(route) } throws exception
