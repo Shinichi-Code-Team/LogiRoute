@@ -5,7 +5,7 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
-class ReroutePackageUseCase(
+class RoutePackageUseCase(
     private val packageRepository: PackageRepository,
     private val warehouseRepository: WarehouseRepository
 ) {
