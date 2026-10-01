@@ -6,7 +6,7 @@ import com.example.logiroute.domain.usecase.crud.warehouse.CreateWarehouseUseCas
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -17,7 +17,7 @@ class CreateWarehouseUseCaseTest {
     private val useCase = CreateWarehouseUseCase(repository)
 
     @Test
-    fun `repository success returns successful result`() = runBlocking {
+    fun `repository success returns successful result`() = runTest {
         // Given
         val warehouse = Warehouse(
             id = "WH-123",
@@ -44,7 +44,7 @@ class CreateWarehouseUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val warehouse = Warehouse(
             id = "WH-123",

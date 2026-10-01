@@ -6,7 +6,7 @@ import com.example.logiroute.domain.usecase.crud.warehouse.DeleteWarehouseUseCas
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -17,7 +17,7 @@ class DeleteWarehouseUseCaseTest {
     private val useCase = DeleteWarehouseUseCase(repository)
 
     @Test
-    fun `valid id deletes warehouse successfully`() = runBlocking {
+    fun `valid id deletes warehouse successfully`() = runTest {
         // Given
         val id = "WH-123"
 
@@ -37,7 +37,7 @@ class DeleteWarehouseUseCaseTest {
     }
 
     @Test
-    fun `invalid id returns failed result without calling repository`() = runBlocking {
+    fun `invalid id returns failed result without calling repository`() = runTest {
         // Given
         val id = "wrong-id"
 
@@ -53,7 +53,7 @@ class DeleteWarehouseUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val id = "WH-123"
         val exception = RuntimeException("Delete failed")

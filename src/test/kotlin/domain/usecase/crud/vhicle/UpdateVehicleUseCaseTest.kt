@@ -9,7 +9,7 @@ import com.example.logiroute.domain.validator.VehicleUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -25,7 +25,7 @@ class UpdateVehicleUseCaseTest {
     )
 
     @Test
-    fun `valid update returns vehicle successfully`() = runBlocking {
+    fun `valid update returns vehicle successfully`() = runTest {
         // Given
         val id = "TRK-1234"
 
@@ -65,7 +65,7 @@ class UpdateVehicleUseCaseTest {
     }
 
     @Test
-    fun `invalid update returns failed result without calling repository`() = runBlocking {
+    fun `invalid update returns failed result without calling repository`() = runTest {
         // Given
         val id = "TRK-1234"
 
@@ -85,7 +85,7 @@ class UpdateVehicleUseCaseTest {
     }
 
     @Test
-    fun `empty update returns failed result without calling repository`() = runBlocking {
+    fun `empty update returns failed result without calling repository`() = runTest {
         // Given
         val id = "TRK-1234"
         val input = UpdateVehicleInput()
@@ -102,7 +102,7 @@ class UpdateVehicleUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val id = "TRK-1234"
 

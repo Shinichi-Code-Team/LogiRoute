@@ -1,11 +1,11 @@
 package domain.usecase.crud.`package`
 
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.services.`package`.DeletePackageUseCase
+import com.example.logiroute.domain.usecase.crud.`package`.DeletePackageUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -17,7 +17,7 @@ class DeletePackageUseCaseTest {
     private val id = "PKG-123456"
 
     @Test
-    fun `valid id deletes package successfully`() = runBlocking {
+    fun `valid id deletes package successfully`() = runTest {
         // Given
         coEvery { repository.deletePackage(id) } returns Unit
 
@@ -30,7 +30,7 @@ class DeletePackageUseCaseTest {
     }
 
     @Test
-    fun `invalid id returns failed result without calling repository`() = runBlocking {
+    fun `invalid id returns failed result without calling repository`() = runTest {
         // Given
         val invalidId = "wrong-id"
 
@@ -43,7 +43,7 @@ class DeletePackageUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val exception = RuntimeException("Delete failed")
         coEvery { repository.deletePackage(id) } throws exception

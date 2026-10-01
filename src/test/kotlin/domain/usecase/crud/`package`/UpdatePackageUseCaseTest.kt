@@ -5,12 +5,12 @@ import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.services.`package`.UpdatePackageUseCase
+import com.example.logiroute.domain.usecase.crud.`package`.UpdatePackageUseCase
 import com.example.logiroute.domain.validator.PackageUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -24,7 +24,7 @@ class UpdatePackageUseCaseTest {
     private val warehouse = Warehouse("WH-123", "Main Hub", "WEST", 31.5, 34.5)
 
     @Test
-    fun `valid update returns package successfully`() = runBlocking {
+    fun `valid update returns package successfully`() = runTest {
         // Given
         val input = UpdatePackageInput(weight = 15.0)
         val updatedPackage = Package(
@@ -47,7 +47,7 @@ class UpdatePackageUseCaseTest {
     }
 
     @Test
-    fun `invalid update returns failed result without calling repository`() = runBlocking {
+    fun `invalid update returns failed result without calling repository`() = runTest {
         // Given
         val input = UpdatePackageInput(weight = 0.0)
 
@@ -60,7 +60,7 @@ class UpdatePackageUseCaseTest {
     }
 
     @Test
-    fun `empty update returns failed result without calling repository`() = runBlocking {
+    fun `empty update returns failed result without calling repository`() = runTest {
         // Given
         val input = UpdatePackageInput()
 
@@ -73,7 +73,7 @@ class UpdatePackageUseCaseTest {
     }
 
     @Test
-    fun `repository failure returns failed result`() = runBlocking {
+    fun `repository failure returns failed result`() = runTest {
         // Given
         val input = UpdatePackageInput(weight = 15.0)
         val exception = RuntimeException("Update failed")
