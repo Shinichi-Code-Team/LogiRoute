@@ -7,6 +7,8 @@ open class LogisticsException(
 ) : Exception(message) {
 
     companion object {
+        const val INVALID_PACKAGE_STATE_TRANSITION_EXCEPTION =
+            "Invalid package state transition:"
         const val INVALID_CAPACITY_EXCEPTION =
             "Capacity threshold must be greater than zero. Provided:"
 
@@ -91,5 +93,13 @@ open class LogisticsException(
         packageId: String
     ) : LogisticsException(
         "$COMMAND_EXECUTION_EXCEPTION $packageId"
+    )
+    class InvalidPackageStateTransitionException(
+        packageId: String,
+        fromState: String,
+        action: String
+    ) : LogisticsException(
+        "$INVALID_PACKAGE_STATE_TRANSITION_EXCEPTION " +
+                "Package $packageId cannot $action from $fromState."
     )
 }
