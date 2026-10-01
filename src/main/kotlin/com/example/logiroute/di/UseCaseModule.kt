@@ -69,7 +69,7 @@ val useCaseModule = module {
     factoryOf(::PrioritizeShipmentConsolidationUseCase)
     factoryOf(::ReassignPackagesAfterBreakdownUseCase)
     factoryOf(::RebalanceVehicleLoadsUseCase)
-    factoryOf(::ReroutePackageUseCase)
+    factoryOf(::RoutePackageUseCase)
     factoryOf(::TraceHubLineageUseCase)
     factoryOf(::ValidatePackagesAgainstFinalRouteUseCase)
 
