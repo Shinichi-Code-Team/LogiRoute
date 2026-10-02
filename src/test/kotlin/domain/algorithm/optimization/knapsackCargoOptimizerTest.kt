@@ -1,6 +1,6 @@
 package domain.algorithm.optimization
 
-import com.example.logiroute.com.example.logiroute.domain.algorithm.optimization.knapsackCargoOptimizer
+import com.example.logiroute.domain.algorithm.optimization.KnapsackCargoOptimizer
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
@@ -9,21 +9,21 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class knapsackCargoOptimizerTest {
-    private val origin = Warehouse("W1", "Origin Warehouse", "North", 32.0, 35.0)
-    private val destination = Warehouse("W2", "Destination Warehouse", "Central", 31.9, 35.2)
+    private val origin = Warehouse("WH-001", "Origin Warehouse", "North", 32.0, 35.0)
+    private val destination = Warehouse("WH-002", "Destination Warehouse", "Central", 31.9, 35.2)
 
     @Test
     fun `optimizer selects combination with maximum total priority within capacity`() {
         //Given
         val packages = listOf(
-            createPackage("PKG-001", 4.0, Priority.LOW),
-            createPackage("PKG-002", 3.0, Priority.STANDARD),
-            createPackage("PKG-003", 5.0, Priority.URGENT),
-            createPackage("PKG-004", 2.0, Priority.STANDARD),
-            createPackage("PKG-005", 6.0, Priority.URGENT)
+            createPackage("PKG-000001", 4.0, Priority.LOW),
+            createPackage("PKG-000002", 3.0, Priority.STANDARD),
+            createPackage("PKG-000003", 5.0, Priority.URGENT),
+            createPackage("PKG-000004", 2.0, Priority.STANDARD),
+            createPackage("PKG-000005", 6.0, Priority.URGENT)
         )
-        val maxCapacityKg = 10
-        val optimizer = knapsackCargoOptimizer()
+        val maxCapacityKg = 10.0
+        val optimizer = KnapsackCargoOptimizer()
 
         //When
         val selectedPackages = optimizer.optimize(packages, maxCapacityKg)
@@ -35,7 +35,7 @@ class knapsackCargoOptimizerTest {
         assertTrue(totalWeight <= maxCapacityKg)
         assertEquals(
             setOf(
-                "PKG-002", "PKG-003", "PKG-004"
+                "PKG-000002", "PKG-000003", "PKG-000004"
             ), selectedPackages.map { it.id }.toSet()
         )
 
