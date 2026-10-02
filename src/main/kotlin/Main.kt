@@ -1,41 +1,28 @@
 package com.example.logiroute
-
-import com.example.logiroute.data.remote.datasource.SupabaseRouteRemoteDataSource
-import com.example.logiroute.data.remote.datasource.SupabaseVehicleRemoteDataSource
-import com.example.logiroute.data.remote.datasource.impl.SupabasePackageRemoteDataSource
-import com.example.logiroute.data.remote.datasource.impl.SupabaseWarehouseRemoteDataSource
-import com.example.logiroute.data.remote.mapper.PackageDtoMapper
-import com.example.logiroute.data.remote.mapper.RouteDtoMapper
-import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
-import com.example.logiroute.data.remote.mapper.WarehouseDtoMapper
-import com.example.logiroute.data.repository.PackageRepositoryImpl
-import com.example.logiroute.data.repository.RouteRepositoryImpl
-import com.example.logiroute.data.repository.VehicleRepositoryImpl
-import com.example.logiroute.data.repository.WarehouseRepositoryImpl
+import com.example.logiroute.di.networkModule
+import com.example.logiroute.di.repositoryModule
+import com.example.logiroute.di.useCaseModule
+import com.example.logiroute.di.validatorModule
+import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.repository.RouteRepository
+import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.repository.WarehouseRepository
+import org.koin.core.context.startKoin
 
 suspend fun main() {
-    val warehouses = WarehouseRepositoryImpl(
-        SupabaseWarehouseRemoteDataSource(),
-        WarehouseDtoMapper()
-    )
+    val koin = startKoin {
+        modules(
+            networkModule,
+            repositoryModule,
+            validatorModule,
+            useCaseModule
+        )
+    }.koin
 
-    val routes = RouteRepositoryImpl(
-        SupabaseRouteRemoteDataSource(),
-        warehouses,
-        RouteDtoMapper()
-    )
-
-    val packages = PackageRepositoryImpl(
-        SupabasePackageRemoteDataSource(),
-        warehouses,
-        PackageDtoMapper()
-    )
-
-    val vehicles = VehicleRepositoryImpl(
-        SupabaseVehicleRemoteDataSource(),
-        warehouses,
-        VehicleDtoMapper()
-    )
+    val warehouses = koin.get<WarehouseRepository>()
+    val routes = koin.get<RouteRepository>()
+    val packages = koin.get<PackageRepository>()
+    val vehicles = koin.get<VehicleRepository>()
 
     runCatching { warehouses.getAllWarehouses() }
         .onSuccess { println("Ready warehouses: ${it.size}") }
