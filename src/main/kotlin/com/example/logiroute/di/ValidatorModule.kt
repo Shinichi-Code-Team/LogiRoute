@@ -1,5 +1,10 @@
 package com.example.logiroute.di
-import com.example.logiroute.domain.validator.AtLeastOneFieldValidator import com.example.logiroute.domain.validator.PackageUpdateValidator import com.example.logiroute.domain.validator.RouteUpdateValidator import com.example.logiroute.domain.validator.VehicleUpdateValidator import com.example.logiroute.domain.validator.WarehouseUpdateValidator import org.koin.dsl.module
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
+import com.example.logiroute.domain.validator.PackageUpdateValidator
+import com.example.logiroute.domain.validator.RouteUpdateValidator
+import com.example.logiroute.domain.validator.VehicleUpdateValidator
+import com.example.logiroute.domain.validator.WarehouseUpdateValidator
+import org.koin.dsl.module
 val validatorModule = module {
     single {
         AtLeastOneFieldValidator()

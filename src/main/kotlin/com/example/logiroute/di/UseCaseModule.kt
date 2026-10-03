@@ -1,13 +1,12 @@
 package com.example.logiroute.di
 
 import AddVehicleToHubUseCase
-import com.example.logiroute.com.example.logiroute.domain.usecase.AssignPackagesToVehiclesUseCase
-import com.example.logiroute.com.example.logiroute.domain.usecase.ReassignPackagesAfterBreakdownUseCase
+import com.example.logiroute.domain.usecase.AssignPackagesToVehiclesUseCase
+import com.example.logiroute.domain.usecase.ReassignPackagesAfterBreakdownUseCase
 import com.example.logiroute.com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
 import com.example.logiroute.domain.algorithm.routing.BfsRouter
 import com.example.logiroute.domain.algorithm.routing.DijkstraRouter
 import com.example.logiroute.domain.algorithm.routing.PathConstructor
-import com.example.logiroute.domain.algorithm.sorting.PackageSelectionSort
 import com.example.logiroute.domain.pricingPackage.basepricing.EcoStrategy
 import com.example.logiroute.domain.pricingPackage.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.usecase.*
@@ -45,7 +44,6 @@ val useCaseModule = module {
         )
     }
 
-    single { PackageSelectionSort() }
     single { RoutePricingEngine(EcoStrategy()) }
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)
@@ -78,7 +76,9 @@ val useCaseModule = module {
     factoryOf(::DeletePackageUseCase)
     factoryOf(::ReadPackageUseCase)
     factoryOf(::UpdatePackageUseCase)
-
+    factoryOf(::OptimizeCargoPackingUseCase)
+    factoryOf(::SortPackagesByPriorityAndWeightUseCase)
+    factoryOf(::SortCargoQueueByWeightUseCase)
     factoryOf(::CreateRouteUseCase)
     factoryOf(::DeleteRouteUseCase)
     factoryOf(::ReadRouteUseCase)

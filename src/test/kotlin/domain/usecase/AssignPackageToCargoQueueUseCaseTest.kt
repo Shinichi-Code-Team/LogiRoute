@@ -5,12 +5,15 @@ import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.result.AssignmentResult
 import com.example.logiroute.domain.usecase.AssignPackageToCargoQueueUseCase
+import com.example.logiroute.domain.usecase.SortCargoQueueByWeightUseCase
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class AssignPackageToCargoQueueUseCaseTest {
 
-    private val useCase = AssignPackageToCargoQueueUseCase()
+    private val useCase = AssignPackageToCargoQueueUseCase(
+        SortCargoQueueByWeightUseCase()
+    )
 
     @Test
     fun `package from warehouse is added successfully`() {
@@ -36,11 +39,7 @@ class AssignPackageToCargoQueueUseCaseTest {
             destination = warehouse("WH-456")
         )
         warehouse.addPackage(packageItem)
-
-        // When
         val result = useCase(warehouse, packageItem)
-
-        // Then
         assertEquals(AssignmentResult.AlreadyQueued, result)
     }
 

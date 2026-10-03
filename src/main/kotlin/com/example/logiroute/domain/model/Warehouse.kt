@@ -95,7 +95,8 @@ data class Warehouse(
     }
 
     fun restoreCargoQueue(packages: List<Package>) {
+        val packagesToRestore = packages.toList()
         mutableCargoQueue.clear()
-        mutableCargoQueue.addAll(packages)
+        mutableCargoQueue.addAll(packagesToRestore)
     }
 }

@@ -1,12 +1,13 @@
 package com.example.logiroute
+
 import com.example.logiroute.di.networkModule
 import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
-import com.example.logiroute.domain.algorithm.optimization.KnapsackCargoOptimizer
 import com.example.logiroute.domain.dispatch.pipeline.ExpressDispatchProcessor
 import com.example.logiroute.domain.dispatch.pipeline.StandardDispatchProcessor
 import com.example.logiroute.domain.model.Priority
+import com.example.logiroute.domain.usecase.OptimizeCargoPackingUseCase
 import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import org.koin.core.context.startKoin
@@ -53,9 +54,10 @@ suspend fun main() {
     println("Capacity: ${vehicle.maxCapacityKg} kg")
     println("Package pool size: ${packages.size}")
 
-    val optimizer = KnapsackCargoOptimizer()
+    val optimizeCargoPackingUseCase =
+        koin.get<OptimizeCargoPackingUseCase>()
 
-    val selectedPackages = optimizer.optimize(
+    val selectedPackages = optimizeCargoPackingUseCase(
         packages = packages,
         maxCapacityKg = vehicle.maxCapacityKg
     )
