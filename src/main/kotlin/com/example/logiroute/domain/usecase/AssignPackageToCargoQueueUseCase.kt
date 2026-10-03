@@ -4,19 +4,26 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.result.AssignmentResult
 
-class AssignPackageToCargoQueueUseCase {
+class AssignPackageToCargoQueueUseCase(
+    private val sortCargoQueue: SortCargoQueueByWeightUseCase
+) {
     operator fun invoke(
         warehouse: Warehouse,
         packageItem: Package
-    ):  AssignmentResult {
+    ): AssignmentResult {
         val wasAdded = warehouse.addPackage(packageItem)
 
-        val rules: List<Pair<() -> Boolean, AssignmentResult>> = listOf(
-            { wasAdded } to AssignmentResult.Success,
-            { warehouse.cargoQueue.any { it.id == packageItem.id } } to AssignmentResult.AlreadyQueued
-        )
+        if (wasAdded) {
+            warehouse.restoreCargoQueue(
+                sortCargoQueue(warehouse.cargoQueue)
+            )
+            return AssignmentResult.Success
+        }
 
-        return rules.firstOrNull { (isMatch, _) -> isMatch() }?.second
-            ?: AssignmentResult.OriginMismatch
+        return if (warehouse.cargoQueue.any { it.id == packageItem.id }) {
+            AssignmentResult.AlreadyQueued
+        } else {
+            AssignmentResult.OriginMismatch
+        }
     }
 }

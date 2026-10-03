@@ -1,25 +1,20 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.algorithm.sorting.PackageSelectionSort
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.request.ConsolidationOpportunityRequest
 
 class PrioritizeShipmentConsolidationUseCase(
-    private val packageSelectionSort: PackageSelectionSort
+    private val sortPackages: SortPackagesByPriorityAndWeightUseCase
 ) {
-
     operator fun invoke(
         opportunity: ConsolidationOpportunityRequest
     ): List<Package> {
+        val packages =
+            listOf(opportunity.mainPackage) + opportunity.compatiblePackages
 
-        val allPackages =
-            getAllPackages(opportunity)
-
-        return packageSelectionSort
-            .sortPackagesByPriorityConsideringWeight(
-                allPackages
-            )
+        return sortPackages(packages)
     }
+}
 
     private fun getAllPackages(
         opportunity: ConsolidationOpportunityRequest
@@ -28,4 +23,3 @@ class PrioritizeShipmentConsolidationUseCase(
         return listOf(opportunity.mainPackage) +
                 opportunity.compatiblePackages
     }
-}
