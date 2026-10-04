@@ -14,17 +14,50 @@ class SortCargoQueueByWeightUseCaseTest {
     private val destination = warehouse("WH-002")
 
     @Test
-    fun `sorts packages from heaviest to lightest`() {
+    fun `should sort packages from heaviest to lightest`() {
+        // Given
+        val lightPackage = packageItem("PKG-000001", 2.0)
+        val heavyPackage = packageItem("PKG-000002", 10.0)
+        val mediumPackage = packageItem("PKG-000003", 5.0)
+        val packages = listOf(lightPackage, heavyPackage, mediumPackage)
+
+        // When
+        val result = useCase(packages)
+
+        // Then
+        assertEquals(
+            listOf(heavyPackage, mediumPackage, lightPackage),
+            result
+        )
+    }
+
+    @Test
+    fun `should preserve input order for packages with equal weights`() {
+        // Given
+        val firstPackage = packageItem("PKG-000001", 5.0)
+        val secondPackage = packageItem("PKG-000002", 5.0)
+        val packages = listOf(firstPackage, secondPackage)
+
+        // When
+        val result = useCase(packages)
+
+        // Then
+        assertEquals(listOf(firstPackage, secondPackage), result)
+    }
+
+    @Test
+    fun `should leave the original package list unchanged`() {
+        // Given
         val packages = listOf(
             packageItem("PKG-000001", 2.0),
             packageItem("PKG-000002", 10.0),
             packageItem("PKG-000003", 5.0)
         )
-        val result = useCase(packages)
-        assertEquals(
-            listOf("PKG-000002", "PKG-000003", "PKG-000001"),
-            result.map { it.id }
-        )
+
+        // When
+        useCase(packages)
+
+        // Then
         assertEquals(
             listOf("PKG-000001", "PKG-000002", "PKG-000003"),
             packages.map { it.id }
@@ -32,13 +65,42 @@ class SortCargoQueueByWeightUseCaseTest {
     }
 
     @Test
-    fun `empty input returns empty list`() {
-        assertEquals(emptyList(), useCase(emptyList()))
+    fun `should return an empty list when input is empty`() {
+        // Given
+        val packages = emptyList<Package>()
+
+        // When
+        val result = useCase(packages)
+
+        // Then
+        assertEquals(emptyList(), result)
     }
 
-    private fun packageItem(id: String, weight: Double) =
-        Package(id, weight, origin, destination, Priority.STANDARD)
+    @Test
+    fun `should return the same package when input contains one package`() {
+        // Given
+        val packageItem = packageItem("PKG-000001", 5.0)
 
-    private fun warehouse(id: String) =
-        Warehouse(id, "Test Warehouse", "WEST", 31.5, 34.5)
+        // When
+        val result = useCase(listOf(packageItem))
+
+        // Then
+        assertEquals(listOf(packageItem), result)
+    }
+
+    private fun packageItem(id: String, weight: Double) = Package(
+        id = id,
+        weight = weight,
+        origin = origin,
+        destination = destination,
+        priority = Priority.STANDARD
+    )
+
+    private fun warehouse(id: String) = Warehouse(
+        id = id,
+        name = "Test Warehouse",
+        regionalZone = "WEST",
+        latitude = 31.5,
+        longitude = 34.5
+    )
 }

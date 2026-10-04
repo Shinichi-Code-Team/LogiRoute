@@ -4,11 +4,11 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.ShipmentGroupRequest
 import com.example.logiroute.domain.model.request.ShipmentService
+import com.example.logiroute.domain.model.result.ShipmentRouteResult
 import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.SelectShipmentRouteUseCase
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -34,10 +34,9 @@ class SelectShipmentRouteUseCaseTest {
         Warehouse("WH-456", "Destination Hub", "EAST", 31.6, 34.6)
 
     @Test
-    fun `eco service uses distance path use case`() = runTest {
+    fun `should choose the distance route for an eco shipment`() = runTest {
         // Given
         val expectedPath = listOf(origin, destination)
-
         coEvery {
             distancePathUseCase(origin, destination)
         } returns expectedPath
@@ -46,25 +45,16 @@ class SelectShipmentRouteUseCaseTest {
         val result = useCase(request(ShipmentService.ECO))
 
         // Then
-        assertEquals(expectedPath, result.path)
-        assertEquals("MIN_DISTANCE", result.routingObjective)
-
-        coVerify(exactly = 1) {
-            distancePathUseCase(origin, destination)
-        }
-        coVerify(exactly = 0) {
-            delayPathUseCase(any(), any())
-        }
-        coVerify(exactly = 0) {
-            fewestHopsRouteUseCase(any(), any())
-        }
+        assertEquals(
+            ShipmentRouteResult(expectedPath, "MIN_DISTANCE"),
+            result
+        )
     }
 
     @Test
-    fun `express service uses delay path use case`() = runTest {
+    fun `should choose the delay route for an express shipment`() = runTest {
         // Given
         val expectedPath = listOf(origin, destination)
-
         coEvery {
             delayPathUseCase(origin, destination)
         } returns expectedPath
@@ -73,25 +63,16 @@ class SelectShipmentRouteUseCaseTest {
         val result = useCase(request(ShipmentService.EXPRESS))
 
         // Then
-        assertEquals(expectedPath, result.path)
-        assertEquals("MIN_EXPECTED_DELAY", result.routingObjective)
-
-        coVerify(exactly = 1) {
-            delayPathUseCase(origin, destination)
-        }
-        coVerify(exactly = 0) {
-            distancePathUseCase(any(), any())
-        }
-        coVerify(exactly = 0) {
-            fewestHopsRouteUseCase(any(), any())
-        }
+        assertEquals(
+            ShipmentRouteResult(expectedPath, "MIN_EXPECTED_DELAY"),
+            result
+        )
     }
 
     @Test
-    fun `fragile service uses fewest hops use case`() = runTest {
+    fun `should choose the fewest hops route for a fragile shipment`() = runTest {
         // Given
         val expectedPath = listOf(origin, destination)
-
         coEvery {
             fewestHopsRouteUseCase(origin, destination)
         } returns expectedPath
@@ -100,22 +81,14 @@ class SelectShipmentRouteUseCaseTest {
         val result = useCase(request(ShipmentService.FRAGILE))
 
         // Then
-        assertEquals(expectedPath, result.path)
-        assertEquals("MIN_HOPS", result.routingObjective)
-
-        coVerify(exactly = 1) {
-            fewestHopsRouteUseCase(origin, destination)
-        }
-        coVerify(exactly = 0) {
-            distancePathUseCase(any(), any())
-        }
-        coVerify(exactly = 0) {
-            delayPathUseCase(any(), any())
-        }
+        assertEquals(
+            ShipmentRouteResult(expectedPath, "MIN_HOPS"),
+            result
+        )
     }
 
     @Test
-    fun `throws when selected use case cannot find a route`() = runTest {
+    fun `should throw when the selected routing strategy returns no route`() = runTest {
         // Given
         coEvery {
             distancePathUseCase(origin, destination)
@@ -127,12 +100,11 @@ class SelectShipmentRouteUseCaseTest {
         }
     }
 
-    private fun request(
-        service: ShipmentService
-    ) = ShipmentGroupRequest(
-        packages = emptyList(),
-        origin = origin,
-        destination = destination,
-        service = service
-    )
+    private fun request(service: ShipmentService) =
+        ShipmentGroupRequest(
+            packages = emptyList(),
+            origin = origin,
+            destination = destination,
+            service = service
+        )
 }

@@ -19,8 +19,9 @@ class AddVehicleToHubUseCaseTest {
     private val warehouse = Warehouse("WH-001", "Central Hub", "NORTH", 31.5, 34.5)
     private val vehicle = Vehicle("TRK-0001", 1000.0, 2.5, warehouse)
 
+
     @Test
-    fun `should add vehicle to hub successfully`() = runTest {
+    fun `should return the vehicle when repository adds it successfully`() = runTest {
         // Given
         coEvery { vehicleRepository.addVehicle(vehicle) } returns vehicle
 
@@ -28,20 +29,19 @@ class AddVehicleToHubUseCaseTest {
         val result = useCase(vehicle)
 
         // Then
-        assertTrue(result.isSuccess)
-        assertEquals(vehicle, result.getOrNull())
+        assertEquals(Result.success(vehicle), result)
     }
 
     @Test
-    fun `should return failure when repository fails`() = runTest {
+    fun `should return repository error when adding the vehicle fails`() = runTest {
         // Given
-        coEvery { vehicleRepository.addVehicle(vehicle) } throws RuntimeException("Database error")
+        val error = RuntimeException("Database error")
+        coEvery { vehicleRepository.addVehicle(vehicle) } throws error
 
         // When
         val result = useCase(vehicle)
 
         // Then
-        assertTrue(result.isFailure)
-        assertEquals("Database error", result.exceptionOrNull()?.message)
+        assertEquals(Result.failure(error), result)
     }
 }

@@ -7,51 +7,126 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class AssignPackagesToVehiclesUseCaseTest {
 
     private val useCase = AssignPackagesToVehiclesUseCase()
 
-    private val warehouseA = Warehouse("WH-001", "Central Hub", "NORTH", 31.5, 34.5)
-    private val warehouseB = Warehouse("WH-002", "East Hub", "EAST", 31.6, 34.6)
+    private val origin = Warehouse(
+        "WH-001",
+        "Origin",
+        "NORTH",
+        31.5,
+        34.5
+    )
 
-    private val vehicle1 = Vehicle("TRK-0001", 1000.0, 2.5, warehouseA)
-    private val vehicle2 = Vehicle("TRK-0002", 800.0, 2.0, warehouseA)
+    private val destination = Warehouse(
+        "WH-002",
+        "Destination",
+        "EAST",
+        31.6,
+        34.6
+    )
+
+    private val vehicles = listOf(
+        Vehicle("TRK-0001", 1000.0, 2.5, origin),
+        Vehicle("TRK-0002", 1000.0, 2.5, origin),
+        Vehicle("TRK-0003", 1000.0, 2.5, origin),
+        Vehicle("TRK-0004", 1000.0, 2.5, origin)
+    )
 
     @Test
-    fun `should assign packages to vehicles using assignment ring`() {
+    fun `should assign packages to their expected ring vehicles`() {
         // Given
-        val package1 = Package("PKG-000001", 50.0, warehouseA, warehouseB, Priority.STANDARD)
-        val package2 = Package("PKG-000002", 30.0, warehouseA, warehouseB, Priority.URGENT)
-        val packages = listOf(package1, package2)
-        val vehicles = listOf(vehicle1, vehicle2)
+        val packageForSecondVehicle = packageItem("PKG-000011")
+        val packageForThirdVehicle = packageItem("PKG-000036")
+        val packageForFourthVehicle = packageItem("PKG-000061")
+        val packageForFirstVehicleAfterWrap = packageItem("PKG-000086")
+
+        val packages = listOf(
+            packageForSecondVehicle,
+            packageForThirdVehicle,
+            packageForFourthVehicle,
+            packageForFirstVehicleAfterWrap
+        )
 
         // When
         val result = useCase(packages, vehicles)
 
         // Then
-        assertNotNull(result)
-        assertEquals(2, result.keys.size)
-        assertTrue(result.containsKey(vehicle1))
-        assertTrue(result.containsKey(vehicle2))
-        val totalAssignedPackages = result.values.sumOf { it.size }
-        assertEquals(2, totalAssignedPackages)
+        assertEquals(
+            mapOf(
+                vehicles[0] to listOf(packageForFirstVehicleAfterWrap),
+                vehicles[1] to listOf(packageForSecondVehicle),
+                vehicles[2] to listOf(packageForThirdVehicle),
+                vehicles[3] to listOf(packageForFourthVehicle)
+            ),
+            result
+        )
     }
 
     @Test
-    fun `should return empty package lists for vehicles when no packages provided`() {
+    fun `should return an empty assignment for every vehicle when no packages are provided`() {
         // Given
         val packages = emptyList<Package>()
-        val vehicles = listOf(vehicle1, vehicle2)
 
         // When
         val result = useCase(packages, vehicles)
 
         // Then
-        assertEquals(2, result.keys.size)
-        assertTrue(result.getValue(vehicle1).isEmpty())
-        assertTrue(result.getValue(vehicle2).isEmpty())
+        assertEquals(
+            vehicles.associateWith { emptyList() },
+            result
+        )
     }
+
+    @Test
+    fun `should return an empty map when there are no packages or vehicles`() {
+        // Given
+        val packages = emptyList<Package>()
+        val noVehicles = emptyList<Vehicle>()
+
+        // When
+        val result = useCase(packages, noVehicles)
+
+        // Then
+        assertEquals(emptyMap(), result)
+    }
+
+    @Test
+    fun `should reject packages when no vehicles are available`() {
+        // Given
+        val packages = listOf(packageItem("PKG-000001"))
+        val noVehicles = emptyList<Vehicle>()
+
+        // When / Then
+        assertFailsWith<IllegalArgumentException> {
+            useCase(packages, noVehicles)
+        }
+    }
+
+    @Test
+    fun `should reject more vehicles than the assignment ring supports`() {
+        // Given
+        val tooManyVehicles = vehicles + Vehicle(
+            "TRK-0005",
+            1000.0,
+            2.5,
+            origin
+        )
+
+        // When / Then
+        assertFailsWith<IllegalArgumentException> {
+            useCase(emptyList(), tooManyVehicles)
+        }
+    }
+
+    private fun packageItem(id: String) = Package(
+        id = id,
+        weight = 10.0,
+        origin = origin,
+        destination = destination,
+        priority = Priority.STANDARD
+    )
 }
