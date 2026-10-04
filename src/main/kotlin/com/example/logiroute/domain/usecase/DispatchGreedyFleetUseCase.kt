@@ -1,9 +1,20 @@
-package com.example.logiroute.domain.algorithm
+package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.dispatch.DispatchResult
 import com.example.logiroute.domain.model.dispatch.VehicleCoverage
 
-class GreedyFleetDispatcher {
+class DispatchGreedyFleetUseCase {
+    private val dispatcher = GreedyFleetDispatcher()
+
+    operator fun invoke(
+        targetZones: Set<String>,
+        vehicles: List<VehicleCoverage>
+    ): DispatchResult {
+        return dispatcher.dispatch(targetZones, vehicles)
+    }
+}
+
+private class GreedyFleetDispatcher {
     fun dispatch(
         targetZones: Set<String>,
         vehicles: List<VehicleCoverage>
@@ -22,7 +33,6 @@ class GreedyFleetDispatcher {
         selectedVehicleIds: List<String>,
         coveredZones: Set<String>
     ): DispatchResult {
-
         val bestVehicle = remainingVehicles.maxByOrNull { vehicle ->
             vehicle.coveredZones.count { zone -> zone in remainingZones }
         }

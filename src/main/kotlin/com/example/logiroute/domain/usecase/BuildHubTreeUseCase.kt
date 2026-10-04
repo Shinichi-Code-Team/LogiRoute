@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.algorithm.tree
+package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubHierarchyRaw
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubNode
@@ -6,19 +6,16 @@ import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 
-class HubTreeBuilder {
-
-    fun buildTree(
+class BuildHubTreeUseCase {
+    operator fun invoke(
         warehouses: List<Warehouse>,
         hierarchy: List<HubHierarchyRaw>
     ): HubNode {
-
         val warehouseMap = warehouses.associateBy { it.id }
 
-        val rootRaw = hierarchy.first {
-            it.hubType == HubType.GLOBAL_HUB &&
-                    it.parentWarehouseId == null
-        }
+        val rootRaw = hierarchy.firstOrNull {
+            it.hubType == HubType.GLOBAL_HUB && it.parentWarehouseId == null
+        } ?: throw LogisticsException.RootHubNotFoundException()
 
         return buildNode(
             raw = rootRaw,
@@ -34,9 +31,9 @@ class HubTreeBuilder {
         hierarchy: List<HubHierarchyRaw>,
         parent: HubNode?
     ): HubNode {
-
         val warehouse = warehouseMap[raw.warehouseId]
             ?: throw LogisticsException.WarehouseNotFoundException(raw.warehouseId)
+
         validateParentChildRelationship(
             parent = parent,
             childType = raw.hubType
@@ -72,14 +69,9 @@ class HubTreeBuilder {
         if (parent == null) return
 
         val validRelationship = when (parent.hubType) {
-            HubType.GLOBAL_HUB ->
-                childType == HubType.REGIONAL_CENTER
-
-            HubType.REGIONAL_CENTER ->
-                childType == HubType.LOCAL_DEPOT
-
-            HubType.LOCAL_DEPOT ->
-                false
+            HubType.GLOBAL_HUB -> childType == HubType.REGIONAL_CENTER
+            HubType.REGIONAL_CENTER -> childType == HubType.LOCAL_DEPOT
+            HubType.LOCAL_DEPOT -> false
         }
 
         if (!validRelationship) {
