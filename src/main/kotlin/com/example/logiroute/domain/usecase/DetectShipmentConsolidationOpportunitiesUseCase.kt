@@ -25,18 +25,28 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         }
     }
 
-     private suspend fun buildOpportunityForPackage(
+    private suspend fun buildOpportunityForPackage(
         mainPackage: Package,
         currentWarehouse: Warehouse
     ): ConsolidationOpportunityRequest? {
         val route = findOptimalPathUseCase(
             source = currentWarehouse,
             destination = mainPackage.destination
-        ) ?: return null
+        )
 
-        val compatiblePackages = findCompatiblePackages(mainPackage, currentWarehouse, route)
+        if (route.isEmpty()) {
+            return null
+        }
 
-        if (compatiblePackages.isEmpty()) return null
+        val compatiblePackages = findCompatiblePackages(
+            mainPackage = mainPackage,
+            currentWarehouse = currentWarehouse,
+            mainRoute = route
+        )
+
+        if (compatiblePackages.isEmpty()) {
+            return null
+        }
 
         return ConsolidationOpportunityRequest(
             mainPackage = mainPackage,
@@ -64,7 +74,11 @@ class DetectShipmentConsolidationOpportunitiesUseCase(
         val candidateRoute = findOptimalPathUseCase(
             source = currentWarehouse,
             destination = candidatePackage.destination
-        ) ?: return false
+        )
+
+        if (candidateRoute.isEmpty()) {
+            return false
+        }
 
         return mainRoute.containsAll(candidateRoute)
     }

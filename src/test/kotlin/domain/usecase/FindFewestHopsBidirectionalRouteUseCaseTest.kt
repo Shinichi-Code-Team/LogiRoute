@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.FindFewestHopsRouteUseCase
+import com.example.logiroute.domain.usecase.FindFewestHopsBidirectionalRouteUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -12,12 +12,12 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class FindFewestHopsRouteUseCaseTest {
+class FindFewestHopsBidirectionalRouteUseCaseTest {
 
     private val warehouseRepository: WarehouseRepository = mockk()
     private val routeRepository: RouteRepository = mockk()
 
-    private val useCase = FindFewestHopsRouteUseCase(
+    private val useCase = FindFewestHopsBidirectionalRouteUseCase(
         warehouseRepository = warehouseRepository,
         routeRepository = routeRepository
     )
@@ -31,10 +31,22 @@ class FindFewestHopsRouteUseCaseTest {
     private val warehouseC =
         Warehouse("WH-003", "South Hub", "SOUTH", 31.4, 34.4)
 
+    private val warehouseD =
+        Warehouse("WH-004", "West Hub", "WEST", 31.3, 34.3)
+
+    private val warehouseE =
+        Warehouse("WH-005", "Remote Hub", "NORTH", 31.7, 34.7)
+
     private fun givenGraph(
         routes: List<Route>,
         warehouses: List<Warehouse> =
-            listOf(warehouseA, warehouseB, warehouseC)
+            listOf(
+                warehouseA,
+                warehouseB,
+                warehouseC,
+                warehouseD,
+                warehouseE
+            )
     ) {
         coEvery {
             warehouseRepository.getAllWarehouses()
@@ -62,31 +74,55 @@ class FindFewestHopsRouteUseCaseTest {
         }
 
     @Test
-    fun `should find indirect path when no direct route exists`() = runTest {
-        givenGraph(
-            routes = listOf(
-                Route("RT-00001", warehouseA, warehouseB, 2.0, 1),
-                Route("RT-00002", warehouseB, warehouseC, 3.0, 1)
+    fun `should reconstruct path without duplicating meeting point`() =
+        runTest {
+            givenGraph(
+                routes = listOf(
+                    Route("RT-00001", warehouseA, warehouseB, 2.0, 1),
+                    Route("RT-00002", warehouseB, warehouseC, 2.0, 1),
+                    Route("RT-00003", warehouseC, warehouseD, 2.0, 1)
+                )
             )
-        )
 
-        val path = useCase(warehouseA, warehouseC)
+            val path = useCase(warehouseA, warehouseD)
 
-        assertEquals(
-            listOf(warehouseA, warehouseB, warehouseC),
-            path
-        )
-    }
+            assertEquals(
+                listOf(warehouseA, warehouseB, warehouseC, warehouseD),
+                path
+            )
+        }
+
+    @Test
+    fun `should choose shorter path when longer branch appears first`() =
+        runTest {
+            givenGraph(
+                routes = listOf(
+                    Route("RT-00001", warehouseA, warehouseB, 1.0, 1),
+                    Route("RT-00002", warehouseB, warehouseC, 1.0, 1),
+                    Route("RT-00003", warehouseC, warehouseE, 1.0, 1),
+                    Route("RT-00004", warehouseA, warehouseD, 10.0, 1),
+                    Route("RT-00005", warehouseD, warehouseE, 10.0, 1)
+                )
+            )
+
+            val path = useCase(warehouseA, warehouseE)
+
+            assertEquals(
+                listOf(warehouseA, warehouseD, warehouseE),
+                path
+            )
+        }
 
     @Test
     fun `should return empty path when destination is unreachable`() = runTest {
         givenGraph(
             routes = listOf(
-                Route("RT-00001", warehouseA, warehouseB, 2.0, 1)
+                Route("RT-00001", warehouseA, warehouseB, 2.0, 1),
+                Route("RT-00002", warehouseC, warehouseD, 2.0, 1)
             )
         )
 
-        val path = useCase(warehouseA, warehouseC)
+        val path = useCase(warehouseA, warehouseD)
 
         assertTrue(path.isEmpty())
     }
@@ -109,14 +145,15 @@ class FindFewestHopsRouteUseCaseTest {
             routes = listOf(
                 Route("RT-00001", warehouseA, warehouseB, 2.0, 1),
                 Route("RT-00002", warehouseB, warehouseA, 2.0, 1),
-                Route("RT-00003", warehouseB, warehouseC, 3.0, 1)
+                Route("RT-00003", warehouseB, warehouseC, 2.0, 1),
+                Route("RT-00004", warehouseC, warehouseD, 2.0, 1)
             )
         )
 
-        val path = useCase(warehouseA, warehouseC)
+        val path = useCase(warehouseA, warehouseD)
 
         assertEquals(
-            listOf(warehouseA, warehouseB, warehouseC),
+            listOf(warehouseA, warehouseB, warehouseC, warehouseD),
             path
         )
     }
@@ -130,6 +167,30 @@ class FindFewestHopsRouteUseCaseTest {
         )
 
         val path = useCase(warehouseB, warehouseA)
+
+        assertTrue(path.isEmpty())
+    }
+
+    @Test
+    fun `should return empty path when source is missing`() = runTest {
+        givenGraph(
+            routes = emptyList(),
+            warehouses = listOf(warehouseB, warehouseC)
+        )
+
+        val path = useCase(warehouseA, warehouseC)
+
+        assertTrue(path.isEmpty())
+    }
+
+    @Test
+    fun `should return empty path when destination is missing`() = runTest {
+        givenGraph(
+            routes = emptyList(),
+            warehouses = listOf(warehouseA, warehouseB)
+        )
+
+        val path = useCase(warehouseA, warehouseC)
 
         assertTrue(path.isEmpty())
     }
@@ -160,28 +221,4 @@ class FindFewestHopsRouteUseCaseTest {
 
             assertEquals(listOf(warehouseA, warehouseB), path)
         }
-
-    @Test
-    fun `should return empty path when source is missing`() = runTest {
-        givenGraph(
-            routes = emptyList(),
-            warehouses = listOf(warehouseB, warehouseC)
-        )
-
-        val path = useCase(warehouseA, warehouseC)
-
-        assertTrue(path.isEmpty())
-    }
-
-    @Test
-    fun `should return empty path when destination is missing`() = runTest {
-        givenGraph(
-            routes = emptyList(),
-            warehouses = listOf(warehouseA, warehouseB)
-        )
-
-        val path = useCase(warehouseA, warehouseC)
-
-        assertTrue(path.isEmpty())
-    }
 }

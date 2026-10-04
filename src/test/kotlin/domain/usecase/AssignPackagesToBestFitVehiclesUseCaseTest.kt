@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
@@ -6,6 +6,8 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.result.VehicleUtilization
+import com.example.logiroute.domain.usecase.AssignPackagesToBestFitVehiclesUseCase
+import com.example.logiroute.domain.usecase.CalculateVehicleUtilizationUseCase
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test

@@ -1,5 +1,4 @@
-package com.example.logiroute.domain.usecase
-
+package domain.usecase
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Vehicle
@@ -9,13 +8,14 @@ import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequ
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.DetectEmergencyCargoRescueOpportunitiesUseCase
+import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class DetectEmergencyCargoRescueOpportunitiesUseCaseTest {
 
@@ -33,8 +33,8 @@ class DetectEmergencyCargoRescueOpportunitiesUseCaseTest {
 
     private val warehouseA = Warehouse("WH-001", "Central Hub", "NORTH", 31.5, 34.5)
     private val warehouseB = Warehouse("WH-002", "East Hub", "EAST", 31.6, 34.6)
-    private val urgentPackage = Package("PKG-001", 50.0, warehouseA, warehouseB, Priority.URGENT)
-    private val vehicle = Vehicle("TRK-001", 1000.0, 2.5, warehouseA)
+    private val urgentPackage = Package("PKG-000001", 50.0, warehouseA, warehouseB, Priority.URGENT)
+    private val vehicle = Vehicle("TRK-0001", 1000.0, 2.5, warehouseA)
 
     @Test
     fun `should return rescue opportunities when warehouse, urgent packages, vehicles, and route exist`() = runTest {
@@ -73,7 +73,7 @@ class DetectEmergencyCargoRescueOpportunitiesUseCaseTest {
     fun `should throw NoUrgentPackagesException when no urgent packages exist at warehouse`() = runTest {
         // Given
         val request = DetectEmergencyCargoRescueRequest("WH-001")
-        val standardPackage = Package("PKG-002", 30.0, warehouseA, warehouseB, Priority.STANDARD)
+        val standardPackage = Package("PKG-000002", 30.0, warehouseA, warehouseB, Priority.STANDARD)
         coEvery { warehouseRepository.getAllWarehouses() } returns listOf(warehouseA)
         coEvery { packageRepository.getAllPackages() } returns listOf(standardPackage)
 

@@ -1,6 +1,7 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
 import com.example.logiroute.domain.model.dispatch.VehicleCoverage
+import com.example.logiroute.domain.usecase.DispatchGreedyFleetUseCase
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

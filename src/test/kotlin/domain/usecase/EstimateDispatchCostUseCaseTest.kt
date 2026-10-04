@@ -1,8 +1,9 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.result.RouteEvaluationResult
+import com.example.logiroute.domain.usecase.EstimateDispatchCostUseCase
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

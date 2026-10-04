@@ -1,17 +1,15 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.algorithm.routing.BfsRouter
-import com.example.logiroute.domain.algorithm.routing.DijkstraRouter
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.ShipmentGroupRequest
 import com.example.logiroute.domain.model.request.ShipmentService
 import com.example.logiroute.domain.model.result.ShipmentRouteResult
-import com.example.logiroute.domain.model.exceptions.LogisticsException
 
 class SelectShipmentRouteUseCase(
-    private val distanceRouter: DijkstraRouter,
-    private val delayRouter: DijkstraRouter,
-    private val bfsRouter: BfsRouter
+    private val distancePathUseCase: FindOptimalPathUseCase,
+    private val delayPathUseCase: FindOptimalPathUseCase,
+    private val fewestHopsRouteUseCase: FindFewestHopsRouteUseCase
 ) {
 
     suspend operator fun invoke(
@@ -22,15 +20,14 @@ class SelectShipmentRouteUseCase(
 
         if (path.isEmpty()) {
             throw LogisticsException.RouteNotFoundException(
-                "No route found from ${shipment.origin.id} to ${shipment.destination.id}"
+                "No route found from ${shipment.origin.id} " +
+                        "to ${shipment.destination.id}"
             )
         }
 
-        val objective = selectRoutingObjective(shipment.service)
-
         return ShipmentRouteResult(
             path = path,
-            routingObjective = objective
+            routingObjective = selectRoutingObjective(shipment.service)
         )
     }
 
@@ -39,21 +36,20 @@ class SelectShipmentRouteUseCase(
     ): List<Warehouse> {
 
         return when (shipment.service) {
-
             ShipmentService.ECO ->
-                distanceRouter.findRoute(
+                distancePathUseCase(
                     source = shipment.origin,
                     destination = shipment.destination
                 )
 
             ShipmentService.EXPRESS ->
-                delayRouter.findRoute(
+                delayPathUseCase(
                     source = shipment.origin,
                     destination = shipment.destination
                 )
 
             ShipmentService.FRAGILE ->
-                bfsRouter.findRoute(
+                fewestHopsRouteUseCase(
                     source = shipment.origin,
                     destination = shipment.destination
                 )
@@ -65,15 +61,9 @@ class SelectShipmentRouteUseCase(
     ): String {
 
         return when (service) {
-
-            ShipmentService.ECO ->
-                "MIN_DISTANCE"
-
-            ShipmentService.EXPRESS ->
-                "MIN_EXPECTED_DELAY"
-
-            ShipmentService.FRAGILE ->
-                "MIN_HOPS"
+            ShipmentService.ECO -> "MIN_DISTANCE"
+            ShipmentService.EXPRESS -> "MIN_EXPECTED_DELAY"
+            ShipmentService.FRAGILE -> "MIN_HOPS"
         }
     }
 }
