@@ -4,6 +4,8 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -15,8 +17,11 @@ import kotlin.test.assertTrue
 class ReadVehicleUseCaseTest {
 
     private val repository = mockk<VehicleRepository>()
-    private val useCase = ReadVehicleUseCase(repository)
-
+    private val useCase = ReadVehicleUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
     @Test
     fun `valid id returns vehicle successfully`() = runTest {
         // Given

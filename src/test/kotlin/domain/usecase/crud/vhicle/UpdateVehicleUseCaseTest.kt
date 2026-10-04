@@ -5,6 +5,9 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.usecase.crud.vehicle.UpdateVehicleUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.VehicleUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,7 +20,11 @@ import kotlin.test.assertTrue
 class UpdateVehicleUseCaseTest {
 
     private val repository = mockk<VehicleRepository>()
-    private val validator = VehicleUpdateValidator()
+    private val validator = VehicleUpdateValidator(
+        atLeastOneFieldValidator = AtLeastOneFieldValidator(),
+        validationRules = ValidationRules(),
+        validationResultMapper = ValidationResultMapper()
+    )
 
     private val useCase = UpdateVehicleUseCase(
         repository,

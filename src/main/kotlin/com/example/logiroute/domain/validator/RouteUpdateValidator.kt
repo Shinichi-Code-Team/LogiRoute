@@ -3,12 +3,13 @@ package com.example.logiroute.domain.validator
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
-import com.example.logiroute.domain.validation.toValidationResult
 
 class RouteUpdateValidator(
-    private val atLeastOneFieldValidator: AtLeastOneFieldValidator =
-        AtLeastOneFieldValidator()
+    private val atLeastOneFieldValidator: AtLeastOneFieldValidator,
+    private val validationRules: ValidationRules,
+    private val validationResultMapper: ValidationResultMapper
 ) : Validator<RouteUpdateValidator.inputValidator> {
 
     data class inputValidator(
@@ -21,33 +22,33 @@ class RouteUpdateValidator(
     ): ValidationResult {
 
         val errors = listOfNotNull(
-            ValidationRules.validateRouteId(
+            validationRules.validateRouteId(
                 value = value.id
             ),
 
             value.update.originHubId?.let {
-                ValidationRules.validateWarehouseId(
+                validationRules.validateWarehouseId(
                     value = it,
                     field = ValidationField.ORIGIN_HUB_ID
                 )
             },
 
             value.update.destinationHubId?.let {
-                ValidationRules.validateWarehouseId(
+                validationRules.validateWarehouseId(
                     value = it,
                     field = ValidationField.DESTINATION_HUB_ID
                 )
             },
 
             value.update.distanceKm?.let {
-                ValidationRules.validatePositiveDouble(
+                validationRules.validatePositiveDouble(
                     value = it,
                     field = ValidationField.DISTANCE_KM
                 )
             },
 
             value.update.typicalDelayMin?.let {
-                ValidationRules.validateNonNegativeInt(
+                validationRules.validateNonNegativeInt(
                     value = it,
                     field = ValidationField.TYPICAL_DELAY_MIN
                 )
@@ -63,6 +64,5 @@ class RouteUpdateValidator(
             )
         )
 
-        return errors.toValidationResult()
-    }
+        return validationResultMapper.map(errors)    }
 }

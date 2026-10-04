@@ -13,25 +13,26 @@ data class Route(
 ) {
 
     init {
+        val validationRules = ValidationRules()
         val errors = listOfNotNull(
-            ValidationRules.validateRouteId(id),
+            validationRules.validateRouteId(id),
 
-            ValidationRules.validateWarehouseId(
+            validationRules.validateWarehouseId(
                 value = origin.id,
                 field = ValidationField.ORIGIN_HUB_ID
             ),
 
-            ValidationRules.validateWarehouseId(
+            validationRules.validateWarehouseId(
                 value = destination.id,
                 field = ValidationField.DESTINATION_HUB_ID
             ),
 
-            ValidationRules.validatePositiveDouble(
+            validationRules.validatePositiveDouble(
                 value = distanceKm,
                 field = ValidationField.DISTANCE_KM
             ),
 
-            ValidationRules.validateNonNegativeInt(
+            validationRules.validateNonNegativeInt(
                 value = typicalDelayMin,
                 field = ValidationField.TYPICAL_DELAY_MIN
             )

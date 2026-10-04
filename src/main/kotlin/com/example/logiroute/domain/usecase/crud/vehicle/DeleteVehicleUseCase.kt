@@ -3,17 +3,20 @@ package com.example.logiroute.domain.usecase.crud.vehicle
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
-import com.example.logiroute.domain.validation.toValidationResult
 
 class DeleteVehicleUseCase(
-    private val vehicleRepository: VehicleRepository
+    private val vehicleRepository: VehicleRepository,
+    private val validationRules: ValidationRules,
+    private val validationResultMapper: ValidationResultMapper
 ) {
 
     suspend operator fun invoke(id: String): Result<Unit> {
-        val validationResult = listOfNotNull(
-            ValidationRules.validateVehicleId(id)
-        ).toValidationResult()
+        val errors = listOfNotNull(
+            validationRules.validateVehicleId(id)
+        )
+        val validationResult = validationResultMapper.map(errors)
 
         return when (validationResult) {
             ValidationResult.Valid ->

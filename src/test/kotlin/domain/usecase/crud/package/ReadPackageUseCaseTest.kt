@@ -5,6 +5,8 @@ import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -16,8 +18,11 @@ import kotlin.test.assertTrue
 
 class ReadPackageUseCaseTest {
     private val repository = mockk<PackageRepository>()
-    private val useCase = ReadPackageUseCase(repository)
-
+    private val useCase = ReadPackageUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
     private val id = "PKG-123456"
     private val warehouse = Warehouse("WH-123", "Main Hub", "WEST", 31.5, 34.5)
     private val packageItem = Package(

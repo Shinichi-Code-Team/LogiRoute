@@ -3,12 +3,13 @@ package com.example.logiroute.domain.validator
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
-import com.example.logiroute.domain.validation.toValidationResult
 
 class PackageUpdateValidator(
-    private val atLeastOneFieldValidator: AtLeastOneFieldValidator =
-        AtLeastOneFieldValidator()
+    private val atLeastOneFieldValidator: AtLeastOneFieldValidator,
+    private val validationRules: ValidationRules,
+    private val validationResultMapper: ValidationResultMapper
 ) : Validator<PackageUpdateValidator.inputValidator> {
 
     data class inputValidator(
@@ -21,26 +22,26 @@ class PackageUpdateValidator(
     ): ValidationResult {
 
         val errors = listOfNotNull(
-            ValidationRules.validatePackageId(
+            validationRules.validatePackageId(
                 value = value.id
             ),
 
             value.update.weight?.let {
-                ValidationRules.validatePositiveDouble(
+                validationRules.validatePositiveDouble(
                     value = it,
                     field = ValidationField.WEIGHT
                 )
             },
 
             value.update.originHubId?.let {
-                ValidationRules.validateWarehouseId(
+                validationRules.validateWarehouseId(
                     value = it,
                     field = ValidationField.ORIGIN_HUB_ID
                 )
             },
 
             value.update.destinationHubId?.let {
-                ValidationRules.validateWarehouseId(
+                validationRules.validateWarehouseId(
                     value = it,
                     field = ValidationField.DESTINATION_HUB_ID
                 )
@@ -56,6 +57,6 @@ class PackageUpdateValidator(
             )
         )
 
-        return errors.toValidationResult()
+        return validationResultMapper.map(errors)
     }
 }

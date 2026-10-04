@@ -4,6 +4,9 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.crud.warehouse.UpdateWarehouseUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.WarehouseUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -16,7 +19,11 @@ import kotlin.test.assertTrue
 class UpdateWarehouseUseCaseTest {
 
     private val repository = mockk<WarehouseRepository>()
-    private val validator = WarehouseUpdateValidator()
+    private val validator = WarehouseUpdateValidator(
+        atLeastOneFieldValidator = AtLeastOneFieldValidator(),
+        validationRules = ValidationRules(),
+        validationResultMapper = ValidationResultMapper()
+    )
 
     private val useCase = UpdateWarehouseUseCase(
         repository,

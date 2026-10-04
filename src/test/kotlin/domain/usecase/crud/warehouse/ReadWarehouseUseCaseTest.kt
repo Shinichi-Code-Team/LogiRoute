@@ -3,6 +3,8 @@ package domain.usecase.crud.warehouse
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -14,8 +16,11 @@ import kotlin.test.assertTrue
 class ReadWarehouseUseCaseTest {
 
     private val repository = mockk<WarehouseRepository>()
-    private val useCase = ReadWarehouseUseCase(repository)
-
+    private val useCase = ReadWarehouseUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
     @Test
     fun `valid id returns warehouse successfully`() = runTest {
         // Given

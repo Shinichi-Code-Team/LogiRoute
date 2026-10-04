@@ -5,13 +5,20 @@ import com.example.logiroute.domain.validation.ValidationError
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationReason
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.PackageUpdateValidator
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class PackageUpdateValidatorTest {
 
-    private val validator = PackageUpdateValidator()
+    private val validator = PackageUpdateValidator(
+        atLeastOneFieldValidator = AtLeastOneFieldValidator(),
+        validationRules = ValidationRules(),
+        validationResultMapper = ValidationResultMapper()
+    )
 
     @Test
     fun `valid package update passes`() {
@@ -31,7 +38,7 @@ class PackageUpdateValidatorTest {
                 ValidationField.WEIGHT,
                 ValidationReason.MUST_BE_POSITIVE
             ),
-            UpdatePackageInput(originHubId = "bad-id") to ValidationError(
+            UpdatePackageInput(originHubId = "WH-id") to ValidationError(
                 ValidationField.ORIGIN_HUB_ID,
                 ValidationReason.INVALID_FORMAT
             ),
@@ -57,7 +64,7 @@ class PackageUpdateValidatorTest {
     fun `invalid package id returns error`() {
         // Given
         val input = PackageUpdateValidator.inputValidator(
-            id = "wrong-id",
+            id = "WH-id",
             update = UpdatePackageInput(weight = 10.0)
         )
         val result = validator.validate(input)

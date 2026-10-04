@@ -5,6 +5,9 @@ import com.example.logiroute.domain.validation.ValidationError
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationReason
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.RouteUpdateValidator
 
 import org.junit.jupiter.api.Test
@@ -12,7 +15,11 @@ import kotlin.test.assertEquals
 
 class RouteUpdateValidatorTest {
 
-    private val validator = RouteUpdateValidator()
+    private val validator = RouteUpdateValidator(
+        atLeastOneFieldValidator = AtLeastOneFieldValidator(),
+        validationRules = ValidationRules(),
+        validationResultMapper = ValidationResultMapper()
+    )
 
     @Test
     fun `valid route update passes`() {
