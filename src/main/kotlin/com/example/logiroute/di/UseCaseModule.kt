@@ -1,12 +1,7 @@
 package com.example.logiroute.di
 
 import AddVehicleToHubUseCase
-import com.example.logiroute.domain.usecase.AssignPackagesToVehiclesUseCase
-import com.example.logiroute.domain.usecase.ReassignPackagesAfterBreakdownUseCase
 import com.example.logiroute.com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
-import com.example.logiroute.domain.algorithm.routing.BfsRouter
-import com.example.logiroute.domain.algorithm.routing.DijkstraRouter
-import com.example.logiroute.domain.algorithm.routing.PathConstructor
 import com.example.logiroute.domain.pricingPackage.basepricing.EcoStrategy
 import com.example.logiroute.domain.pricingPackage.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.usecase.*
@@ -19,32 +14,38 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val useCaseModule = module {
-    single { PathConstructor() }
 
-    single {
-        DijkstraRouter(
+    factory {
+        FindOptimalPathUseCase(
             warehousesRepository = get(),
-            pathConstructor = get(),
+            routeRepository = get(),
             routeWeight = { route -> route.distanceKm }
         )
     }
 
-    single(named("delayRouter")) {
-        DijkstraRouter(
+    factory(named("delayRouter")) {
+        FindOptimalPathUseCase(
             warehousesRepository = get(),
-            pathConstructor = get(),
-            routeWeight = { route -> route.typicalDelayMin.toDouble() }
+            routeRepository = get(),
+            routeWeight = { route ->
+                route.typicalDelayMin.toDouble()
+            }
         )
     }
 
-    single {
-        BfsRouter(
-            warehouseRepository = get(),
-            pathConstructor = get()
+    factoryOf(::FindFewestHopsRouteUseCase)
+    factoryOf(::FindFewestHopsBidirectionalRouteUseCase)
+
+    factory {
+        SelectShipmentRouteUseCase(
+            distancePathUseCase = get(),
+            delayPathUseCase = get(named("delayRouter")),
+            fewestHopsRouteUseCase = get()
         )
     }
 
     single { RoutePricingEngine(EcoStrategy()) }
+
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)
     factoryOf(::AssignPackagesToBestFitVehiclesUseCase)
@@ -61,15 +62,16 @@ val useCaseModule = module {
     factoryOf(::EvaluateRouteUseCase)
     factoryOf(::ExecuteEmergencyCargoPrioritizationUseCase)
     factoryOf(::FindBackhaulCandidatesUseCase)
-    factoryOf(::FindFewestHopsRouteUseCase)
-    factoryOf(::FindOptimalPathUseCase)
     factoryOf(::FindStationedVehiclesByCapacityUseCase)
     factoryOf(::GetWarehouseLoadFactorUseCase)
     factoryOf(::OptimizeBackhaulUseCase)
+    factoryOf(::OptimizeCargoPackingUseCase)
     factoryOf(::PrioritizeShipmentConsolidationUseCase)
     factoryOf(::ReassignPackagesAfterBreakdownUseCase)
     factoryOf(::RebalanceVehicleLoadsUseCase)
     factoryOf(::RoutePackageUseCase)
+    factoryOf(::SortPackagesByPriorityAndWeightUseCase)
+    factoryOf(::SortCargoQueueByWeightUseCase)
     factoryOf(::TraceHubLineageUseCase)
     factoryOf(::ValidatePackagesAgainstFinalRouteUseCase)
 
@@ -77,9 +79,7 @@ val useCaseModule = module {
     factoryOf(::DeletePackageUseCase)
     factoryOf(::ReadPackageUseCase)
     factoryOf(::UpdatePackageUseCase)
-    factoryOf(::OptimizeCargoPackingUseCase)
-    factoryOf(::SortPackagesByPriorityAndWeightUseCase)
-    factoryOf(::SortCargoQueueByWeightUseCase)
+
     factoryOf(::CreateRouteUseCase)
     factoryOf(::DeleteRouteUseCase)
     factoryOf(::ReadRouteUseCase)
@@ -94,11 +94,4 @@ val useCaseModule = module {
     factoryOf(::DeleteWarehouseUseCase)
     factoryOf(::ReadWarehouseUseCase)
     factoryOf(::UpdateWarehouseUseCase)
-    factory {
-        SelectShipmentRouteUseCase(
-            distanceRouter = get(),
-            delayRouter = get(named("delayRouter")),
-            bfsRouter = get()
-        )
-    }
 }
