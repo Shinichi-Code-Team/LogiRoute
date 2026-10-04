@@ -15,38 +15,60 @@ class PrioritizeShipmentConsolidationUseCaseTest {
         SortPackagesByPriorityAndWeightUseCase()
     )
 
-    private val warehouseA =
-        Warehouse("WH-001", "Central Hub", "NORTH", 31.5, 34.5)
+    private val origin = Warehouse(
+        "WH-001",
+        "Origin",
+        "NORTH",
+        31.5,
+        34.5
+    )
 
-    private val warehouseB =
-        Warehouse("WH-002", "East Hub", "EAST", 31.6, 34.6)
+    private val destination = Warehouse(
+        "WH-002",
+        "Destination",
+        "EAST",
+        31.6,
+        34.6
+    )
 
     @Test
-    fun `prioritizes packages by priority then weight`() {
+    fun `should prioritize the main and compatible packages by priority and weight`() {
         // Given
-        val mainPackage = Package(
-            "PKG-000001", 50.0, warehouseA, warehouseB, Priority.STANDARD
+        val mainPackage = packageItem(
+            "PKG-000001",
+            50.0,
+            Priority.STANDARD
         )
-        val urgentHeavierPackage = Package(
-            "PKG-000002", 30.0, warehouseA, warehouseB, Priority.URGENT
+        val urgentHeavierPackage = packageItem(
+            "PKG-000002",
+            30.0,
+            Priority.URGENT
         )
-        val urgentLighterPackage = Package(
-            "PKG-000003", 20.0, warehouseA, warehouseB, Priority.URGENT
+        val urgentLighterPackage = packageItem(
+            "PKG-000003",
+            20.0,
+            Priority.URGENT
         )
-        val lowPriorityPackage = Package(
-            "PKG-000004", 10.0, warehouseA, warehouseB, Priority.LOW
+        val lowPriorityPackage = packageItem(
+            "PKG-000004",
+            10.0,
+            Priority.LOW
         )
 
-        val opportunity = ConsolidationOpportunityRequest(
+        val request = ConsolidationOpportunityRequest(
             mainPackage = mainPackage,
             compatiblePackages = listOf(
                 urgentHeavierPackage,
                 lowPriorityPackage,
                 urgentLighterPackage
             ),
-            sharedRoute = listOf(warehouseA, warehouseB)
+            sharedRoute = listOf(origin, destination)
         )
-        val result = useCase(opportunity)
+
+        // When
+        val result = useCase(request)
+
+        // Then
         assertEquals(
             listOf(
                 urgentLighterPackage,
@@ -57,4 +79,37 @@ class PrioritizeShipmentConsolidationUseCaseTest {
             result
         )
     }
+
+    @Test
+    fun `should return the main package when there are no compatible packages`() {
+        // Given
+        val mainPackage = packageItem(
+            "PKG-000001",
+            10.0,
+            Priority.STANDARD
+        )
+        val request = ConsolidationOpportunityRequest(
+            mainPackage = mainPackage,
+            compatiblePackages = emptyList(),
+            sharedRoute = listOf(origin, destination)
+        )
+
+        // When
+        val result = useCase(request)
+
+        // Then
+        assertEquals(listOf(mainPackage), result)
+    }
+
+    private fun packageItem(
+        id: String,
+        weight: Double,
+        priority: Priority
+    ) = Package(
+        id = id,
+        weight = weight,
+        origin = origin,
+        destination = destination,
+        priority = priority
+    )
 }

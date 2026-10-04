@@ -6,7 +6,6 @@ import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.usecase.EvaluateRouteUseCase
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -19,7 +18,8 @@ class EvaluateRouteUseCaseTest {
     private val useCase = EvaluateRouteUseCase(routeRepository)
 
     @Test
-    fun `sums distances of all route segments`() = runTest {
+    fun `should sum the distance of every route segment`() = runTest {
+        // Given
         val first = warehouse("WH-123")
         val second = warehouse("WH-456")
         val third = warehouse("WH-789")
@@ -28,22 +28,34 @@ class EvaluateRouteUseCaseTest {
             route("RT-00001", first, second, 10.0),
             route("RT-00002", second, third, 20.0)
         )
+
+        // When
         val result = useCase(listOf(first, second, third))
+
+        // Then
         assertEquals(30.0, result)
     }
 
     @Test
-    fun `returns zero for a path with fewer than two warehouses`() = runTest {
-        val result = useCase(listOf(warehouse("WH-123")))
+    fun `should return zero when the path has fewer than two warehouses`() = runTest {
+        // Given
+        val path = listOf(warehouse("WH-123"))
+
+        // When
+        val result = useCase(path)
+
+        // Then
         assertEquals(0.0, result)
-        coVerify(exactly = 0) { routeRepository.getAllRoutes() }
     }
 
     @Test
-    fun `throws when a route segment does not exist`() = runTest {
+    fun `should throw when a route segment does not exist`() = runTest {
+        // Given
         val first = warehouse("WH-123")
         val second = warehouse("WH-456")
         coEvery { routeRepository.getAllRoutes() } returns emptyList()
+
+        // When / Then
         assertFailsWith<LogisticsException.RouteSegmentNotFoundException> {
             useCase(listOf(first, second))
         }

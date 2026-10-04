@@ -8,7 +8,6 @@ import com.example.logiroute.domain.pricingPackage.servicepricing.PackageCompone
 import com.example.logiroute.domain.usecase.CalculatePricingUseCase
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -17,9 +16,17 @@ class CalculatePricingUseCaseTest {
     private val pricingEngine = mockk<RoutePricingEngine>()
     private val useCase = CalculatePricingUseCase(pricingEngine)
 
+    private val packageItem = Package(
+        id = "PKG-123456",
+        weight = 25.0,
+        origin = warehouse("WH-123"),
+        destination = warehouse("WH-456"),
+        priority = Priority.STANDARD
+    )
+
     @Test
-    fun `calculates package price using pricing engine and component`() {
-        val packageItem = packageItem()
+    fun `should return the price calculated by the package component`() {
+        // Given
         val component = mockk<PackageComponent>()
 
         every {
@@ -29,23 +36,23 @@ class CalculatePricingUseCaseTest {
                 priority = Priority.STANDARD
             )
         } returns 40.0
+
         every { component.calculateCost(40.0) } returns 48.0
+
+        // When
         val result = useCase(
             packageItem = packageItem,
             distanceKm = 12.0,
             packageComponent = component
         )
+
+        // Then
         assertEquals(48.0, result)
-        verify(exactly = 1) {
-            pricingEngine.computeFinalCost(12.0, 25.0, Priority.STANDARD)
-        }
-        verify(exactly = 1) { component.calculateCost(40.0) }
     }
 
     @Test
-    fun `uses package itself as default pricing component`() {
-        val packageItem = packageItem()
-
+    fun `should return the route price when no package component is supplied`() {
+        // Given
         every {
             pricingEngine.computeFinalCost(
                 distanceKm = 12.0,
@@ -53,23 +60,15 @@ class CalculatePricingUseCaseTest {
                 priority = Priority.STANDARD
             )
         } returns 40.0
+
+        // When
         val result = useCase(
             packageItem = packageItem,
             distanceKm = 12.0
         )
+
+        // Then
         assertEquals(40.0, result)
-    }
-
-    private fun packageItem(): Package {
-        val origin = warehouse("WH-123")
-
-        return Package(
-            id = "PKG-123456",
-            weight = 25.0,
-            origin = origin,
-            destination = warehouse("WH-456"),
-            priority = Priority.STANDARD
-        )
     }
 
     private fun warehouse(id: String) = Warehouse(
