@@ -50,10 +50,12 @@ val useCaseModule = module {
     factoryOf(::AssignPackagesToBestFitVehiclesUseCase)
     factoryOf(::AssignPackagesToVehiclesUseCase)
     factoryOf(::AssignPackageToCargoQueueUseCase)
+    factoryOf(::BuildHubTreeUseCase)
     factoryOf(::CalculatePricingUseCase)
     factoryOf(::CalculateVehicleUtilizationUseCase)
     factoryOf(::DetectEmergencyCargoRescueOpportunitiesUseCase)
     factoryOf(::DetectShipmentConsolidationOpportunitiesUseCase)
+    factoryOf(::DispatchGreedyFleetUseCase)
     factoryOf(::DispatchVehicleUseCase)
     factoryOf(::EstimateDispatchCostUseCase)
     factoryOf(::EvaluateRouteUseCase)
@@ -71,7 +73,6 @@ val useCaseModule = module {
     factoryOf(::TraceHubLineageUseCase)
     factoryOf(::ValidatePackagesAgainstFinalRouteUseCase)
 
-    // CRUD use cases
     factoryOf(::CreatePackageUseCase)
     factoryOf(::DeletePackageUseCase)
     factoryOf(::ReadPackageUseCase)
