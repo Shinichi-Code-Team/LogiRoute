@@ -1,9 +1,10 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubHierarchyRaw
 import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.usecase.BuildHubTreeUseCase
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals

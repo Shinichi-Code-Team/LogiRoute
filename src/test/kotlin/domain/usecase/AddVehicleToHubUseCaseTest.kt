@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
 import AddVehicleToHubUseCase
 import com.example.logiroute.domain.model.Vehicle

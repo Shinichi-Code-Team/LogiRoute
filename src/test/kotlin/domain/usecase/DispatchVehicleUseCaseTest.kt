@@ -1,10 +1,11 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.result.VehicleAssignment
+import com.example.logiroute.domain.usecase.DispatchVehicleUseCase
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
