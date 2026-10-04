@@ -5,6 +5,9 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.usecase.crud.route.UpdateRouteUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.RouteUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -16,7 +19,11 @@ import kotlin.test.assertTrue
 
 class UpdateRouteUseCaseTest {
     private val repository = mockk<RouteRepository>()
-    private val validator = RouteUpdateValidator()
+    private val validator = RouteUpdateValidator(
+        atLeastOneFieldValidator = AtLeastOneFieldValidator(),
+        validationRules = ValidationRules(),
+        validationResultMapper = ValidationResultMapper()
+    )
     private val useCase = UpdateRouteUseCase(repository, validator)
 
     private val id = "RT-12345"

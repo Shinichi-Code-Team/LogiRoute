@@ -2,6 +2,8 @@ package domain.usecase.crud.`package`
 
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.usecase.crud.`package`.DeletePackageUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -12,8 +14,11 @@ import kotlin.test.assertTrue
 
 class DeletePackageUseCaseTest {
     private val repository = mockk<PackageRepository>()
-    private val useCase = DeletePackageUseCase(repository)
-
+    private val useCase = DeletePackageUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
     private val id = "PKG-123456"
 
     @Test

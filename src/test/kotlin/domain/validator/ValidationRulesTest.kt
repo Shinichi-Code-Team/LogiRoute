@@ -10,17 +10,17 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class ValidationRulesTest {
-
+    private val validationRules = ValidationRules()
     @Test
     fun `valid package id passes`() {
         val id = "PKG-123456"
-        val result = ValidationRules.validatePackageId(id)
+        val result = validationRules.validatePackageId(id)
         assertNull(result)
     }
     @Test
     fun `malformed package id returns invalid format`() {
         val id = "PKG-123"
-  val result = ValidationRules.validatePackageId(id)
+  val result = validationRules.validatePackageId(id)
         assertEquals(
             ValidationError(
                 ValidationField.ID,
@@ -33,7 +33,7 @@ class ValidationRulesTest {
     @Test
     fun `missing package id returns required error`() {
         val id: String? = null
-        val result = ValidationRules.validatePackageId(id)
+        val result = validationRules.validatePackageId(id)
         assertEquals(
             ValidationError(
                 ValidationField.ID,
@@ -46,7 +46,7 @@ class ValidationRulesTest {
     @Test
     fun `zero positive double returns must be positive error`() {
         val value = 0.0
-        val result = ValidationRules.validatePositiveDouble(
+        val result = validationRules.validatePositiveDouble(
             value = value,
             field = ValidationField.WEIGHT
         )
@@ -62,7 +62,7 @@ class ValidationRulesTest {
     @Test
     fun `latitude outside range returns out of range error`() {
         val latitude = 91.0
-        val result = ValidationRules.validateLatitude(latitude)
+        val result = validationRules.validateLatitude(latitude)
         assertEquals(
             ValidationError(
                 ValidationField.LATITUDE,

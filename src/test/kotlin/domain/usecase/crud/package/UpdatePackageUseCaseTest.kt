@@ -6,6 +6,9 @@ import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.usecase.crud.`package`.UpdatePackageUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
+import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
 import com.example.logiroute.domain.validator.PackageUpdateValidator
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,7 +20,11 @@ import kotlin.test.assertTrue
 
 class UpdatePackageUseCaseTest {
     private val repository = mockk<PackageRepository>()
-    private val validator = PackageUpdateValidator()
+    private val validator = PackageUpdateValidator(
+        atLeastOneFieldValidator = AtLeastOneFieldValidator(),
+        validationRules = ValidationRules(),
+        validationResultMapper = ValidationResultMapper()
+    )
     private val useCase = UpdatePackageUseCase(repository, validator)
 
     private val id = "PKG-123456"

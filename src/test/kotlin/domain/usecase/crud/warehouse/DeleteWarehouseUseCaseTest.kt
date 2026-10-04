@@ -3,6 +3,8 @@ package domain.usecase.crud.warehouse
 
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.crud.warehouse.DeleteWarehouseUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -14,7 +16,11 @@ import kotlin.test.assertTrue
 class DeleteWarehouseUseCaseTest {
 
     private val repository = mockk<WarehouseRepository>()
-    private val useCase = DeleteWarehouseUseCase(repository)
+    private val useCase = DeleteWarehouseUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
 
     @Test
     fun `valid id deletes warehouse successfully`() = runTest {

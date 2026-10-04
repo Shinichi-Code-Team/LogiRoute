@@ -13,21 +13,22 @@ data class Vehicle(
 ) {
 
     init {
+        val validationRules = ValidationRules()
         val errors = listOfNotNull(
 
-            ValidationRules.validateVehicleId(id),
+            validationRules.validateVehicleId(id),
 
-            ValidationRules.validateWarehouseId(
+            validationRules.validateWarehouseId(
                 value = currentHub.id,
                 field = ValidationField.CURRENT_HUB_ID
             ),
 
-            ValidationRules.validatePositiveDouble(
+            validationRules.validatePositiveDouble(
                 value = maxCapacityKg,
                 field = ValidationField.MAX_CAPACITY_KG
             ),
 
-            ValidationRules.validatePositiveDouble(
+            validationRules.validatePositiveDouble(
                 value = costPerKm,
                 field = ValidationField.COST_PER_KM
             )

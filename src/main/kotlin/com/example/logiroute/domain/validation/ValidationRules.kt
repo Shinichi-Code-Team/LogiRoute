@@ -1,7 +1,7 @@
 package com.example.logiroute.domain.validation
 
 
-object ValidationRules {
+class ValidationRules {
 
     private val packageIdPattern = Regex("""^PKG-\d{6}$""")
     private val routeIdPattern = Regex("""^RT-\d{5}$""")

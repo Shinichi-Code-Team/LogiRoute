@@ -2,6 +2,8 @@ package domain.usecase.crud.route
 
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.usecase.crud.route.DeleteRouteUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -12,8 +14,11 @@ import kotlin.test.assertTrue
 
 class DeleteRouteUseCaseTest {
     private val repository = mockk<RouteRepository>()
-    private val useCase = DeleteRouteUseCase(repository)
-
+    private val useCase = DeleteRouteUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
     private val id = "RT-12345"
 
     @Test

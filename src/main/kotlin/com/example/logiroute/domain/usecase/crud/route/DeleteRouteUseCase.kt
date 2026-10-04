@@ -1,19 +1,22 @@
 package com.example.logiroute.domain.usecase.crud.route
 
-import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
-import com.example.logiroute.domain.validation.toValidationResult
 
 class DeleteRouteUseCase(
-    private val routeRepository: RouteRepository
+    private val routeRepository: RouteRepository,
+    private val validationRules: ValidationRules,
+    private val validationResultMapper: ValidationResultMapper
 ) {
 
     suspend operator fun invoke(id: String): Result<Unit> {
-        val validationResult = listOfNotNull(
-            ValidationRules.validateRouteId(id)
-        ).toValidationResult()
+        val errors = listOfNotNull(
+            validationRules.validateRouteId(id)
+        )
+        val validationResult = validationResultMapper.map(errors)
 
         return when (validationResult) {
             ValidationResult.Valid ->

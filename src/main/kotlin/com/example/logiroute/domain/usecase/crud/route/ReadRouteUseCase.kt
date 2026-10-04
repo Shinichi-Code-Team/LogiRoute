@@ -4,17 +4,20 @@ import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
-import com.example.logiroute.domain.validation.toValidationResult
 
 class ReadRouteUseCase(
-    private val routeRepository: RouteRepository
+    private val routeRepository: RouteRepository,
+    private val validationRules: ValidationRules,
+    private val validationResultMapper: ValidationResultMapper
 ) {
 
     suspend operator fun invoke(id: String): Result<Route?> {
-        val validationResult = listOfNotNull(
-            ValidationRules.validateRouteId(id)
-        ).toValidationResult()
+        val errors = listOfNotNull(
+            validationRules.validateRouteId(id)
+        )
+        val validationResult = validationResultMapper.map(errors)
 
         return when (validationResult) {
             ValidationResult.Valid ->

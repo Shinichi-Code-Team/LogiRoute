@@ -13,26 +13,27 @@ data class Warehouse(
 ) {
 
     init {
+        val validationRules = ValidationRules()
         val errors = listOfNotNull(
-            ValidationRules.validateWarehouseId(
+            validationRules.validateWarehouseId(
                 value = id
             ),
 
-            ValidationRules.validateNonBlank(
+            validationRules.validateNonBlank(
                 value = name,
                 field = ValidationField.NAME
             ),
 
-            ValidationRules.validateNonBlank(
+            validationRules.validateNonBlank(
                 value = regionalZone,
                 field = ValidationField.REGIONAL_ZONE
             ),
 
-            ValidationRules.validateLatitude(
+            validationRules.validateLatitude(
                 value = latitude
             ),
 
-            ValidationRules.validateLongitude(
+            validationRules.validateLongitude(
                 value = longitude
             )
         )

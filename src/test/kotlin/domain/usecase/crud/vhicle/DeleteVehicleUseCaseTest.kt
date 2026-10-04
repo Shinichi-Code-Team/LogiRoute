@@ -2,6 +2,8 @@ package domain.usecase.vehicle
 
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.usecase.crud.vehicle.DeleteVehicleUseCase
+import com.example.logiroute.domain.validation.ValidationResultMapper
+import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -13,8 +15,11 @@ import kotlin.test.assertTrue
 class DeleteVehicleUseCaseTest {
 
     private val repository = mockk<VehicleRepository>()
-    private val useCase = DeleteVehicleUseCase(repository)
-
+    private val useCase = DeleteVehicleUseCase(
+        repository,
+        ValidationRules(),
+        ValidationResultMapper()
+    )
     @Test
     fun `valid id deletes vehicle successfully`() = runTest {
         // Given

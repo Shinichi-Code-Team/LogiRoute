@@ -3,12 +3,13 @@ package com.example.logiroute.domain.validator
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
-import com.example.logiroute.domain.validation.toValidationResult
 
 class WarehouseUpdateValidator(
-    private val atLeastOneFieldValidator: AtLeastOneFieldValidator =
-        AtLeastOneFieldValidator()
+    private val atLeastOneFieldValidator: AtLeastOneFieldValidator,
+    private val validationRules: ValidationRules,
+    private val validationResultMapper: ValidationResultMapper
 ) : Validator<WarehouseUpdateValidator.inputValidator> {
 
     data class inputValidator(
@@ -21,32 +22,32 @@ class WarehouseUpdateValidator(
     ): ValidationResult {
 
         val errors = listOfNotNull(
-            ValidationRules.validateWarehouseId(
+            validationRules.validateWarehouseId(
                 value = value.id
             ),
 
             value.update.name?.let {
-                ValidationRules.validateNonBlank(
+                validationRules.validateNonBlank(
                     value = it,
                     field = ValidationField.NAME
                 )
             },
 
             value.update.regionalZone?.let {
-                ValidationRules.validateNonBlank(
+                validationRules.validateNonBlank(
                     value = it,
                     field = ValidationField.REGIONAL_ZONE
                 )
             },
 
             value.update.latitude?.let {
-                ValidationRules.validateLatitude(
+                validationRules.validateLatitude(
                     value = it
                 )
             },
 
             value.update.longitude?.let {
-                ValidationRules.validateLongitude(
+                validationRules.validateLongitude(
                     value = it
                 )
             },
@@ -61,6 +62,5 @@ class WarehouseUpdateValidator(
             )
         )
 
-        return errors.toValidationResult()
-    }
+        return validationResultMapper.map(errors)    }
 }
