@@ -11,87 +11,92 @@ class ExecuteEmergencyCargoPrioritizationUseCase(
     private val packageRepository: PackageRepository
 ) {
 
-    suspend operator fun invoke(request: ExecuteEmergencyCargoPrioritizationRequest): EmergencyDispatchPlan {
-        val vehicle = request.opportunity.availableVehicle
-        val urgentPackage = request.opportunity.urgentPackage
-        val currentVehiclePackages = fetchCurrentVehiclePackages(request.opportunity.currentWarehouse.id)
+    suspend operator fun invoke(
+        request: ExecuteEmergencyCargoPrioritizationRequest
+    ): EmergencyDispatchPlan {
+        val opportunity = request.opportunity
 
-        val (currentUrgent, currentLowPriority) = partitionPackagesByPriority(currentVehiclePackages)
-        val currentUrgentWeight = calculateTotalWeight(currentUrgent)
-        val availableCapacityForUrgent = vehicle.maxCapacityKg - currentUrgentWeight
-
-        val (loadedPackages, offloadedPackages) = resolveCargoLoading(
-            urgentPackage = urgentPackage,
-            availableCapacityForUrgent = availableCapacityForUrgent,
-            currentUrgent = currentUrgent,
-            currentLowPriority = currentLowPriority,
-            currentUrgentWeight = currentUrgentWeight,
-            maxCapacityKg = vehicle.maxCapacityKg
+        val currentPackages = fetchCurrentPackages(
+            warehouseId = opportunity.currentWarehouse.id
         )
 
-        return buildEmergencyDispatchPlan(vehicle, loadedPackages, offloadedPackages)
+        return createLoadingPlan(
+            vehicle = opportunity.availableVehicle,
+            urgentPackage = opportunity.urgentPackage,
+            currentPackages = currentPackages
+        )
     }
 
-    private suspend fun fetchCurrentVehiclePackages(warehouseId: String): List<Package> {
+    private suspend fun fetchCurrentPackages(
+        warehouseId: String
+    ): List<Package> {
         return packageRepository.getAllPackages()
-            .filter { it.origin.id == warehouseId }
-    }
-
-    private fun partitionPackagesByPriority(packages: List<Package>): Pair<List<Package>, List<Package>> {
-        return packages.partition { it.priority == Priority.URGENT }
-    }
-
-    private fun calculateTotalWeight(packages: List<Package>): Double {
-        return packages.fold(0.0) { acc, pkg -> acc + pkg.weight }
-    }
-
-    private fun resolveCargoLoading(
-        urgentPackage: Package,
-        availableCapacityForUrgent: Double,
-        currentUrgent: List<Package>,
-        currentLowPriority: List<Package>,
-        currentUrgentWeight: Double,
-        maxCapacityKg: Double
-    ): Pair<List<Package>, List<Package>> {
-        return if (urgentPackage.weight <= availableCapacityForUrgent) {
-            Pair(currentUrgent + currentLowPriority + urgentPackage, emptyList())
-        } else {
-            offloadLowPriorityPackages(urgentPackage, currentUrgent, currentLowPriority, currentUrgentWeight, maxCapacityKg)
-        }
-    }
-
-    private fun offloadLowPriorityPackages(
-        urgentPackage: Package,
-        currentUrgent: List<Package>,
-        currentLowPriority: List<Package>,
-        currentUrgentWeight: Double,
-        maxCapacityKg: Double
-    ): Pair<List<Package>, List<Package>> {
-        val initialAcc = Pair(emptyList<Package>(), emptyList<Package>())
-        val (retainedLow, droppedLow) = currentLowPriority.fold(initialAcc) { acc, pkg ->
-            val (kept, dropped) = acc
-            val currentWeight = currentUrgentWeight + calculateTotalWeight(kept)
-            if (currentWeight + urgentPackage.weight + pkg.weight <= maxCapacityKg) {
-                Pair(kept + pkg, dropped)
-            } else {
-                Pair(kept, dropped + pkg)
+            .filter { packageItem ->
+                packageItem.origin.id == warehouseId
             }
-        }
-        return Pair(currentUrgent + retainedLow + urgentPackage, droppedLow)
     }
 
-    private fun buildEmergencyDispatchPlan(
+    private fun createLoadingPlan(
         vehicle: Vehicle,
-        loadedPackages: List<Package>,
-        offloadedPackages: List<Package>
+        urgentPackage: Package,
+        currentPackages: List<Package>
     ): EmergencyDispatchPlan {
-        val totalWeight = calculateTotalWeight(loadedPackages)
+        val (urgentPackages, otherPackages) = currentPackages
+            .partition { packageItem ->
+                packageItem.priority == Priority.URGENT
+            }
+
+        val loadedUrgentPackages = urgentPackages + urgentPackage
+        val urgentWeight = totalWeight(loadedUrgentPackages)
+
+        check(urgentWeight <= vehicle.maxCapacityKg) {
+            "Urgent packages exceed vehicle capacity"
+        }
+
+        val remainingCapacity = vehicle.maxCapacityKg - urgentWeight
+
+        val retainedPackages = selectPackagesWithinCapacity(
+            packages = otherPackages,
+            availableCapacity = remainingCapacity
+        )
+
+        val retainedIds = retainedPackages
+            .map { packageItem -> packageItem.id }
+            .toSet()
+
+        val offloadedPackages = otherPackages.filter { packageItem ->
+            packageItem.id !in retainedIds
+        }
+
+        val loadedWeight = urgentWeight + totalWeight(retainedPackages)
+
         return EmergencyDispatchPlan(
             vehicle = vehicle,
-            loadedUrgentPackages = loadedPackages.filter { it.priority == Priority.URGENT },
+            loadedUrgentPackages = loadedUrgentPackages,
             offloadedLowPriorityPackages = offloadedPackages,
-            totalWeight = totalWeight,
-            remainingCapacity = vehicle.maxCapacityKg - totalWeight
+            totalWeight = loadedWeight,
+            remainingCapacity = vehicle.maxCapacityKg - loadedWeight
         )
+    }
+
+    private fun selectPackagesWithinCapacity(
+        packages: List<Package>,
+        availableCapacity: Double
+    ): List<Package> {
+        val retainedPackages = mutableListOf<Package>()
+        var remainingCapacity = availableCapacity
+
+        for (packageItem in packages) {
+            if (packageItem.weight <= remainingCapacity) {
+                retainedPackages.add(packageItem)
+                remainingCapacity -= packageItem.weight
+            }
+        }
+
+        return retainedPackages
+    }
+
+    private fun totalWeight(packages: List<Package>): Double {
+        return packages.sumOf { packageItem -> packageItem.weight }
     }
 }
