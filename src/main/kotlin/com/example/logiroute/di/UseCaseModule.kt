@@ -56,6 +56,7 @@ val useCaseModule = module {
     single { TreeCommandHistoryStore() }
     factoryOf(::ExecuteBranchingCommandUseCase)
     factoryOf(::UndoBranchingCommandUseCase)
+    factoryOf(::RedoBranchingCommandUseCase)
 
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)
