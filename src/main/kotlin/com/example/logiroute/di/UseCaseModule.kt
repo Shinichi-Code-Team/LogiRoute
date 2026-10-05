@@ -50,6 +50,7 @@ val useCaseModule = module {
     single { CommandHistoryStore() }
     factoryOf(::ExecuteLogisticsCommandUseCase)
     factoryOf(::UndoLogisticsCommandUseCase)
+    factoryOf(::RedoLogisticsCommandUseCase)
 
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)
