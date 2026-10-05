@@ -2,6 +2,7 @@ package com.example.logiroute.di
 
 import AddVehicleToHubUseCase
 import com.example.logiroute.com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
+import com.example.logiroute.domain.model.command.CommandHistoryStore
 import com.example.logiroute.domain.pricingPackage.basepricing.EcoStrategy
 import com.example.logiroute.domain.pricingPackage.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.usecase.*
@@ -45,6 +46,10 @@ val useCaseModule = module {
     }
 
     single { RoutePricingEngine(EcoStrategy()) }
+
+    single { CommandHistoryStore() }
+    factoryOf(::ExecuteLogisticsCommandUseCase)
+    factoryOf(::UndoLogisticsCommandUseCase)
 
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)
