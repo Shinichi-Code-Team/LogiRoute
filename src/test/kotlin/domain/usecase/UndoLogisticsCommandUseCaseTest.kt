@@ -1,20 +1,24 @@
 package com.example.logiroute.domain.usecase
 
+import com.example.logiroute.domain.model.command.CommandHistoryStore
 import com.example.logiroute.domain.model.command.LogisticsCommand
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class UndoLogisticsCommandUseCaseTest {
 
+    private lateinit var historyStore: CommandHistoryStore
     private lateinit var executeUseCase: ExecuteLogisticsCommandUseCase
     private lateinit var undoUseCase: UndoLogisticsCommandUseCase
 
     @BeforeEach
     fun setUp() {
-        CommandHistoryStore.clear()
-        executeUseCase = ExecuteLogisticsCommandUseCase()
-        undoUseCase = UndoLogisticsCommandUseCase()
+        historyStore = CommandHistoryStore()
+        executeUseCase = ExecuteLogisticsCommandUseCase(historyStore)
+        undoUseCase = UndoLogisticsCommandUseCase(historyStore)
     }
 
     @Test
