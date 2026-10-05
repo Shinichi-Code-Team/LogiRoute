@@ -3,6 +3,7 @@ package com.example.logiroute.di
 import AddVehicleToHubUseCase
 import com.example.logiroute.com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
 import com.example.logiroute.domain.model.command.CommandHistoryStore
+import com.example.logiroute.domain.model.command.TreeCommandHistoryStore
 import com.example.logiroute.domain.pricingPackage.basepricing.EcoStrategy
 import com.example.logiroute.domain.pricingPackage.basepricing.RoutePricingEngine
 import com.example.logiroute.domain.usecase.*
@@ -51,6 +52,9 @@ val useCaseModule = module {
     factoryOf(::ExecuteLogisticsCommandUseCase)
     factoryOf(::UndoLogisticsCommandUseCase)
     factoryOf(::RedoLogisticsCommandUseCase)
+
+    single { TreeCommandHistoryStore() }
+    factoryOf(::ExecuteBranchingCommandUseCase)
 
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)

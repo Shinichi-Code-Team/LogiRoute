@@ -1,6 +1,7 @@
 package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.command.LogisticsCommand
+import com.example.logiroute.domain.model.command.TreeCommandHistoryStore
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
