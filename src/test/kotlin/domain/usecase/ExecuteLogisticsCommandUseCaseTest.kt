@@ -1,28 +1,38 @@
-package com.example.logiroute.domain.usecase
+package domain.usecase
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
+import com.example.logiroute.domain.model.command.LogisticsCommand
+import com.example.logiroute.domain.usecase.ExecuteLogisticsCommandUseCase
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ExecuteLogisticsCommandUseCaseTest {
 
-    private lateinit var useCase: ExecuteLogisticsCommandUseCase
-
-    @BeforeEach
-    fun setUp() {
-        useCase = ExecuteLogisticsCommandUseCase()
-    }
+    private val useCase = ExecuteLogisticsCommandUseCase()
 
     @Test
-    fun `should return true when command executes successfully`() {
+    fun `should execute command successfully and record it in history`() {
         // Given
-        val dummyCommand = TestCommand(shouldSucceed = true)
+        val testCommand = TestCommand(shouldSucceed = true)
 
         // When
-        val result = useCase(dummyCommand)
+        val result = useCase(testCommand)
 
         // Then
         assertTrue(result)
+    }
+
+    @Test
+    fun `should increase history size after successful command execution`() {
+        // Given
+        val testCommand = TestCommand(shouldSucceed = true)
+
+        // When
+        useCase(testCommand)
+
+        // Then
+        assertEquals(1, useCase.historySize())
     }
 
     @Test
@@ -38,18 +48,6 @@ class ExecuteLogisticsCommandUseCaseTest {
     }
 
     @Test
-    fun `should increase history size after executing successful command`() {
-        // Given
-        val dummyCommand = TestCommand(shouldSucceed = true)
-
-        // When
-        useCase(dummyCommand)
-
-        // Then
-        assertEquals(1, useCase.getHistorySize())
-    }
-
-    @Test
     fun `should not increase history size when command execution fails`() {
         // Given
         val failingCommand = TestCommand(shouldSucceed = false)
@@ -58,7 +56,7 @@ class ExecuteLogisticsCommandUseCaseTest {
         useCase(failingCommand)
 
         // Then
-        assertEquals(0, useCase.getHistorySize())
+        assertEquals(0, useCase.historySize())
     }
 
     private class TestCommand(private val shouldSucceed: Boolean) : LogisticsCommand {
