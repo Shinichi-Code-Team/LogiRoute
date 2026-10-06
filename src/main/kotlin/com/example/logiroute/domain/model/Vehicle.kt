@@ -9,7 +9,8 @@ data class Vehicle(
     val maxCapacityKg: Double,
     val costPerKm: Double,
     val currentHub: Warehouse,
-    val loadedPackages: MutableList<Package> = mutableListOf()
+    val loadedPackages: MutableList<Package> = mutableListOf(),
+    val maxVolumeM3: Double? = null
 ) {
 
     init {
@@ -31,7 +32,13 @@ data class Vehicle(
             validationRules.validatePositiveDouble(
                 value = costPerKm,
                 field = ValidationField.COST_PER_KM
-            )
+            ),
+            maxVolumeM3?.let { volume ->
+                validationRules.validatePositiveDouble(
+                    value = volume,
+                    field = ValidationField.MAX_VOLUME_M3
+                )
+            },
         )
 
         if (errors.isNotEmpty()) {

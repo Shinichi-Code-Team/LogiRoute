@@ -1,7 +1,7 @@
 package com.example.logiroute.domain.model
 
-import com.example.logiroute.domain.pricingPackage.servicepricing.PackageComponent
 import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.pricingPackage.servicepricing.PackageComponent
 import com.example.logiroute.domain.state.`package`.CreatedState
 import com.example.logiroute.domain.state.`package`.PackageState
 import com.example.logiroute.domain.validation.ValidationField
@@ -12,7 +12,8 @@ data class Package  constructor(
      val weight: Double,
      val origin: Warehouse,
      val destination: Warehouse,
-     val priority: Priority
+     val priority: Priority,
+     val volumeM3: Double? = null
 ) : PackageComponent  {
 
     init {
@@ -33,7 +34,13 @@ data class Package  constructor(
             validationRules.validateWarehouseId(
                 value = destination.id,
                 field = ValidationField.DESTINATION_HUB_ID
-            )
+            ),
+            volumeM3?.let { volume ->
+                validationRules.validatePositiveDouble(
+                    value = volume,
+                    field = ValidationField.VOLUME_M3
+                )
+            },
         )
 
         if (errors.isNotEmpty()) {
