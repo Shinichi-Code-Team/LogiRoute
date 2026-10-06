@@ -3,15 +3,15 @@ package domain.usecase
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
-import com.example.logiroute.domain.usecase.OptimizeCargoPackingUseCase
+import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class OptimizeCargoPackingUseCaseTest {
+class OptimizeCargoByWeightUseCaseTest {
 
-    private val useCase = OptimizeCargoPackingUseCase()
+    private val useCase = OptimizeCargoByWeightUseCase()
 
     private val origin = Warehouse(
         "WH-001",

@@ -5,7 +5,7 @@ import com.example.logiroute.domain.model.Priority
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class OptimizeCargoPackingUseCase {
+class OptimizeCargoByWeightUseCase {
 
     operator fun invoke(
         packages: List<Package>,
