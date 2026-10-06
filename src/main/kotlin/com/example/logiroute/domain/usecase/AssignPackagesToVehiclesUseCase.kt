@@ -3,8 +3,6 @@ package com.example.logiroute.domain.usecase
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
 
-internal const val VEHICLE_RING_SIZE = 100
-internal val VEHICLE_RING_POSITIONS = listOf(15, 40, 65, 90)
 
 class AssignPackagesToVehiclesUseCase {
 
@@ -16,16 +14,16 @@ class AssignPackagesToVehiclesUseCase {
             "At least one vehicle is required when packages are provided."
         }
 
-        require(vehicles.size <= VEHICLE_RING_POSITIONS.size) {
-            "The vehicle ring supports at most ${VEHICLE_RING_POSITIONS.size} vehicles."
+        require(vehicles.size <= VehicleAssignmentRingConfig.POSITIONS.size) {
+            "The vehicle ring supports at most ${VehicleAssignmentRingConfig.POSITIONS.size} vehicles."
         }
 
-        val vehicleSlots = VEHICLE_RING_POSITIONS.zip(vehicles)
+        val vehicleSlots = VehicleAssignmentRingConfig.POSITIONS.zip(vehicles)
 
         val assignments = packages.groupBy { packageItem ->
             val packageSlot = Math.floorMod(
                 packageItem.id.hashCode(),
-                VEHICLE_RING_SIZE
+                VehicleAssignmentRingConfig.SIZE
             )
 
             vehicleSlots.firstOrNull { packageSlot <= it.first }?.second
@@ -36,4 +34,8 @@ class AssignPackagesToVehiclesUseCase {
             assignments[vehicle].orEmpty()
         }
     }
+}
+internal object VehicleAssignmentRingConfig {
+    const val SIZE = 100
+    val POSITIONS = listOf(15, 40, 65, 90)
 }

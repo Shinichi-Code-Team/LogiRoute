@@ -10,7 +10,8 @@ class ReassignPackagesAfterBreakdownUseCase {
         vehicles: List<Vehicle>,
         brokenVehiclePosition: Int
     ): Map<Vehicle, List<Package>> {
-        val vehicleSlots = VEHICLE_RING_POSITIONS.zip(vehicles)
+        val vehicleSlots =
+            VehicleAssignmentRingConfig.POSITIONS.zip(vehicles)
 
         val brokenVehicle = vehicleSlots
             .firstOrNull { it.first == brokenVehiclePosition }
