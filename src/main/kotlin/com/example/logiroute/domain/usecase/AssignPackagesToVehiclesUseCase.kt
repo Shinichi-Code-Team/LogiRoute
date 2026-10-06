@@ -3,11 +3,12 @@ package com.example.logiroute.domain.usecase
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Vehicle
 
-internal const val VEHICLE_RING_SIZE = 100
-internal val VEHICLE_RING_POSITIONS = listOf(15, 40, 65, 90)
 
 class AssignPackagesToVehiclesUseCase {
-
+    internal companion object {
+         const val VEHICLE_RING_SIZE = 100
+         val VEHICLE_RING_POSITIONS = listOf(15, 40, 65, 90)
+    }
     operator fun invoke(
         packages: List<Package>,
         vehicles: List<Vehicle>

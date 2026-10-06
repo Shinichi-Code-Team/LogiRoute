@@ -72,6 +72,12 @@ class ValidationRules {
                 )
             }
 
+            !value.isFinite() -> {
+                ValidationError(
+                    field = field,
+                    reason = ValidationReason.OUT_OF_RANGE
+                )
+            }
             value <= 0.0 -> {
                 ValidationError(
                     field = field,

@@ -14,5 +14,7 @@ enum class ValidationField {
     TYPICAL_DELAY_MIN,
     MAX_CAPACITY_KG,
     COST_PER_KM,
-    UPDATE_FIELDS
+    UPDATE_FIELDS,
+    VOLUME_M3,
+    MAX_VOLUME_M3
 }
