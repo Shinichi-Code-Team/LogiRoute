@@ -1,9 +1,6 @@
 package com.example.logiroute.di
-import com.example.logiroute.data.remote.datasource.RemotePackageDataSource
-import com.example.logiroute.data.remote.datasource.RemoteRouteDataSource
-import com.example.logiroute.data.remote.datasource.RemoteWarehouseDataSource
-import com.example.logiroute.data.remote.datasource.SupabaseRouteRemoteDataSource
-import com.example.logiroute.data.remote.datasource.SupabaseVehicleRemoteDataSource
+
+import com.example.logiroute.data.remote.datasource.*
 import com.example.logiroute.data.remote.datasource.impl.SupabasePackageRemoteDataSource
 import com.example.logiroute.data.remote.datasource.impl.SupabaseWarehouseRemoteDataSource
 import com.example.logiroute.data.remote.datasource.vehicle.RemoteVehicleDataSource
@@ -11,38 +8,57 @@ import com.example.logiroute.data.remote.mapper.PackageDtoMapper
 import com.example.logiroute.data.remote.mapper.RouteDtoMapper
 import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
 import com.example.logiroute.data.remote.mapper.WarehouseDtoMapper
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val networkModule = module {
-    single<RemoteWarehouseDataSource> {
-        SupabaseWarehouseRemoteDataSource()
+    singleOf(::setupSupabaseSpecs)
+    singleOf(::setupSupabaseClient)
+
+
+    singleOf(::SupabaseWarehouseRemoteDataSource) {
+        bind<RemoteWarehouseDataSource>()
     }
 
-    single<RemoteRouteDataSource> {
-        SupabaseRouteRemoteDataSource()
+    singleOf(::SupabaseRouteRemoteDataSource) {
+        bind<RemoteRouteDataSource>()
     }
 
-    single<RemotePackageDataSource> {
-        SupabasePackageRemoteDataSource()
+    singleOf(::SupabasePackageRemoteDataSource) {
+        bind<RemotePackageDataSource>()
     }
 
-    single<RemoteVehicleDataSource> {
-        SupabaseVehicleRemoteDataSource()
+    singleOf(::SupabaseVehicleRemoteDataSource) {
+        bind<RemoteVehicleDataSource>()
     }
+    singleOf(::WarehouseDtoMapper)
+    singleOf(::RouteDtoMapper)
+    singleOf(::PackageDtoMapper)
+    singleOf(::VehicleDtoMapper)
+}
 
-    single {
-        WarehouseDtoMapper()
-    }
+private data class SupabaseSpecs(
+    val supabaseUrl: String,
+    val supabaseKey: String,
+)
 
-    single {
-        RouteDtoMapper()
-    }
+private fun setupSupabaseSpecs(): SupabaseSpecs {
+    val supabaseUrl = System.getenv("SUPABASE_URL") ?: error("SUPABASE_URL environment variable is missing")
+    val supabaseKey = System.getenv("SUPABASE_KEY") ?: error("SUPABASE_KEY environment variable is missing")
+    return SupabaseSpecs(supabaseUrl, supabaseKey)
+}
 
-    single {
-        PackageDtoMapper()
-    }
-
-    single {
-        VehicleDtoMapper()
+private fun setupSupabaseClient(
+    supabaseSpecs: SupabaseSpecs
+): SupabaseClient {
+    return createSupabaseClient(
+        supabaseUrl = supabaseSpecs.supabaseUrl,
+        supabaseKey = supabaseSpecs.supabaseKey
+    ) {
+        install(Postgrest)
     }
 }
