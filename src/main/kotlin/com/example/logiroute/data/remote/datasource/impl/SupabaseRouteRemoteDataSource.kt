@@ -3,15 +3,15 @@ package com.example.logiroute.data.remote.datasource
 import com.example.logiroute.data.remote.dto.route.CreateRouteRequestDto
 import com.example.logiroute.data.remote.dto.route.RouteResponseDto
 import com.example.logiroute.data.remote.dto.route.UpdateRouteRequestDto
-import com.example.logiroute.data.remote.provider.SupabaseClientProvider
 import com.example.logiroute.data.remote.retry.retryRemote
-import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 
-class SupabaseRouteRemoteDataSource : RemoteRouteDataSource {
+class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
+) : RemoteRouteDataSource {
 
     private val routeTable =
-        SupabaseClientProvider.client.postgrest.from("routes")
+        client.postgrest.from("routes")
 
     override suspend fun getRoutes(): List<RouteResponseDto> {
         return retryRemote(operationName = "Route.getRoutes") {

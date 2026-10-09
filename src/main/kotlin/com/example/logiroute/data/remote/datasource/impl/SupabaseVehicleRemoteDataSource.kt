@@ -4,15 +4,15 @@ import com.example.logiroute.data.remote.datasource.vehicle.RemoteVehicleDataSou
 import com.example.logiroute.data.remote.dto.vehicle.CreateVehicleRequestDto
 import com.example.logiroute.data.remote.dto.vehicle.UpdateVehicleRequestDto
 import com.example.logiroute.data.remote.dto.vehicle.VehicleResponseDto
-import com.example.logiroute.data.remote.provider.SupabaseClientProvider
 import com.example.logiroute.data.remote.retry.retryRemote
-import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 
-class SupabaseVehicleRemoteDataSource : RemoteVehicleDataSource {
+class SupabaseVehicleRemoteDataSource (    private val client: SupabaseClient
+): RemoteVehicleDataSource {
 
     private val vehicleTable =
-        SupabaseClientProvider.client.postgrest.from("vehicles")
+        client.postgrest.from("vehicles")
 
     override suspend fun getVehicles(): List<VehicleResponseDto> {
         return retryRemote(operationName = "Vehicle.getVehicles") {

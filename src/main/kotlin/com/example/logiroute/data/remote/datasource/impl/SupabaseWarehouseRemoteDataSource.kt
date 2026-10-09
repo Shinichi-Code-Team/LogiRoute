@@ -4,14 +4,16 @@ import com.example.logiroute.data.remote.datasource.RemoteWarehouseDataSource
 import com.example.logiroute.data.remote.dto.warehouse.CreateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.UpdateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.WarehouseResponseDto
-import com.example.logiroute.data.remote.provider.SupabaseClientProvider
 import com.example.logiroute.data.remote.retry.retryRemote
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 
-class SupabaseWarehouseRemoteDataSource : RemoteWarehouseDataSource {
+class SupabaseWarehouseRemoteDataSource(
+    private val client: SupabaseClient
+) : RemoteWarehouseDataSource {
 
     private val warehouseTable =
-        SupabaseClientProvider.client.postgrest.from("warehouses")
+        client.postgrest.from("warehouses")
 
     override suspend fun getWarehouses(): List<WarehouseResponseDto> {
         return retryRemote(operationName = "Warehouse.getWarehouses") {

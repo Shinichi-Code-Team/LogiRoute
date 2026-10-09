@@ -16,7 +16,6 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val useCaseModule = module {
-
     factory {
         FindOptimalPathUseCase(
             warehousesRepository = get(),
@@ -46,7 +45,9 @@ val useCaseModule = module {
         )
     }
 
-    single { RoutePricingEngine(EcoStrategy()) }
+    single {
+        RoutePricingEngine(EcoStrategy())
+    }
 
     single { CommandHistoryStore() }
     factoryOf(::ExecuteLogisticsCommandUseCase)
