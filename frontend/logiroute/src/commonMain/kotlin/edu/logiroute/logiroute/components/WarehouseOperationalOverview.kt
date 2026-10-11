@@ -87,7 +87,6 @@ private fun WarehouseOverloadBanner(
     overloadKg: Double,
     modifier: Modifier = Modifier
 ) {
-    val formattedKg = String.format("___", overloadKg)
     Row(
         modifier = modifier
             .fillMaxWidth()
