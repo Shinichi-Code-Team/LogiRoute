@@ -32,7 +32,6 @@ fun WarehouseCargoQueueList(
     cargoQueue: List<Package>,
     modifier: Modifier = Modifier
 ) {
-    // 1. Group packages in memory by priority, sorted by priority order
     val groupedCargo = remember(cargoQueue) {
         cargoQueue.groupBy { it.priority }
             .toSortedMap(compareBy { priority ->
@@ -45,19 +44,7 @@ fun WarehouseCargoQueueList(
     }
 
     if (cargoQueue.isEmpty()) {
-        // 4. Empty State Placeholder
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(ByteBloomTokens.SpaceExtraLarge),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "No Pending Cargo in Queue",
-                color = ByteBloomTokens.TextDisabled,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        WarehouseEmptyState(modifier = modifier)
         return
     }
 
@@ -68,7 +55,6 @@ fun WarehouseCargoQueueList(
     ) {
         groupedCargo.forEach { (priority, packages) ->
             if (packages.isNotEmpty()) {
-                // Sticky Header for each category
                 stickyHeader(key = "header_${priority.name}") {
                     WarehouseCargoHeader(
                         title = "${priority.name} CARGO",
@@ -76,27 +62,31 @@ fun WarehouseCargoQueueList(
                     )
                 }
 
-                // Items list with stable keys and content types
                 items(
                     items = packages,
                     key = { pkg -> pkg.id },
                     contentType = { "PackageItem" }
                 ) { pkg ->
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(ByteBloomTokens.SpaceExtraSmall)
-                    ) {
-                        PackagePriorityBadge(pkg = pkg)
-                        Text(
-                            text = "Destination: ${pkg.destination.name}",
-                            color = ByteBloomTokens.TextSecondary,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(start = ByteBloomTokens.SpaceSmall)
-                        )
-                    }
+                    WarehousePackageItemRow(pkg = pkg)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun WarehouseEmptyState(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(ByteBloomTokens.SpaceExtraLarge),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "No Pending Cargo in Queue",
+            color = ByteBloomTokens.TextDisabled,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
@@ -137,7 +127,24 @@ private fun WarehouseCargoHeader(
     }
 }
 
-// --- Co-Located Inline Preview ---
+@Composable
+private fun WarehousePackageItemRow(
+    pkg: Package,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(ByteBloomTokens.SpaceExtraSmall)
+    ) {
+        PackagePriorityBadge(pkg = pkg)
+        Text(
+            text = "Destination: ${pkg.destination.name}",
+            color = ByteBloomTokens.TextSecondary,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(start = ByteBloomTokens.SpaceSmall)
+        )
+    }
+}
 
 @Preview
 @Composable
