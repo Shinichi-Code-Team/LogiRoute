@@ -59,7 +59,6 @@ fun ActiveFleetGrid(
             val currentLoad = vehicleLoads[vehicle.id] ?: 0.0
             val loadRatio = if (vehicle.maxCapacityKg > 0) currentLoad / vehicle.maxCapacityKg else 0.0
 
-            // Determine border highlight color based on 85% threshold
             val borderStroke = when {
                 loadRatio > 0.85 -> BorderStroke(
                     width = ByteBloomTokens.BorderWidthThick,
@@ -72,7 +71,7 @@ fun ActiveFleetGrid(
             }
 
             Card(
-                modifier = modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(ByteBloomTokens.CornerRadiusMedium),
                 border = borderStroke,
                 colors = CardDefaults.cardColors(
@@ -98,7 +97,7 @@ private fun PreviewActiveFleetGrid() {
     )
     val sampleLoads = mapOf(
         "VEH-101" to 2500.0,
-        "VEH-204" to 8900.0, // > 85% triggers warning highlight
+        "VEH-204" to 8900.0,
         "VEH-999" to 10500.0
     )
     ActiveFleetGrid(

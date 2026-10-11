@@ -39,5 +39,6 @@ object ByteBloomTokens {
     val CornerRadiusLarge: Dp = 12.dp
 
     val BorderWidthThin: Dp = 1.dp
+    val BorderWidthThick: Dp = 2.dp
     val CapacityIndicatorTrackHeight: Dp = 10.dp
 }
