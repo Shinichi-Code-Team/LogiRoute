@@ -34,9 +34,8 @@ private fun PreviewHeavyDataWarehouse() {
                 )
             )
         }
-        // إضافة 12 مركبة للأسطول
         for (j in 1..12) {
-            stationedVehicles.add(
+            addVehicle(
                 Vehicle(
                     id = "VEH-M-$j",
                     maxCapacityKg = 15000.0,
@@ -70,7 +69,7 @@ private fun PreviewOverloadedWarehouse() {
                 priority = Priority.URGENT
             )
         )
-        stationedVehicles.add(
+        addVehicle(
             Vehicle(
                 id = "VEH-SMALL-1",
                 maxCapacityKg = 5000.0,
