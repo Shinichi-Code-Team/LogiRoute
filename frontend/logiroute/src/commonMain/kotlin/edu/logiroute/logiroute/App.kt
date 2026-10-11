@@ -24,6 +24,7 @@ import edu.logiroute.logiroute.components.RouteDetailCard
 import edu.logiroute.logiroute.components.VehicleCapacityIndicator
 import edu.logiroute.logiroute.components.VehicleDetailCard
 import edu.logiroute.logiroute.components.WarehouseIdentityBadge
+import edu.logiroute.logiroute.components.WarehouseOperationalOverview
 import edu.logiroute.logiroute.components.WarehouseSummaryCard
 import edu.logiroute.logiroute.previews.SampleData
 import edu.logiroute.logiroute.theme.ByteBloomTokens
@@ -58,7 +59,8 @@ fun App() {
             }
 
             //WeekOneComponentsTestSuite()
-            WeekTwoComponentsTestSuite()
+            //WeekTwoComponentsTestSuite()
+            WeekThreeComponentsTestSuite()
         }
     }
 }
@@ -123,7 +125,6 @@ private fun WeekTwoComponentsTestSuite() {
             fontWeight = FontWeight.Bold
         )
 
-        // Capacity Indicators
         Text(
             text = "1. Vehicle Capacity Indicators",
             color = ByteBloomTokens.TextSecondary,
@@ -150,4 +151,11 @@ private fun WeekTwoComponentsTestSuite() {
         RouteDetailCard(route = SampleData.shortRoute)
         RouteDetailCard(route = SampleData.longRouteWithDelay)
     }
+}
+
+@Composable
+fun WeekThreeComponentsTestSuite() {
+    WarehouseOperationalOverview(
+        warehouse = SampleData.warehouseWithCargo
+    )
 }
