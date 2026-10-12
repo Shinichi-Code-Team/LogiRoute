@@ -1,6 +1,7 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdateRouteInput
+import com.example.logiroute.domain.model.request.UpdateRouteRequest
 import com.example.logiroute.domain.validation.ValidationError
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationReason
@@ -23,7 +24,7 @@ class RouteUpdateValidatorTest {
 
     @Test
     fun `valid route update passes`() {
-        val input = RouteUpdateValidator.inputValidator(
+        val input = UpdateRouteRequest(
             id = "RT-12345",
             update = UpdateRouteInput(distanceKm = 10.0)
         )
@@ -52,7 +53,7 @@ class RouteUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = RouteUpdateValidator.inputValidator(
+            val input = UpdateRouteRequest(
                 id = "RT-12345",
                 update = update
             )
@@ -67,7 +68,7 @@ class RouteUpdateValidatorTest {
     @Test
     fun `invalid route id returns error`() {
         // Given
-        val input = RouteUpdateValidator.inputValidator(
+        val input = UpdateRouteRequest(
             id = "wrong-id",
             update = UpdateRouteInput(distanceKm = 10.0)
         )
@@ -91,7 +92,7 @@ class RouteUpdateValidatorTest {
 
     @Test
     fun `empty route update returns no fields error`() {
-        val input = RouteUpdateValidator.inputValidator(
+        val input = UpdateRouteRequest(
             id = "RT-12345",
             update = UpdateRouteInput()
         )

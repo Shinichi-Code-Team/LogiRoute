@@ -1,6 +1,7 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
+import com.example.logiroute.domain.model.request.UpdateWarehouseRequest
 import com.example.logiroute.domain.validation.ValidationError
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationReason
@@ -20,7 +21,7 @@ class WarehouseUpdateValidatorTest {
     )
     @Test
     fun `valid warehouse update passes`() {
-        val input = WarehouseUpdateValidator.inputValidator(
+        val input = UpdateWarehouseRequest(
             id = "WH-123",
             update = UpdateWarehouseInput(name = "Amman")
         )
@@ -49,7 +50,7 @@ class WarehouseUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = WarehouseUpdateValidator.inputValidator(
+            val input = UpdateWarehouseRequest(
                 id = "WH-123",
                 update = update
             )
@@ -63,7 +64,7 @@ class WarehouseUpdateValidatorTest {
 
     @Test
     fun `invalid warehouse id returns error`() {
-        val input = WarehouseUpdateValidator.inputValidator(
+        val input = UpdateWarehouseRequest(
             id = "wrong-id",
             update = UpdateWarehouseInput(name = "Amman")
         )
@@ -83,7 +84,7 @@ class WarehouseUpdateValidatorTest {
 
     @Test
     fun `empty warehouse update returns no fields error`() {
-        val input = WarehouseUpdateValidator.inputValidator(
+        val input = UpdateWarehouseRequest(
             id = "WH-123",
             update = UpdateWarehouseInput()
         )

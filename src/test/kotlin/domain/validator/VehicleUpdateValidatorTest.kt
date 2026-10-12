@@ -1,6 +1,7 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
+import com.example.logiroute.domain.model.request.UpdateVehicleRequest
 import com.example.logiroute.domain.validation.ValidationError
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationReason
@@ -23,7 +24,7 @@ class VehicleUpdateValidatorTest {
 
     @Test
     fun `valid vehicle update passes`() {
-        val input = VehicleUpdateValidator.inputValidator(
+        val input = UpdateVehicleRequest(
             id = "TRK-1234",
             update = UpdateVehicleInput(maxCapacityKg = 500.0)
         )
@@ -48,7 +49,7 @@ class VehicleUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = VehicleUpdateValidator.inputValidator(
+            val input = UpdateVehicleRequest(
                 id = "TRK-1234",
                 update = update
             )
@@ -62,7 +63,7 @@ class VehicleUpdateValidatorTest {
 
     @Test
     fun `invalid vehicle id returns error`() {
-        val input = VehicleUpdateValidator.inputValidator(
+        val input =UpdateVehicleRequest(
             id = "wrong-id",
             update = UpdateVehicleInput(maxCapacityKg = 500.0)
         )
@@ -83,7 +84,7 @@ class VehicleUpdateValidatorTest {
 
     @Test
     fun `empty vehicle update returns no fields error`() {
-        val input = VehicleUpdateValidator.inputValidator(
+        val input = UpdateVehicleRequest(
             id = "TRK-1234",
             update = UpdateVehicleInput()
         )
