@@ -3,6 +3,7 @@ package com.example.logiroute.domain.usecase.crud.route
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdateRouteInput
+import com.example.logiroute.domain.model.request.UpdateRouteRequest
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.validator.RouteUpdateValidator
 import com.example.logiroute.domain.validation.ValidationResult
@@ -17,7 +18,7 @@ class UpdateRouteUseCase(
         input: UpdateRouteInput
     ): Result<Route> {
 
-        val validationInput = RouteUpdateValidator.inputValidator(
+        val validationInput = UpdateRouteRequest(
             id = id,
             update = input
         )
