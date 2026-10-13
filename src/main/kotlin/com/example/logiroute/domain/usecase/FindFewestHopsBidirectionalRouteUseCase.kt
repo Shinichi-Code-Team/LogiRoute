@@ -3,7 +3,8 @@ package com.example.logiroute.domain.usecase
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
-import kotlin.collections.getValue
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class FindFewestHopsBidirectionalRouteUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -15,13 +16,24 @@ class FindFewestHopsBidirectionalRouteUseCase(
         destination: Warehouse
     ): List<Warehouse> {
 
-        val warehousesById = warehouseRepository
-            .getAllWarehouses()
-            .associateBy { warehouse -> warehouse.id }
-
         if (source == destination) {
             return listOf(source)
         }
+
+        val (warehouses, routes) = coroutineScope {
+            val warehousesDeferred = async {
+                warehouseRepository.getAllWarehouses()
+            }
+
+            val routesDeferred = async {
+                routeRepository.getAllRoutes()
+            }
+
+            warehousesDeferred.await() to routesDeferred.await()
+        }
+
+        val warehousesById = warehouses
+            .associateBy { warehouse -> warehouse.id }
 
         if (
             source !in warehousesById.values ||
@@ -36,8 +48,10 @@ class FindFewestHopsBidirectionalRouteUseCase(
         val backwardMap = warehousesById.values
             .associateWith { mutableListOf<Warehouse>() }
 
-        for (route in routeRepository.getAllRoutes()) {
-            val origin = warehousesById[route.origin.id] ?: continue
+        for (route in routes) {
+            val origin =
+                warehousesById[route.origin.id] ?: continue
+
             val routeDestination =
                 warehousesById[route.destination.id] ?: continue
 
@@ -63,7 +77,6 @@ class FindFewestHopsBidirectionalRouteUseCase(
             backwardParents = backwardState.parents
         )
     }
-
     private fun createSearchState(
         start: Warehouse
     ): SearchState {

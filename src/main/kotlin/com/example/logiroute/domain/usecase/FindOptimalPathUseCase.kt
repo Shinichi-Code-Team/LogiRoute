@@ -4,6 +4,8 @@ import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class FindOptimalPathUseCase(
     private val warehousesRepository: WarehouseRepository,
@@ -47,18 +49,29 @@ class FindOptimalPathUseCase(
     }
 
     private suspend fun buildWeightedAdjacencyMap():
-            Map<Warehouse, List<Route>> {
+            Map<Warehouse, List<Route>> = coroutineScope {
 
-        val warehousesById = warehousesRepository
-            .getAllWarehouses()
+        val warehousesDeferred = async {
+            warehousesRepository.getAllWarehouses()
+        }
+
+        val routesDeferred = async {
+            routeRepository.getAllRoutes()
+        }
+
+        val warehousesById = warehousesDeferred
+            .await()
             .associateBy { warehouse -> warehouse.id }
+
+        val routes = routesDeferred.await()
 
         val adjacencyMap = warehousesById.values
             .associateWith { mutableListOf<Route>() }
 
-        for (route in routeRepository.getAllRoutes()) {
+        for (route in routes) {
             val origin = warehousesById[route.origin.id] ?: continue
-            val destination = warehousesById[route.destination.id] ?: continue
+            val destination =
+                warehousesById[route.destination.id] ?: continue
 
             val normalizedRoute = route.copy(
                 origin = origin,
@@ -68,9 +81,8 @@ class FindOptimalPathUseCase(
             adjacencyMap.getValue(origin).add(normalizedRoute)
         }
 
-        return adjacencyMap
+        adjacencyMap
     }
-
     private fun createInitialState(
         adjacencyMap: Map<Warehouse, List<Route>>
     ): DijkstraState {

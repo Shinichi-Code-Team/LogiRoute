@@ -4,12 +4,14 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.DetectEmergencyCargoRescueRequest
 import com.example.logiroute.domain.model.request.RescueOpportunity
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.model.exceptions.LogisticsException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class DetectEmergencyCargoRescueOpportunitiesUseCase(
     private val packageRepository: PackageRepository,
@@ -25,11 +27,29 @@ class DetectEmergencyCargoRescueOpportunitiesUseCase(
         val currentWarehouse =
             fetchValidatedWarehouse(request.warehouseId)
 
+        val (packages, vehicles) = coroutineScope {
+            val packagesDeferred = async {
+                packageRepository.getAllPackages()
+            }
+
+            val vehiclesDeferred = async {
+                vehicleRepository.getAllVehicles()
+            }
+
+            packagesDeferred.await() to vehiclesDeferred.await()
+        }
+
         val urgentPackages =
-            fetchValidatedUrgentPackages(currentWarehouse.id)
+            validateUrgentPackages(
+                packages = packages,
+                warehouseId = currentWarehouse.id
+            )
 
         val availableVehicles =
-            fetchValidatedAvailableVehicles(currentWarehouse.id)
+            validateAvailableVehicles(
+                vehicles = vehicles,
+                warehouseId = currentWarehouse.id
+            )
 
         val opportunities =
             buildRescueOpportunities(
@@ -58,41 +78,41 @@ class DetectEmergencyCargoRescueOpportunitiesUseCase(
             )
     }
 
-    private suspend fun fetchValidatedUrgentPackages(
+    private fun validateUrgentPackages(
+        packages: List<Package>,
         warehouseId: String
     ): List<Package> {
 
-        val packages = packageRepository.getAllPackages()
-            .filter {
-                it.origin.id == warehouseId &&
-                        it.priority == Priority.URGENT
-            }
+        val urgentPackages = packages.filter {
+            it.origin.id == warehouseId &&
+                    it.priority == Priority.URGENT
+        }
 
-        if (packages.isEmpty()) {
+        if (urgentPackages.isEmpty()) {
             throw LogisticsException.NoUrgentPackagesException(
                 warehouseId
             )
         }
 
-        return packages
+        return urgentPackages
     }
 
-    private suspend fun fetchValidatedAvailableVehicles(
+    private fun validateAvailableVehicles(
+        vehicles: List<Vehicle>,
         warehouseId: String
     ): List<Vehicle> {
 
-        val vehicles = vehicleRepository.getAllVehicles()
-            .filter {
-                it.currentHub.id == warehouseId
-            }
+        val availableVehicles = vehicles.filter {
+            it.currentHub.id == warehouseId
+        }
 
-        if (vehicles.isEmpty()) {
+        if (availableVehicles.isEmpty()) {
             throw LogisticsException.NoSuitableVehicleException(
                 warehouseId
             )
         }
 
-        return vehicles
+        return availableVehicles
     }
 
     private suspend fun buildRescueOpportunities(
