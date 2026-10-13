@@ -78,7 +78,7 @@ val useCaseModule = module {
     factoryOf(::FindStationedVehiclesByCapacityUseCase)
     factoryOf(::GetWarehouseLoadFactorUseCase)
     factoryOf(::OptimizeBackhaulUseCase)
-    factoryOf(::OptimizeCargoPackingUseCase)
+    factoryOf(::OptimizeCargoByWeightUseCase)
     factoryOf(::PrioritizeShipmentConsolidationUseCase)
     factoryOf(::ReassignPackagesAfterBreakdownUseCase)
     factoryOf(::RebalanceVehicleLoadsUseCase)
