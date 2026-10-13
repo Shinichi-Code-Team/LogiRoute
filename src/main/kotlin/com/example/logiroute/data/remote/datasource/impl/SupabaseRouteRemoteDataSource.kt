@@ -6,6 +6,8 @@ import com.example.logiroute.data.remote.dto.route.UpdateRouteRequestDto
 import com.example.logiroute.data.remote.retry.retryRemote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
 ) : RemoteRouteDataSource {
@@ -13,16 +15,16 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
     private val routeTable =
         client.postgrest.from("routes")
 
-    override suspend fun getRoutes(): List<RouteResponseDto> {
-        return retryRemote(operationName = "Route.getRoutes") {
+    override suspend fun getRoutes(): List<RouteResponseDto> = withContext(Dispatchers.IO) {
+        retryRemote(operationName = "Route.getRoutes") {
             routeTable.select().decodeList<RouteResponseDto>()
         }
     }
 
     override suspend fun getRouteById(
         id: String
-    ): RouteResponseDto? {
-        return retryRemote {
+    ): RouteResponseDto? = withContext(Dispatchers.IO) {
+        retryRemote {
             routeTable
                 .select {
                     filter {
@@ -36,8 +38,8 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
 
     override suspend fun createRoute(
         request: CreateRouteRequestDto
-    ): RouteResponseDto {
-        return retryRemote {
+    ): RouteResponseDto = withContext(Dispatchers.IO) {
+        retryRemote {
             routeTable
                 .insert(request) {
                     select()
@@ -49,8 +51,8 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
     override suspend fun updateRoute(
         id: String,
         request: UpdateRouteRequestDto
-    ): RouteResponseDto {
-        return retryRemote {
+    ): RouteResponseDto = withContext(Dispatchers.IO) {
+        retryRemote {
             routeTable
                 .update(request) {
                     filter {
@@ -65,13 +67,15 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
     override suspend fun deleteRoute(
         id: String
     ) {
-        retryRemote {
-            routeTable
-                .delete {
-                    filter {
-                        eq("id", id)
+        withContext(Dispatchers.IO) {
+            retryRemote {
+                routeTable
+                    .delete {
+                        filter {
+                            eq("id", id)
+                        }
                     }
-                }
+            }
         }
     }
 }

@@ -7,7 +7,8 @@ import com.example.logiroute.data.remote.dto.warehouse.WarehouseResponseDto
 import com.example.logiroute.data.remote.retry.retryRemote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 class SupabaseWarehouseRemoteDataSource(
     private val client: SupabaseClient
 ) : RemoteWarehouseDataSource {
@@ -23,8 +24,8 @@ class SupabaseWarehouseRemoteDataSource(
 
     override suspend fun getWarehouseById(
         id: String
-    ): WarehouseResponseDto? {
-        return retryRemote {
+    ): WarehouseResponseDto? = withContext(Dispatchers.IO) {
+        retryRemote {
             warehouseTable
                 .select {
                     filter {
@@ -38,8 +39,8 @@ class SupabaseWarehouseRemoteDataSource(
 
     override suspend fun createWarehouse(
         request: CreateWarehouseRequestDto
-    ): WarehouseResponseDto {
-        return retryRemote {
+    ): WarehouseResponseDto = withContext(Dispatchers.IO) {
+        retryRemote {
             warehouseTable
                 .insert(request) {
                     select()
@@ -51,8 +52,8 @@ class SupabaseWarehouseRemoteDataSource(
     override suspend fun updateWarehouse(
         id: String,
         request: UpdateWarehouseRequestDto
-    ): WarehouseResponseDto {
-        return retryRemote {
+    ): WarehouseResponseDto = withContext(Dispatchers.IO) {
+        retryRemote {
             warehouseTable
                 .update(request) {
                     filter {
@@ -67,12 +68,14 @@ class SupabaseWarehouseRemoteDataSource(
     override suspend fun deleteWarehouse(
         id: String
     ) {
+        withContext(Dispatchers.IO) {
         retryRemote {
             warehouseTable.delete {
                 filter {
                     eq("id", id)
                 }
             }
+        }
         }
     }
 }

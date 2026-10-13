@@ -7,6 +7,8 @@ import com.example.logiroute.data.remote.dto.vehicle.VehicleResponseDto
 import com.example.logiroute.data.remote.retry.retryRemote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SupabaseVehicleRemoteDataSource (    private val client: SupabaseClient
 ): RemoteVehicleDataSource {
@@ -14,15 +16,15 @@ class SupabaseVehicleRemoteDataSource (    private val client: SupabaseClient
     private val vehicleTable =
         client.postgrest.from("vehicles")
 
-    override suspend fun getVehicles(): List<VehicleResponseDto> {
-        return retryRemote(operationName = "Vehicle.getVehicles") {
+    override suspend fun getVehicles(): List<VehicleResponseDto> = withContext(Dispatchers.IO) {
+        retryRemote(operationName = "Vehicle.getVehicles") {
             vehicleTable.select().decodeList<VehicleResponseDto>()
         }
     }
     override suspend fun getVehicleById(
         id: String
-    ): VehicleResponseDto? {
-        return retryRemote {
+    ): VehicleResponseDto? = withContext(Dispatchers.IO) {
+        retryRemote {
             vehicleTable
                 .select {
                     filter {
@@ -35,8 +37,8 @@ class SupabaseVehicleRemoteDataSource (    private val client: SupabaseClient
 
     override suspend fun createVehicle(
         request: CreateVehicleRequestDto
-    ): VehicleResponseDto {
-        return retryRemote {
+    ): VehicleResponseDto = withContext(Dispatchers.IO) {
+        retryRemote {
             vehicleTable
                 .insert(request) {
                     select()
@@ -48,8 +50,8 @@ class SupabaseVehicleRemoteDataSource (    private val client: SupabaseClient
     override suspend fun updateVehicle(
         id: String,
         request: UpdateVehicleRequestDto
-    ): VehicleResponseDto {
-        return retryRemote {
+    ): VehicleResponseDto = withContext(Dispatchers.IO) {
+        retryRemote {
             vehicleTable
                 .update(request) {
                     filter {
@@ -64,10 +66,12 @@ class SupabaseVehicleRemoteDataSource (    private val client: SupabaseClient
     override suspend fun deleteVehicle(
         id: String
     ) {
-        retryRemote {
-            vehicleTable.delete {
-                filter {
-                    eq("id", id)
+        withContext(Dispatchers.IO) {
+            retryRemote {
+                vehicleTable.delete {
+                    filter {
+                        eq("id", id)
+                    }
                 }
             }
         }
