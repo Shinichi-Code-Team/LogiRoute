@@ -1,6 +1,6 @@
 package com.example.logiroute.domain.validator
 
-import com.example.logiroute.domain.model.request.UpdatePackageInput
+import com.example.logiroute.domain.model.request.UpdatePackageRequest
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validation.ValidationResultMapper
@@ -10,15 +10,10 @@ class PackageUpdateValidator(
     private val atLeastOneFieldValidator: AtLeastOneFieldValidator,
     private val validationRules: ValidationRules,
     private val validationResultMapper: ValidationResultMapper
-) : Validator<PackageUpdateValidator.inputValidator> {
-
-    data class inputValidator(
-        val id: String?,
-        val update: UpdatePackageInput
-    )
+) : Validator<UpdatePackageRequest> {
 
     override fun validate(
-        value: inputValidator
+        value: UpdatePackageRequest
     ): ValidationResult {
 
         val errors = listOfNotNull(

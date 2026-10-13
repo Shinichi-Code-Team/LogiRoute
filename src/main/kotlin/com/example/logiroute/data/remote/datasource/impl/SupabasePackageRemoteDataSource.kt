@@ -4,14 +4,15 @@ import com.example.logiroute.data.remote.datasource.RemotePackageDataSource
 import com.example.logiroute.data.remote.dto.`package`.CreatePackageRequestDto
 import com.example.logiroute.data.remote.dto.`package`.PackageResponseDto
 import com.example.logiroute.data.remote.dto.`package`.UpdatePackageRequestDto
-import com.example.logiroute.data.remote.provider.SupabaseClientProvider
 import com.example.logiroute.data.remote.retry.retryRemote
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 
-class SupabasePackageRemoteDataSource : RemotePackageDataSource {
+class SupabasePackageRemoteDataSource(
+    private val client: SupabaseClient
+) : RemotePackageDataSource {
 
-    private val packageTable =
-        SupabaseClientProvider.client.postgrest.from("packages")
+    private val packageTable = client.postgrest.from("packages")
 
     override suspend fun getPackages(): List<PackageResponseDto> {
         return retryRemote(operationName = "Package.getPackages") {

@@ -1,6 +1,7 @@
 package domain.validator
 
 import com.example.logiroute.domain.model.request.UpdatePackageInput
+import com.example.logiroute.domain.model.request.UpdatePackageRequest
 import com.example.logiroute.domain.validation.ValidationError
 import com.example.logiroute.domain.validation.ValidationField
 import com.example.logiroute.domain.validation.ValidationReason
@@ -22,7 +23,7 @@ class PackageUpdateValidatorTest {
 
     @Test
     fun `valid package update passes`() {
-        val input = PackageUpdateValidator.inputValidator(
+        val input = UpdatePackageRequest(
             id = "PKG-123456",
             update = UpdatePackageInput(weight = 10.0)
         )
@@ -48,7 +49,7 @@ class PackageUpdateValidatorTest {
             )
         )
         cases.forEach { (update, expectedError) ->
-            val input = PackageUpdateValidator.inputValidator(
+            val input = UpdatePackageRequest(
                 id = "PKG-123456",
                 update = update
             )
@@ -63,7 +64,7 @@ class PackageUpdateValidatorTest {
     @Test
     fun `invalid package id returns error`() {
         // Given
-        val input = PackageUpdateValidator.inputValidator(
+        val input = UpdatePackageRequest(
             id = "WH-id",
             update = UpdatePackageInput(weight = 10.0)
         )
@@ -83,7 +84,7 @@ class PackageUpdateValidatorTest {
 
     @Test
     fun `empty package update returns no fields error`() {
-        val input = PackageUpdateValidator.inputValidator(
+        val input =UpdatePackageRequest(
             id = "PKG-123456",
             update = UpdatePackageInput()
         )

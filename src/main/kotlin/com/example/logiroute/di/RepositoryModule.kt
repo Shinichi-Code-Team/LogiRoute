@@ -1,4 +1,5 @@
 package com.example.logiroute.di
+
 import com.example.logiroute.data.repository.PackageRepositoryImpl
 import com.example.logiroute.data.repository.RouteRepositoryImpl
 import com.example.logiroute.data.repository.VehicleRepositoryImpl
@@ -7,36 +8,24 @@ import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+
 val repositoryModule = module {
-    single<WarehouseRepository> {
-        WarehouseRepositoryImpl(
-            remoteDataSource = get(),
-            dtoMapper = get()
-        )
+    singleOf(::WarehouseRepositoryImpl) {
+        bind<WarehouseRepository>()
     }
 
-    single<RouteRepository> {
-        RouteRepositoryImpl(
-            remoteDataSource = get(),
-            warehouseRepository = get(),
-            dtoMapper = get()
-        )
+    singleOf(::RouteRepositoryImpl) {
+        bind<RouteRepository>()
     }
 
-    single<PackageRepository> {
-        PackageRepositoryImpl(
-            remoteDataSource = get(),
-            warehouseRepository = get(),
-            dtoMapper = get()
-        )
+    singleOf(::PackageRepositoryImpl) {
+        bind<PackageRepository>()
     }
 
-    single<VehicleRepository> {
-        VehicleRepositoryImpl(
-            remoteDataSource = get(),
-            warehouseRepository = get(),
-            dtoMapper = get()
-        )
+    singleOf(::VehicleRepositoryImpl) {
+        bind<VehicleRepository>()
     }
 }

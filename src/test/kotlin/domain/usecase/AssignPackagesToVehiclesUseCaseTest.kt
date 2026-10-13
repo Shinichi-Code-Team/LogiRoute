@@ -39,10 +39,10 @@ class AssignPackagesToVehiclesUseCaseTest {
     @Test
     fun `should assign packages to their expected ring vehicles`() {
         // Given
-        val packageForSecondVehicle = packageItem("PKG-000011")
-        val packageForThirdVehicle = packageItem("PKG-000036")
-        val packageForFourthVehicle = packageItem("PKG-000061")
-        val packageForFirstVehicleAfterWrap = packageItem("PKG-000086")
+        val packageForSecondVehicle = packageItem("PKG-000186")
+        val packageForThirdVehicle = packageItem("PKG-000019")
+        val packageForFourthVehicle = packageItem("PKG-000023")
+        val packageForFirstVehicleAfterWrap = packageItem("PKG-000064")
 
         val packages = listOf(
             packageForSecondVehicle,
