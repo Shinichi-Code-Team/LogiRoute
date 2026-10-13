@@ -4,13 +4,12 @@ import com.example.logiroute.di.networkModule
 import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
-import com.example.logiroute.domain.dispatch.pipeline.ExpressDispatchProcessor
-import com.example.logiroute.domain.dispatch.pipeline.StandardDispatchProcessor
-import com.example.logiroute.domain.model.Priority
+import com.example.logiroute.domain.usecase.DispatchPackageUseCase
 import com.example.logiroute.domain.usecase.OptimizeCargoPackingUseCase
 import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import org.koin.core.context.startKoin
+
 suspend fun main() {
     val koin = startKoin {
         modules(
@@ -23,6 +22,10 @@ suspend fun main() {
 
     val readPackageUseCase = koin.get<ReadPackageUseCase>()
     val readVehicleUseCase = koin.get<ReadVehicleUseCase>()
+    val optimizeCargoPackingUseCase =
+        koin.get<OptimizeCargoPackingUseCase>()
+    val dispatchPackageUseCase =
+        koin.get<DispatchPackageUseCase>()
 
     val vehicle = readVehicleUseCase(VEHICLE_ID)
         .getOrElse {
@@ -35,12 +38,9 @@ suspend fun main() {
         }
 
     val packages = PACKAGE_IDS.mapNotNull { packageId ->
-
         readPackageUseCase(packageId)
             .onFailure {
-                println(
-                    "Failed to load package $packageId: ${it.message}"
-                )
+                println("Failed to load package $packageId: ${it.message}")
             }
             .getOrNull()
     }
@@ -53,9 +53,6 @@ suspend fun main() {
     println("Vehicle: ${vehicle.id}")
     println("Capacity: ${vehicle.maxCapacityKg} kg")
     println("Package pool size: ${packages.size}")
-
-    val optimizeCargoPackingUseCase =
-        koin.get<OptimizeCargoPackingUseCase>()
 
     val selectedPackages = optimizeCargoPackingUseCase(
         packages = packages,
@@ -80,53 +77,30 @@ suspend fun main() {
     println("\nStarting dispatch...")
 
     selectedPackages.forEach { packageItem ->
-
         println(
             "\n${packageItem.id}: " +
                     "${packageItem.state::class.simpleName}"
         )
-
-        val processor =
-            if (packageItem.priority == Priority.URGENT) {
-                ExpressDispatchProcessor()
-            } else {
-                StandardDispatchProcessor()
-            }
-
-        processor.dispatch(packageItem, vehicle)
-            .onSuccess { dispatchedPackage ->
-
-
-                println(
-                    "${dispatchedPackage.id}: " +
-                            "${dispatchedPackage.state::class.simpleName}"
-                )
-
-                dispatchedPackage.startTransit()
-
-                println(
-                    "${dispatchedPackage.id}: " +
-                            "${dispatchedPackage.state::class.simpleName}"
-                )
-
-                dispatchedPackage.deliver()
-
-                println(
-                    "${dispatchedPackage.id}: " +
-                            "${dispatchedPackage.state::class.simpleName}"
-                )
-            }
-            .onFailure { exception ->
-                println(
-                    "Dispatch failed for ${packageItem.id}: " +
-                            exception.message
-                )
-            }
+        dispatchPackageUseCase(
+            packageItem = packageItem,
+            vehicle = vehicle
+        ).onSuccess { deliveredPackage ->
+            println(
+                "${deliveredPackage.id}: " +
+                        "${deliveredPackage.state::class.simpleName}"
+            )
+        }.onFailure { exception ->
+            println(
+                "Dispatch failed for ${packageItem.id}: " +
+                        exception.message
+            )
+        }
     }
 
     println("\nEnd-to-end execution completed.")
-
 }
 
 private const val VEHICLE_ID = "TRK-0001"
-private val PACKAGE_IDS = listOf( "PKG-000001", "PKG-000002", "PKG-000003", "PKG-000004", "PKG-000005" )
+
+private val PACKAGE_IDS = listOf("PKG-000001", "PKG-000002", "PKG-000003", "PKG-000004", "PKG-000005"
+)
