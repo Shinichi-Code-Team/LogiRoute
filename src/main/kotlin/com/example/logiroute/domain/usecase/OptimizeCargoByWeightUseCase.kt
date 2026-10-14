@@ -5,7 +5,7 @@ import com.example.logiroute.domain.model.Priority
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class   OptimizeCargoPackingUseCase {
+class OptimizeCargoByWeightUseCase {
 
     operator fun invoke(
         packages: List<Package>,
@@ -21,12 +21,6 @@ class   OptimizeCargoPackingUseCase {
                 "Package weight must be finite and positive."
             }
             toUnits(packageItem.weight, roundUp = true)
-        }
-        val cellCount =
-            (packages.size.toLong() + 1) * (capacityUnits.toLong() + 1)
-
-        require(cellCount <= MAX_DP_CELLS) {
-            "Cargo input is too large for the 2D DP grid."
         }
 
         val grid = packages.indices.scan(
@@ -84,6 +78,5 @@ class   OptimizeCargoPackingUseCase {
 
     private companion object {
         const val UNITS_PER_KG = 1_000
-        const val MAX_DP_CELLS= 5_000_000L
     }
 }

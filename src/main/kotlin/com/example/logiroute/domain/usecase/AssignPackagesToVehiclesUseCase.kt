@@ -5,7 +5,10 @@ import com.example.logiroute.domain.model.Vehicle
 
 
 class AssignPackagesToVehiclesUseCase {
-
+    internal companion object {
+         const val VEHICLE_RING_SIZE = 100
+         val VEHICLE_RING_POSITIONS = listOf(15, 40, 65, 90)
+    }
     operator fun invoke(
         packages: List<Package>,
         vehicles: List<Vehicle>

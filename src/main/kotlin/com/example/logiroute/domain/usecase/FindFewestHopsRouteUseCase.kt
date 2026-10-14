@@ -3,6 +3,8 @@ package com.example.logiroute.domain.usecase
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 class FindFewestHopsRouteUseCase(
     private val warehouseRepository: WarehouseRepository,
@@ -41,25 +43,35 @@ class FindFewestHopsRouteUseCase(
     }
 
     private suspend fun buildAdjacencyMap():
-            Map<Warehouse, List<Warehouse>> {
+            Map<Warehouse, List<Warehouse>> = coroutineScope {
 
-        val warehousesById = warehouseRepository
-            .getAllWarehouses()
+        val warehousesDeferred = async {
+            warehouseRepository.getAllWarehouses()
+        }
+
+        val routesDeferred = async {
+            routeRepository.getAllRoutes()
+        }
+
+        val warehousesById = warehousesDeferred
+            .await()
             .associateBy { warehouse -> warehouse.id }
+
+        val routes = routesDeferred.await()
 
         val adjacencyMap = warehousesById.values
             .associateWith { mutableListOf<Warehouse>() }
 
-        for (route in routeRepository.getAllRoutes()) {
+        for (route in routes) {
             val origin = warehousesById[route.origin.id] ?: continue
-            val destination = warehousesById[route.destination.id] ?: continue
+            val destination =
+                warehousesById[route.destination.id] ?: continue
 
             adjacencyMap.getValue(origin).add(destination)
         }
 
-        return adjacencyMap
+        adjacencyMap
     }
-
     private fun findParents(
         source: Warehouse,
         destination: Warehouse,
