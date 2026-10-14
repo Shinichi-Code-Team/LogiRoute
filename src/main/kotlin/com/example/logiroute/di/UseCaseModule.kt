@@ -107,4 +107,5 @@ val useCaseModule = module {
     factoryOf(::DeleteWarehouseUseCase)
     factoryOf(::ReadWarehouseUseCase)
     factoryOf(::UpdateWarehouseUseCase)
+    factoryOf(::DispatchPackageUseCase)
 }
