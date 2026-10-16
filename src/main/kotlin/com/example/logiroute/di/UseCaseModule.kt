@@ -2,6 +2,7 @@ package com.example.logiroute.di
 
 import AddVehicleToHubUseCase
 import com.example.logiroute.com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
+import com.example.logiroute.domain.usecase.TrackActiveFleetUseCase
 import com.example.logiroute.domain.model.command.CommandHistoryStore
 import com.example.logiroute.domain.model.command.TreeCommandHistoryStore
 import com.example.logiroute.domain.pricingPackage.basepricing.EcoStrategy
@@ -110,4 +111,5 @@ val useCaseModule = module {
     factoryOf(::ReadWarehouseUseCase)
     factoryOf(::UpdateWarehouseUseCase)
     factoryOf(::DispatchPackageUseCase)
+    factoryOf(::TrackActiveFleetUseCase)
 }

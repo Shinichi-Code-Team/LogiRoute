@@ -8,6 +8,7 @@ import com.example.logiroute.domain.usecase.DispatchPackageUseCase
 import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
 import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
+import com.example.logiroute.di.telemetryModule
 import org.koin.core.context.startKoin
 
 suspend fun main() {
@@ -16,7 +17,8 @@ suspend fun main() {
             networkModule,
             repositoryModule,
             validatorModule,
-            useCaseModule
+            useCaseModule,
+            telemetryModule
         )
     }.koin
 
