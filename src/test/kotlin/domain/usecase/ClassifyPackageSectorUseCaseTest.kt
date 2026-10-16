@@ -21,7 +21,7 @@ class ClassifyPackageSectorUseCaseTest {
 
     @Test
     fun `should classify package sector successfully when sufficient historical data exists`() = runBlocking {
-        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val request = ClassifySectorRequest(37.91, -88.46, 10.0)
         val history = listOf(
             Package("PKG-000002", 10.5, centralWarehouse, centralWarehouse, Priority.STANDARD),
             Package("PKG-000003", 11.0, centralWarehouse, centralWarehouse, Priority.STANDARD),
@@ -29,68 +29,60 @@ class ClassifyPackageSectorUseCaseTest {
             Package("PKG-000005", 50.0, westWarehouse, westWarehouse, Priority.URGENT),
             Package("PKG-000006", 55.0, westWarehouse, westWarehouse, Priority.URGENT)
         )
-        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + history)
+        coEvery { packageRepository.getAllPackages() } returns history
 
-        val result = useCase("PKG-000001")
+        val result = useCase(request)
 
         assertEquals("CENTRAL", result.getOrNull())
     }
 
     @Test
     fun `should classify package sector correctly when custom k parameter is specified`() = runBlocking {
-        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val request = ClassifySectorRequest(37.91, -88.46, 10.0)
         val history = listOf(
             Package("PKG-000002", 10.5, centralWarehouse, centralWarehouse, Priority.STANDARD),
             Package("PKG-000003", 11.0, centralWarehouse, centralWarehouse, Priority.STANDARD),
             Package("PKG-000004", 50.0, westWarehouse, westWarehouse, Priority.URGENT)
         )
-        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + history)
+        coEvery { packageRepository.getAllPackages() } returns history
 
-        val result = useCase(packageId = "PKG-000001", k = 3)
+        val result = useCase(request = request, k = 3)
 
         assertEquals("CENTRAL", result.getOrNull())
     }
 
     @Test
-    fun `should return failure when package id does not exist in repository`() = runBlocking {
-        coEvery { packageRepository.getAllPackages() } returns emptyList()
-
-        val result = useCase("PKG-999999")
-
-        assertTrue(result.isFailure)
-    }
-
-    @Test
     fun `should return failure when historical records are fewer than k`() = runBlocking {
-        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val request = ClassifySectorRequest(37.91, -88.46, 10.0)
         val history = listOf(
             Package("PKG-000002", 10.5, centralWarehouse, centralWarehouse, Priority.STANDARD)
         )
-        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + history)
+        coEvery { packageRepository.getAllPackages() } returns history
 
-        val result = useCase("PKG-000001")
+        val result = useCase(request)
 
         assertTrue(result.isFailure)
     }
 
     @Test
     fun `should handle identical coordinate features without division by zero error`() = runBlocking {
-        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val request = ClassifySectorRequest(37.91, -88.46, 10.0)
         val identicalHistory = List(5) { index ->
             Package("PKG-00000${index + 2}", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
         }
-        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + identicalHistory)
+        coEvery { packageRepository.getAllPackages() } returns identicalHistory
 
-        val result = useCase("PKG-000001")
+        val result = useCase(request)
 
         assertTrue(result.isSuccess)
     }
 
     @Test
     fun `should return failure when package repository throws exception`() = runBlocking {
+        val request = ClassifySectorRequest(37.91, -88.46, 10.0)
         coEvery { packageRepository.getAllPackages() } throws RuntimeException("Database error")
 
-        val result = useCase("PKG-000001")
+        val result = useCase(request)
 
         assertTrue(result.isFailure)
     }

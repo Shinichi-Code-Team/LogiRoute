@@ -5,7 +5,7 @@ import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
 import com.example.logiroute.domain.usecase.DispatchPackageUseCase
-import com.example.logiroute.domain.usecase.OptimizeCargoPackingUseCase
+import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
 import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import org.koin.core.context.startKoin
@@ -23,7 +23,7 @@ suspend fun main() {
     val readPackageUseCase = koin.get<ReadPackageUseCase>()
     val readVehicleUseCase = koin.get<ReadVehicleUseCase>()
     val optimizeCargoPackingUseCase =
-        koin.get<OptimizeCargoPackingUseCase>()
+        koin.get<OptimizeCargoByWeightUseCase>()
     val dispatchPackageUseCase =
         koin.get<DispatchPackageUseCase>()
 
