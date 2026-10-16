@@ -16,66 +16,82 @@ class ClassifyPackageSectorUseCaseTest {
     private val packageRepository = mockk<PackageRepository>()
     private val useCase = ClassifyPackageSectorUseCase(packageRepository)
 
-    private fun createWarehouse(id: String, zone: String, lat: Double, lon: Double) =
-        Warehouse(id = id, name = "Warehouse $id", regionalZone = zone, latitude = lat, longitude = lon)
-
-    private fun createPackage(id: String, weight: Double, warehouse: Warehouse) =
-        Package(
-            id = id,
-            weight = weight,
-            origin = warehouse,
-            destination = warehouse,
-            priority = Priority.STANDARD
-        )
+    private val centralWarehouse = Warehouse("WH-001", "Hub-001", "CENTRAL", 37.91, -88.46)
+    private val westWarehouse = Warehouse("WH-002", "Hub-002", "WEST", 29.64, -99.44)
 
     @Test
-    fun `invoke classifies package sector based on majority vote of 5 nearest neighbors`() = runBlocking {
-        // Given
-        val targetWh = createWarehouse("WH-TARGET", "CENTRAL", 31.95, 35.91)
-        val targetPkg = createPackage("PKG-TARGET", 15.0, targetWh)
+    fun `should classify package sector successfully when sufficient historical data exists`() = runBlocking {
+        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val history = listOf(
+            Package("PKG-000002", 10.5, centralWarehouse, centralWarehouse, Priority.STANDARD),
+            Package("PKG-000003", 11.0, centralWarehouse, centralWarehouse, Priority.STANDARD),
+            Package("PKG-000004", 10.2, centralWarehouse, centralWarehouse, Priority.STANDARD),
+            Package("PKG-000005", 50.0, westWarehouse, westWarehouse, Priority.URGENT),
+            Package("PKG-000006", 55.0, westWarehouse, westWarehouse, Priority.URGENT)
+        )
+        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + history)
 
-        val northWh = createWarehouse("WH-N", "NORTH", 31.96, 35.92)
-        val northPkgs = (1..5).map { createPackage("PKG-N-$it", 15.2, northWh) }
+        val result = useCase("PKG-000001")
 
-        val southWh = createWarehouse("WH-S", "SOUTH", 30.10, 32.50)
-        val southPkgs = (1..2).map { createPackage("PKG-S-$it", 10.0, southWh) }
-
-        val allPackages = listOf(targetPkg) + northPkgs + southPkgs
-        coEvery { packageRepository.getAllPackages() } returns allPackages
-
-        // When
-        val result = useCase("PKG-TARGET")
-
-        // Then
-        assertTrue(result.isSuccess)
-        assertEquals("NORTH", result.getOrNull())
+        assertEquals("CENTRAL", result.getOrNull())
     }
 
     @Test
-    fun `invoke returns failure when package is not found`() = runBlocking {
-        // Given
+    fun `should classify package sector correctly when custom k parameter is specified`() = runBlocking {
+        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val history = listOf(
+            Package("PKG-000002", 10.5, centralWarehouse, centralWarehouse, Priority.STANDARD),
+            Package("PKG-000003", 11.0, centralWarehouse, centralWarehouse, Priority.STANDARD),
+            Package("PKG-000004", 50.0, westWarehouse, westWarehouse, Priority.URGENT)
+        )
+        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + history)
+
+        val result = useCase(packageId = "PKG-000001", k = 3)
+
+        assertEquals("CENTRAL", result.getOrNull())
+    }
+
+    @Test
+    fun `should return failure when package id does not exist in repository`() = runBlocking {
         coEvery { packageRepository.getAllPackages() } returns emptyList()
 
-        // When
-        val result = useCase("NON-EXISTENT")
+        val result = useCase("PKG-999999")
 
-        // Then
         assertTrue(result.isFailure)
     }
 
     @Test
-    fun `invoke returns failure when history dataset has fewer than 5 records`() = runBlocking {
-        // Given
-        val wh = createWarehouse("WH-1", "NORTH", 31.0, 35.0)
-        val targetPkg = createPackage("PKG-1", 10.0, wh)
-        val otherPkg = createPackage("PKG-2", 10.0, wh)
+    fun `should return failure when historical records are fewer than k`() = runBlocking {
+        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val history = listOf(
+            Package("PKG-000002", 10.5, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        )
+        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + history)
 
-        coEvery { packageRepository.getAllPackages() } returns listOf(targetPkg, otherPkg)
+        val result = useCase("PKG-000001")
 
-        // When
-        val result = useCase("PKG-1")
+        assertTrue(result.isFailure)
+    }
 
-        // Then
+    @Test
+    fun `should handle identical coordinate features without division by zero error`() = runBlocking {
+        val targetPackage = Package("PKG-000001", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        val identicalHistory = List(5) { index ->
+            Package("PKG-00000${index + 2}", 10.0, centralWarehouse, centralWarehouse, Priority.STANDARD)
+        }
+        coEvery { packageRepository.getAllPackages() } returns (listOf(targetPackage) + identicalHistory)
+
+        val result = useCase("PKG-000001")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `should return failure when package repository throws exception`() = runBlocking {
+        coEvery { packageRepository.getAllPackages() } throws RuntimeException("Database error")
+
+        val result = useCase("PKG-000001")
+
         assertTrue(result.isFailure)
     }
 }
