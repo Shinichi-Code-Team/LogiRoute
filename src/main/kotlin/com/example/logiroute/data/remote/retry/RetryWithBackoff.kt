@@ -1,6 +1,7 @@
 package com.example.logiroute.data.remote.retry
 
 import kotlinx.coroutines.delay
+import kotlin.coroutines.cancellation.CancellationException
 
 suspend fun <T> retryWithBackoff(
     maxRetries: Int = 3,
@@ -21,6 +22,8 @@ suspend fun <T> retryWithBackoff(
     while (true) {
         try {
             return Result.success(block())
+        } catch (exception: CancellationException) {
+            throw exception
         } catch (e: Throwable) {
             if (!isRetryable(e)) {
                 onGiveUp(attemptNumber, e, "Non-retryable exception encountered")

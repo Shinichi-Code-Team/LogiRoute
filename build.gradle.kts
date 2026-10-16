@@ -29,6 +29,8 @@ dependencies {
     testImplementation("io.insert-koin:koin-test:4.2.2")
     testImplementation("io.insert-koin:koin-test-junit5:4.2.2")
     testImplementation(libs.kotlinx.coroutines.test)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+
 
 }
 
