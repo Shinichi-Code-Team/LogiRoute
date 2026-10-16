@@ -3,6 +3,7 @@ package domain.usecase
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -14,24 +15,23 @@ class OptimizeCargoByWeightUseCaseTest {
     private val useCase = OptimizeCargoByWeightUseCase()
 
     private val origin = Warehouse(
-        "WH-001",
-        "Origin",
-        "NORTH",
-        32.0,
-        35.0
+        id = "WH-001",
+        name = "Origin",
+        regionalZone = "NORTH",
+        latitude = 32.0,
+        longitude = 35.0
     )
 
     private val destination = Warehouse(
-        "WH-002",
-        "Destination",
-        "EAST",
-        31.9,
-        35.2
+        id = "WH-002",
+        name = "Destination",
+        regionalZone = "EAST",
+        latitude = 31.9,
+        longitude = 35.2
     )
 
     @Test
     fun `should select the package combination with the highest priority score`() {
-        // Given
         val packages = listOf(
             packageItem("PKG-000001", 4.0, Priority.LOW),
             packageItem("PKG-000002", 3.0, Priority.STANDARD),
@@ -40,10 +40,11 @@ class OptimizeCargoByWeightUseCaseTest {
             packageItem("PKG-000005", 6.0, Priority.URGENT)
         )
 
-        // When
-        val result = useCase(packages, maxCapacityKg = 10.0)
+        val result = useCase(
+            packages = packages,
+            maxCapacityKg = 10.0
+        )
 
-        // Then
         assertEquals(
             listOf("PKG-000002", "PKG-000003", "PKG-000004"),
             result.map { it.id }
@@ -51,144 +52,213 @@ class OptimizeCargoByWeightUseCaseTest {
     }
 
     @Test
-    fun `should not exceed the vehicle capacity`() {
-        // Given
+    fun `should not exceed the weight capacity`() {
         val packages = listOf(
             packageItem("PKG-000001", 4.0, Priority.URGENT),
             packageItem("PKG-000002", 3.0, Priority.STANDARD),
             packageItem("PKG-000003", 2.0, Priority.LOW)
         )
-        val capacity = 5.0
 
-        // When
-        val result = useCase(packages, capacity)
-
-        // Then
-        assertTrue(result.sumOf { it.weight } <= capacity)
-    }
-
-    @Test
-    fun `should return an empty list when the package list is empty`() {
-        // Given
-        val packages = emptyList<Package>()
-
-        // When
-        val result = useCase(packages, maxCapacityKg = 10.0)
-
-        // Then
-        assertEquals(emptyList(), result)
-    }
-
-    @Test
-    fun `should return an empty list when capacity is zero`() {
-        // Given
-        val packages = listOf(
-            packageItem("PKG-000001", 1.0, Priority.URGENT)
+        val result = useCase(
+            packages = packages,
+            maxCapacityKg = 5.0
         )
 
-        // When
-        val result = useCase(packages, maxCapacityKg = 0.0)
+        assertTrue(result.sumOf { it.weight } <= 5.0)
+    }
 
-        // Then
+    @Test
+    fun `should return an empty list when there are no packages`() {
+        val result = useCase(
+            packages = emptyList(),
+            maxCapacityKg = 10.0
+        )
+
         assertEquals(emptyList(), result)
     }
 
     @Test
-    fun `should skip a package that weighs more than the capacity`() {
-        // Given
-        val packageItem = packageItem("PKG-000001", 2.0, Priority.URGENT)
+    fun `should return an empty list when weight capacity is zero`() {
+        val result = useCase(
+            packages = listOf(
+                packageItem("PKG-000001", 1.0, Priority.URGENT)
+            ),
+            maxCapacityKg = 0.0
+        )
 
-        // When
-        val result = useCase(listOf(packageItem), maxCapacityKg = 1.0)
+        assertEquals(emptyList(), result)
+    }
 
-        // Then
+    @Test
+    fun `should skip a package that exceeds the weight capacity`() {
+        val result = useCase(
+            packages = listOf(
+                packageItem("PKG-000001", 2.0, Priority.URGENT)
+            ),
+            maxCapacityKg = 1.0
+        )
+
         assertEquals(emptyList(), result)
     }
 
     @Test
     fun `should select a package when its weight exactly matches capacity`() {
-        // Given
-        val packageItem = packageItem("PKG-000001", 2.0, Priority.URGENT)
-
-        // When
-        val result = useCase(listOf(packageItem), maxCapacityKg = 2.0)
-
-        // Then
-        assertEquals(listOf(packageItem), result)
-    }
-
-    @Test
-    fun `should reject negative capacity`() {
-        // Given
-        val packages = emptyList<Package>()
-
-        // When / Then
-        assertFailsWith<IllegalArgumentException> {
-            useCase(packages, maxCapacityKg = -1.0)
-        }
-    }
-
-    @Test
-    fun `should reject NaN capacity`() {
-        // Given
-        val packages = emptyList<Package>()
-
-        // When / Then
-        assertFailsWith<IllegalArgumentException> {
-            useCase(packages, maxCapacityKg = Double.NaN)
-        }
-    }
-
-    @Test
-    fun `should reject infinite capacity`() {
-        // Given
-        val packages = emptyList<Package>()
-
-        // When / Then
-        assertFailsWith<IllegalArgumentException> {
-            useCase(packages, maxCapacityKg = Double.POSITIVE_INFINITY)
-        }
-    }
-
-    @Test
-    fun `should reject a package with NaN weight`() {
-        // Given
-        val invalidPackage = packageItem(
-            "PKG-000001",
-            Double.NaN,
-            Priority.URGENT
+        val result = useCase(
+            packages = listOf(
+                packageItem("PKG-000001", 2.0, Priority.URGENT)
+            ),
+            maxCapacityKg = 2.0
         )
 
-        // When / Then
+        assertEquals(listOf("PKG-000001"), result.map { it.id })
+    }
+
+    @Test
+    fun `should reject negative weight capacity`() {
         assertFailsWith<IllegalArgumentException> {
-            useCase(listOf(invalidPackage), maxCapacityKg = 10.0)
+            useCase(
+                packages = emptyList(),
+                maxCapacityKg = -1.0
+            )
         }
     }
 
     @Test
-    fun `should reject a package with infinite weight`() {
-        // Given
-        val invalidPackage = packageItem(
-            "PKG-000001",
-            Double.POSITIVE_INFINITY,
-            Priority.URGENT
-        )
-
-        // When / Then
+    fun `should reject NaN weight capacity`() {
         assertFailsWith<IllegalArgumentException> {
-            useCase(listOf(invalidPackage), maxCapacityKg = 10.0)
+            useCase(
+                packages = emptyList(),
+                maxCapacityKg = Double.NaN
+            )
         }
     }
+
+    @Test
+    fun `should reject infinite weight capacity`() {
+        assertFailsWith<IllegalArgumentException> {
+            useCase(
+                packages = emptyList(),
+                maxCapacityKg = Double.POSITIVE_INFINITY
+            )
+        }
+    }
+
+    @Test
+    fun `should reject a package with NaN weight during creation`() {
+        assertFailsWith<LogisticsException.EntityValidationException> {
+            packageItem(
+                id = "PKG-000006",
+                weight = Double.NaN,
+                priority = Priority.URGENT
+            )
+        }
+    }
+
+    @Test
+    fun `should reject a package with infinite weight during creation`() {
+        assertFailsWith<LogisticsException.EntityValidationException> {
+            packageItem(
+                id = "PKG-000007",
+                weight = Double.POSITIVE_INFINITY,
+                priority = Priority.URGENT
+            )
+        }
+    }
+
+    @Test
+    fun `should select both packages when only weight capacity is enforced`() {
+        val packages = bulkyAndDensePackages()
+
+        val result = useCase(
+            packages = packages,
+            maxCapacityKg = 10.0
+        )
+
+        assertEquals(
+            listOf("PKG-000101", "PKG-000102"),
+            result.map { it.id }
+        )
+    }
+
+    @Test
+    fun `should enforce volume capacity alongside weight capacity`() {
+        val packages = bulkyAndDensePackages()
+
+        val result = useCase(
+            packages = packages,
+            maxCapacityKg = 10.0,
+            maxVolumeM3 = 1.0
+        )
+
+        assertEquals(listOf("PKG-000101"), result.map { it.id })
+    }
+
+    @Test
+    fun `should not exceed the volume capacity`() {
+        val result = useCase(
+            packages = bulkyAndDensePackages(),
+            maxCapacityKg = 10.0,
+            maxVolumeM3 = 1.0
+        )
+
+        assertTrue(result.sumOf { it.volumeM3 ?: 0.0 } <= 1.0)
+    }
+
+    @Test
+    fun `should reject negative volume capacity`() {
+        assertFailsWith<IllegalArgumentException> {
+            useCase(
+                packages = emptyList(),
+                maxCapacityKg = 10.0,
+                maxVolumeM3 = -1.0
+            )
+        }
+    }
+
+    @Test
+    fun `should reject a package without volume when volume capacity is enforced`() {
+        assertFailsWith<IllegalArgumentException> {
+            useCase(
+                packages = listOf(
+                    packageItem(
+                        id = "PKG-000103",
+                        weight = 2.0,
+                        priority = Priority.URGENT
+                    )
+                ),
+                maxCapacityKg = 10.0,
+                maxVolumeM3 = 1.0
+            )
+        }
+    }
+
+    private fun bulkyAndDensePackages(): List<Package> =
+        listOf(
+            packageItem(
+                id = "PKG-000101",
+                weight = 2.0,
+                priority = Priority.URGENT,
+                volumeM3 = 0.9
+            ),
+            packageItem(
+                id = "PKG-000102",
+                weight = 8.0,
+                priority = Priority.STANDARD,
+                volumeM3 = 0.2
+            )
+        )
 
     private fun packageItem(
         id: String,
         weight: Double,
-        priority: Priority
+        priority: Priority,
+        volumeM3: Double? = null
     ) = Package(
         id = id,
         weight = weight,
         origin = origin,
         destination = destination,
-        priority = priority
+        priority = priority,
+        volumeM3 = volumeM3
     )
 }

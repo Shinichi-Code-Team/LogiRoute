@@ -53,7 +53,7 @@ suspend fun main() {
     }
 
     println("Vehicle: ${vehicle.id}")
-    println("Capacity: ${vehicle.maxCapacityKg} kg")
+    println("Weight capacity: ${vehicle.maxCapacityKg} kg")
     println("Package pool size: ${packages.size}")
 
     val selectedPackages = optimizeCargoPackingUseCase(
@@ -61,20 +61,7 @@ suspend fun main() {
         maxCapacityKg = vehicle.maxCapacityKg
     )
 
-    println("\nSelected cargo:")
-
-    selectedPackages.forEach { packageItem ->
-        println(
-            "${packageItem.id} | " +
-                    "Weight: ${packageItem.weight} kg | " +
-                    "Priority: ${packageItem.priority}"
-        )
-    }
-
-    println(
-        "Total selected weight: " +
-                "${selectedPackages.sumOf { it.weight }} kg"
-    )
+    printPayload("Selected cargo from Supabase", selectedPackages)
 
     println("\nStarting dispatch...")
 
@@ -102,6 +89,7 @@ suspend fun main() {
     println("\nEnd-to-end execution completed.")
 }
 
+private const val DEMO_ARGUMENT = "--knapsack-demo"
 private const val VEHICLE_ID = "TRK-0001"
 
 private val PACKAGE_IDS = listOf("PKG-000001", "PKG-000002", "PKG-000003", "PKG-000004", "PKG-000005"
