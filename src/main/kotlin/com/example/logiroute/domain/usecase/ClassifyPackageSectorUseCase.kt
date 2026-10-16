@@ -7,10 +7,6 @@ import com.example.logiroute.domain.repository.PackageRepository
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-/**
- * UseCase for classifying a package's delivery sector using k-Nearest Neighbors (KNN).
- * Fully aligned with Clean Architecture, pure functional paradigms, and strict domain boundaries.
- */
 class ClassifyPackageSectorUseCase(
     private val packageRepository: PackageRepository
 ) {
