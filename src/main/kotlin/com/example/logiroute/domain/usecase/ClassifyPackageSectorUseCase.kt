@@ -1,26 +1,24 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.domain.model.FeatureBounds
-import com.example.logiroute.domain.model.NormalizedPoint
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.repository.PackageRepository
 import kotlin.math.pow
 import kotlin.math.sqrt
 
+data class ClassifySectorRequest(
+    val latitude: Double,
+    val longitude: Double,
+    val weight: Double
+)
+
 class ClassifyPackageSectorUseCase(
     private val packageRepository: PackageRepository
 ) {
-
     suspend operator fun invoke(
-        packageId: String,
+        request: ClassifySectorRequest,
         k: Int = 5
     ): Result<String> = runCatching {
-        val allPackages = packageRepository.getAllPackages()
-
-        val targetPackage = allPackages.find { it.id == packageId }
-            ?: throw IllegalArgumentException("Package not found with ID: $packageId")
-
-        val historicalPackages = allPackages.filter { it.id != packageId }
+        val historicalPackages = packageRepository.getAllPackages()
 
         if (historicalPackages.size < k) {
             throw IllegalArgumentException(
@@ -28,12 +26,17 @@ class ClassifyPackageSectorUseCase(
             )
         }
 
-        val bounds = calculateFeatureBounds(targetPackage, historicalPackages)
-        val targetPoint = createNormalizedPoint(targetPackage, bounds)
+        val bounds = calculateFeatureBounds(request, historicalPackages)
+        val targetPoint = createNormalizedPoint(request.latitude, request.longitude, request.weight, bounds)
 
         historicalPackages
             .map { historyPkg ->
-                val historyPoint = createNormalizedPoint(historyPkg, bounds)
+                val historyPoint = createNormalizedPoint(
+                    historyPkg.origin.latitude,
+                    historyPkg.origin.longitude,
+                    historyPkg.weight,
+                    bounds
+                )
                 val distance = calculateDistance(targetPoint, historyPoint)
                 Pair(historyPkg.origin.regionalZone, distance)
             }
@@ -45,12 +48,22 @@ class ClassifyPackageSectorUseCase(
             ?.key ?: "CENTRAL"
     }
 
+    private data class FeatureBounds(
+        val minLat: Double, val maxLat: Double,
+        val minLon: Double, val maxLon: Double,
+        val minWeight: Double, val maxWeight: Double
+    )
+
+    private data class NormalizedPoint(
+        val lat: Double, val lon: Double, val weight: Double
+    )
+
     private fun calculateFeatureBounds(
-        target: Package,
+        target: ClassifySectorRequest,
         history: List<Package>
     ): FeatureBounds {
-        val allLats = history.map { it.origin.latitude } + target.origin.latitude
-        val allLons = history.map { it.origin.longitude } + target.origin.longitude
+        val allLats = history.map { it.origin.latitude } + target.latitude
+        val allLons = history.map { it.origin.longitude } + target.longitude
         val allWeights = history.map { it.weight } + target.weight
 
         return FeatureBounds(
@@ -61,12 +74,14 @@ class ClassifyPackageSectorUseCase(
     }
 
     private fun createNormalizedPoint(
-        pkg: Package,
+        lat: Double,
+        lon: Double,
+        weight: Double,
         bounds: FeatureBounds
     ): NormalizedPoint = NormalizedPoint(
-        lat = normalize(pkg.origin.latitude, bounds.minLat, bounds.maxLat),
-        lon = normalize(pkg.origin.longitude, bounds.minLon, bounds.maxLon),
-        weight = normalize(pkg.weight, bounds.minWeight, bounds.maxWeight)
+        lat = normalize(lat, bounds.minLat, bounds.maxLat),
+        lon = normalize(lon, bounds.minLon, bounds.maxLon),
+        weight = normalize(weight, bounds.minWeight, bounds.maxWeight)
     )
 
     private fun normalize(value: Double, min: Double, max: Double): Double =
