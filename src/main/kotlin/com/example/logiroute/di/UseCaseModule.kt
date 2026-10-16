@@ -59,6 +59,8 @@ val useCaseModule = module {
     factoryOf(::UndoBranchingCommandUseCase)
     factoryOf(::RedoBranchingCommandUseCase)
 
+    factoryOf(::ClassifyPackageSectorUseCase)
+
     factoryOf(::AddVehicleToHubUseCase)
     factoryOf(::AnalyzeTreePerformanceUseCase)
     factoryOf(::AssignPackagesToBestFitVehiclesUseCase)
