@@ -8,6 +8,9 @@ import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.data.telemetry.SimulatedTelemetryStreamingService
+import com.example.logiroute.domain.service.TelemetryStreamingService
+
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -27,5 +30,8 @@ val repositoryModule = module {
 
     singleOf(::VehicleRepositoryImpl) {
         bind<VehicleRepository>()
+    }
+    single<TelemetryStreamingService> {
+        SimulatedTelemetryStreamingService()
     }
 }
