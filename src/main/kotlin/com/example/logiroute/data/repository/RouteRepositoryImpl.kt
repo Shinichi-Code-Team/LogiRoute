@@ -49,7 +49,6 @@ class RouteRepositoryImpl(
         id: String,
         input: UpdateRouteInput
     ): Route {
-
         val request = dtoMapper.toUpdateRequest(input)
 
         val dto = remoteDataSource.updateRoute(
@@ -78,10 +77,20 @@ class RouteRepositoryImpl(
         warehouseMap: Map<String, Warehouse>
     ): Route? {
         val origin = warehouseMap[dto.originHubId]
-            ?: return null
+            ?: run {
+                System.err.println(
+                    "Skipping route ${dto.id}: origin warehouse ${dto.originHubId} not found"
+                )
+                return null
+            }
 
         val destination = warehouseMap[dto.destinationHubId]
-            ?: return null
+            ?: run {
+                System.err.println(
+                    "Skipping route ${dto.id}: destination warehouse ${dto.destinationHubId} not found"
+                )
+                return null
+            }
 
         val route = dtoMapper.toDomain(
             dto = dto,
