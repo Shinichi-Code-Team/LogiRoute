@@ -11,9 +11,9 @@ class DispatchVehicleUseCase {
         assignment: VehicleAssignment
     ): List<Package> {
 
-        loadPackagesIntoVehicle(
-            assignment
-        )
+        validateVehicleCapacity(assignment)
+
+        loadPackagesIntoVehicle(assignment)
 
         removePackagesFromWarehouse(
             warehouse = warehouse,
@@ -23,28 +23,40 @@ class DispatchVehicleUseCase {
         return assignment.packages
     }
 
+    private fun validateVehicleCapacity(
+        assignment: VehicleAssignment
+    ) {
+        val vehicle = assignment.vehicle
+
+        val currentWeight = vehicle.loadedPackages.sumOf {
+            it.weight
+        }
+
+        val newWeight = assignment.packages.sumOf {
+            it.weight
+        }
+
+        require(
+            currentWeight + newWeight <= vehicle.maxCapacityKg
+        ) {
+            "Vehicle capacity exceeded"
+        }
+    }
+
     private fun loadPackagesIntoVehicle(
         assignment: VehicleAssignment
     ) {
-
-        assignment.vehicle
-            .loadedPackages
-            .addAll(
-                assignment.packages
-            )
+        assignment.vehicle.loadedPackages.addAll(
+            assignment.packages
+        )
     }
 
     private fun removePackagesFromWarehouse(
         warehouse: Warehouse,
         packages: List<Package>
     ) {
-
-        packages.forEach {
-                packageItem ->
-
-            warehouse.removePackage(
-                packageItem
-            )
+        packages.forEach { packageItem ->
+            warehouse.removePackage(packageItem)
         }
     }
 }
