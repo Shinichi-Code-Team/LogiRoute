@@ -1,5 +1,6 @@
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.util.suspendRunCatching
 
 class AddVehicleToHubUseCase(
     private val vehicleRepository: VehicleRepository
@@ -9,7 +10,7 @@ class AddVehicleToHubUseCase(
         vehicle: Vehicle
     ): Result<Vehicle> {
 
-        return runCatching {
+        return suspendRunCatching {
             vehicleRepository.addVehicle(vehicle)
         }
     }
