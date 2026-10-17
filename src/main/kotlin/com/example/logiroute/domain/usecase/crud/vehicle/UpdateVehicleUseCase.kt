@@ -5,6 +5,7 @@ import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.model.request.UpdateVehicleRequest
 import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.VehicleUpdateValidator
 
@@ -28,7 +29,7 @@ class UpdateVehicleUseCase(
                 vehicleUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
-                runCatching {
+                suspendRunCatching {
                     vehicleRepository.updateVehicle(
                         id = id,
                         input = input

@@ -5,6 +5,7 @@ import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdatePackageRequest
+import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.PackageUpdateValidator
 
@@ -28,7 +29,7 @@ class UpdatePackageUseCase(
                 packageUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
-                runCatching {
+                suspendRunCatching {
                     packageRepository.updatePackage(
                         id = id,
                         input = input

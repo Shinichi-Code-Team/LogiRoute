@@ -2,6 +2,7 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.util.suspendRunCatching
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -17,7 +18,7 @@ class ClassifyPackageSectorUseCase(
     suspend operator fun invoke(
         request: ClassifySectorRequest,
         k: Int = 5
-    ): Result<String> = runCatching {
+    ): Result<String> = suspendRunCatching {
         val historicalPackages = packageRepository.getAllPackages()
 
         if (historicalPackages.size < k) {
