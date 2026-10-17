@@ -8,7 +8,6 @@ import com.example.logiroute.domain.usecase.DispatchPackageUseCase
 import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
 import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
-import com.example.logiroute.di.telemetryModule
 import org.koin.core.context.startKoin
 
 suspend fun main() {
@@ -18,7 +17,7 @@ suspend fun main() {
             repositoryModule,
             validatorModule,
             useCaseModule,
-            telemetryModule
+
         )
     }.koin
 
@@ -63,7 +62,7 @@ suspend fun main() {
 
     printPayload("Selected cargo from Supabase", selectedPackages)
 
-    println("\nStarting dispatch...")
+    println("\nStartFing dispatch...")
 
     selectedPackages.forEach { packageItem ->
         println(
