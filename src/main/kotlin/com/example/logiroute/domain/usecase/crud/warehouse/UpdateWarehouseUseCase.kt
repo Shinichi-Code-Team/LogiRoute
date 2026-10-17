@@ -5,6 +5,7 @@ import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdateWarehouseRequest
+import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validator.WarehouseUpdateValidator
 
@@ -28,7 +29,7 @@ class UpdateWarehouseUseCase(
                 warehouseUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
-                runCatching {
+                suspendRunCatching {
                     warehouseRepository.updateWarehouse(
                         id = id,
                         input = input

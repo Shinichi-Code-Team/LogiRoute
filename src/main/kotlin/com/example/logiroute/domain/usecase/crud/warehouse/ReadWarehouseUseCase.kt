@@ -3,6 +3,7 @@ package com.example.logiroute.domain.usecase.crud.warehouse
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
@@ -17,10 +18,9 @@ class ReadWarehouseUseCase(
         val errors = listOfNotNull(
             validationRules.validateWarehouseId(id)
         )
-        val validationResult = validationResultMapper.map(errors)
-        return when (validationResult) {
+        return when (val validationResult = validationResultMapper.map(errors)) {
             ValidationResult.Valid ->
-                runCatching {
+                suspendRunCatching {
                     warehouseRepository.getWarehouseById(id)
                 }
 

@@ -5,6 +5,7 @@ import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.model.request.UpdateRouteRequest
 import com.example.logiroute.domain.repository.RouteRepository
+import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validator.RouteUpdateValidator
 import com.example.logiroute.domain.validation.ValidationResult
 
@@ -28,7 +29,7 @@ class UpdateRouteUseCase(
                 routeUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
-                runCatching {
+                suspendRunCatching {
                     routeRepository.updateRoute(
                         id = id,
                         input = input
