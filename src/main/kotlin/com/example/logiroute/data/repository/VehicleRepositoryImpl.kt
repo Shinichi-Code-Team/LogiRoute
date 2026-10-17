@@ -15,7 +15,6 @@ class VehicleRepositoryImpl(
 ) : VehicleRepository {
 
     override suspend fun getAllVehicles(): List<Vehicle> {
-
         val warehouses = warehouseRepository
             .getAllWarehouses()
             .associateBy { it.id }
@@ -23,9 +22,13 @@ class VehicleRepositoryImpl(
         return remoteDataSource
             .getVehicles()
             .mapNotNull { dto ->
-
                 val warehouse = warehouses[dto.currentHubId]
-                    ?: return@mapNotNull null
+                    ?: run {
+                        System.err.println(
+                            "Skipping vehicle ${dto.id}: warehouse ${dto.currentHubId} not found"
+                        )
+                        return@mapNotNull null
+                    }
 
                 dtoMapper.toDomain(
                     dto = dto,
@@ -37,14 +40,18 @@ class VehicleRepositoryImpl(
     override suspend fun getVehicleById(
         id: String
     ): Vehicle? {
-
         val dto = remoteDataSource
             .getVehicleById(id)
             ?: return null
 
         val warehouse = warehouseRepository
             .getWarehouseById(dto.currentHubId)
-            ?: return null
+            ?: run {
+                System.err.println(
+                    "Cannot load vehicle ${dto.id}: warehouse ${dto.currentHubId} not found"
+                )
+                return null
+            }
 
         return dtoMapper.toDomain(
             dto = dto,
@@ -55,7 +62,6 @@ class VehicleRepositoryImpl(
     override suspend fun addVehicle(
         vehicle: Vehicle
     ): Vehicle {
-
         val request = dtoMapper.toCreateRequest(vehicle)
 
         val dto = remoteDataSource.createVehicle(request)
@@ -70,7 +76,6 @@ class VehicleRepositoryImpl(
         id: String,
         input: UpdateVehicleInput
     ): Vehicle {
-
         val request = dtoMapper.toUpdateRequest(input)
 
         val dto = remoteDataSource.updateVehicle(

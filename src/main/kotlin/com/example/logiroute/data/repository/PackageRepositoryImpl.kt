@@ -51,7 +51,6 @@ class PackageRepositoryImpl(
         id: String,
         input: UpdatePackageInput
     ): Package {
-
         val request = dtoMapper.toUpdateRequest(input)
 
         val dto = remoteDataSource.updatePackage(
@@ -80,10 +79,20 @@ class PackageRepositoryImpl(
         warehouseMap: Map<String, Warehouse>
     ): Package? {
         val origin = warehouseMap[dto.originHubId]
-            ?: return null
+            ?: run {
+                System.err.println(
+                    "Skipping package ${dto.id}: origin warehouse ${dto.originHubId} not found"
+                )
+                return null
+            }
 
         val destination = warehouseMap[dto.destinationHubId]
-            ?: return null
+            ?: run {
+                System.err.println(
+                    "Skipping package ${dto.id}: destination warehouse ${dto.destinationHubId} not found"
+                )
+                return null
+            }
 
         val packageItem = dtoMapper.toDomain(
             dto = dto,
