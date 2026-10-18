@@ -15,11 +15,3 @@ class PrioritizeShipmentConsolidationUseCase(
         return sortPackages(packages)
     }
 }
-
-    private fun getAllPackages(
-        opportunity: ConsolidationOpportunityRequest
-    ): List<Package> {
-
-        return listOf(opportunity.mainPackage) +
-                opportunity.compatiblePackages
-    }
