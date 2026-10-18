@@ -1,8 +1,9 @@
-package com.example.logiroute.com.example.logiroute.domain.usecase
+package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.model.result.PackageRouteValidationResult
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.Package
+import com.example.logiroute.domain.model.result.PackageRouteValidationResult
+
 class ValidatePackagesAgainstFinalRouteUseCase {
     operator fun invoke(
         packages: List<Package>,

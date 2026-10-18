@@ -1,4 +1,4 @@
-package com.example.logiroute.com.example.logiroute.domain.model.result
+package com.example.logiroute.domain.model.result
 
 data class TreePerformanceReport(
     val sampleKeys: List<String>,

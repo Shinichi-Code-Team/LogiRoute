@@ -1,3 +1,5 @@
+package com.example.logiroute.domain.usecase
+
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.repository.VehicleRepository
 

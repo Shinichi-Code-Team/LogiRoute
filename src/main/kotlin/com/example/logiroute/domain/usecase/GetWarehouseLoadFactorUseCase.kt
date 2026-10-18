@@ -1,8 +1,8 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
 
 class GetWarehouseLoadFactorUseCase(
     private val warehouseRepository: WarehouseRepository
@@ -14,9 +14,8 @@ class GetWarehouseLoadFactorUseCase(
 
         val warehouse = warehouseRepository.getAllWarehouses()
             .find { it.id == request.warehouseId }
-            ?: throw IllegalArgumentException(
-                "Warehouse not found with ID: ${request.warehouseId}"
-            )
+            ?: throw LogisticsException.WarehouseNotFoundException(request.warehouseId)
+
 
         val totalCargoWeight = warehouse.cargoQueue
             .sumOf { packageItem -> packageItem.weight }

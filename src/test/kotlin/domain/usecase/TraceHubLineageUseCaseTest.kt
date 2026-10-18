@@ -1,8 +1,8 @@
 package domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.model.request.HubNode
-import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.request.HubNode
+import com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.usecase.TraceHubLineageUseCase
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

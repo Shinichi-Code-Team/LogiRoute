@@ -1,6 +1,6 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.model.result.TreePerformanceReport
+import com.example.logiroute.domain.model.result.TreePerformanceReport
 
 class AnalyzeTreePerformanceUseCase {
     private companion object {

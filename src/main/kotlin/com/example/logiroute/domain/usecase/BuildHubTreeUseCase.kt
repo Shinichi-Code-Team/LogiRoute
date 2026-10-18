@@ -1,10 +1,10 @@
 package com.example.logiroute.domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.model.request.HubHierarchyRaw
-import com.example.logiroute.com.example.logiroute.domain.model.request.HubNode
-import com.example.logiroute.com.example.logiroute.domain.model.request.HubType
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.request.HubHierarchyRaw
+import com.example.logiroute.domain.model.request.HubNode
+import com.example.logiroute.domain.model.request.HubType
 
 class BuildHubTreeUseCase {
     operator fun invoke(
