@@ -1,11 +1,11 @@
 package domain.usecase
 
-import com.example.logiroute.com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.exceptions.LogisticsException
+import com.example.logiroute.domain.model.request.GetWarehouseLoadFactorRequest
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.GetWarehouseLoadFactorUseCase
 import io.mockk.coEvery
