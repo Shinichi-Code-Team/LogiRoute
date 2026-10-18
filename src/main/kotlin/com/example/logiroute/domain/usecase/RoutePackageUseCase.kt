@@ -2,6 +2,7 @@ package com.example.logiroute.domain.usecase
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 
@@ -29,11 +30,10 @@ class RoutePackageUseCase(
             .find { it.id == packageId }
             ?: throw IllegalArgumentException("Package not found: $packageId")
     }
-
     private suspend fun findWarehouseById(warehouseId: String): Warehouse {
         return warehouseRepository.getAllWarehouses()
             .find { it.id == warehouseId }
-            ?: throw IllegalArgumentException("Warehouse not found: $warehouseId")
+            ?: throw LogisticsException.WarehouseNotFoundException(warehouseId)
     }
 
     private fun validateRerouteEligibility(
