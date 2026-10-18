@@ -4,11 +4,12 @@ import com.example.logiroute.di.networkModule
 import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
-import com.example.logiroute.domain.usecase.DispatchPackageUseCase
-import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
-import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
+import com.example.logiroute.domain.usecase.ClassifyPackageSectorUseCase
+import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
+import com.example.logiroute.domain.usecase.TrackActiveFleetUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
 
 suspend fun main() {
     val koin = startKoin {
@@ -69,27 +70,9 @@ suspend fun main() {
             "\n${packageItem.id}: " +
                     "${packageItem.state::class.simpleName}"
         )
-        dispatchPackageUseCase(
-            packageItem = packageItem,
-            vehicle = vehicle
-        ).onSuccess { deliveredPackage ->
-            println(
-                "${deliveredPackage.id}: " +
-                        "${deliveredPackage.state::class.simpleName}"
-            )
-        }.onFailure { exception ->
-            println(
-                "Dispatch failed for ${packageItem.id}: " +
-                        exception.message
-            )
-        }
+
+        cli.run()
+    } finally {
+        stopKoin()
     }
-
-    println("\nEnd-to-end execution completed.")
 }
-
-private const val DEMO_ARGUMENT = "--knapsack-demo"
-private const val VEHICLE_ID = "TRK-0001"
-
-private val PACKAGE_IDS = listOf("PKG-000001", "PKG-000002", "PKG-000003", "PKG-000004", "PKG-000005"
-)
