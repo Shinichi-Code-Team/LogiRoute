@@ -1,9 +1,9 @@
 package domain.usecase
 
-import AddVehicleToHubUseCase
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
