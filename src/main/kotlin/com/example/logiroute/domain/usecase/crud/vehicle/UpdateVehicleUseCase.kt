@@ -25,8 +25,7 @@ class UpdateVehicleUseCase(
         )
 
         return when (
-            val validationResult =
-                vehicleUpdateValidator.validate(validationInput)
+            val validationResult = vehicleUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
                 suspendRunCatching {

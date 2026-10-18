@@ -4,9 +4,7 @@ import com.example.logiroute.di.networkModule
 import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
-import com.example.logiroute.domain.usecase.ClassifyPackageSectorUseCase
-import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
-import com.example.logiroute.domain.usecase.TrackActiveFleetUseCase
+import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
