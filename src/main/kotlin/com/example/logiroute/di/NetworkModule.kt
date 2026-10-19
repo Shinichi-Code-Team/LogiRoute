@@ -45,13 +45,15 @@ private data class SupabaseSpecs(
     val supabaseUrl: String,
     val supabaseKey: String,
 )
-
-private fun setupSupabaseSpecs(): SupabaseSpecs {
-    val supabaseUrl = System.getenv("SUPABASE_URL") ?: error("SUPABASE_URL environment variable is missing")
-    val supabaseKey = System.getenv("SUPABASE_KEY") ?: error("SUPABASE_KEY environment variable is missing")
-    return SupabaseSpecs(supabaseUrl, supabaseKey)
+private object SupabaseConfig {
+    const val URL = "https://aynippbeuvtkejoixnap.supabase.co"
+    const val KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5bmlwcGJldXZ0a2Vqb2l4bmFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzODU2MTcsImV4cCI6MjEwNDk2MTYxN30.V62ol4avge2EGB2FM8aNah45t8Zrl2ZYNulaYCFXJsM"
 }
-
+private fun setupSupabaseSpecs(): SupabaseSpecs =
+    SupabaseSpecs(
+        supabaseUrl = SupabaseConfig.URL,
+        supabaseKey = SupabaseConfig.KEY
+    )
 private fun setupSupabaseClient(
     supabaseSpecs: SupabaseSpecs
 ): SupabaseClient {
