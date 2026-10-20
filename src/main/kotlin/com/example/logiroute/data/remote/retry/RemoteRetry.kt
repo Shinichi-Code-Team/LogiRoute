@@ -1,27 +1,33 @@
 package com.example.logiroute.data.remote.retry
 
+import com.example.logiroute.data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.postgrest.exception.PostgrestRestException
 
 suspend fun <T> retryRemote(
+    rateLimiter: RateLimiter,
     operationName: String = "RemoteCall",
     block: suspend () -> T
 ): T {
     val result = retryWithBackoff(
-        isRetryable = ::isRetryable,
-        onRetry = { attempt, delayMs, error ->
-            println(
-                "[RetryTelemetry::$operationName] Attempt #$attempt failed. " +
-                        "Cause: ${describeError(error)} -> Retrying in ${delayMs}ms..."
-            )
-        },
-        onGiveUp = { attempt, error, reason ->
-            println(
-                "[RetryTelemetry::$operationName] Stopped after $attempt attempt(s). " +
-                        "Reason: \"$reason\" | Cause: ${describeError(error)}"
-            )
-        },
-        block = block
-    )
+        policy = RetryPolicy(isRetryable = ::isRetryable),
+        callbacks = RetryCallbacks(
+            onRetry = { attempt, delayMs, error ->
+                println(
+                    "[RetryTelemetry::$operationName] Attempt #$attempt failed. " +
+                            "Cause: ${describeError(error)} -> Retrying in ${delayMs}ms..."
+                )
+            },
+            onGiveUp = { attempt, error, reason ->
+                println(
+                    "[RetryTelemetry::$operationName] Stopped after $attempt attempt(s). " +
+                            "Reason: \"$reason\" | Cause: ${describeError(error)}"
+                )
+            }
+        )
+    ) {
+        rateLimiter.acquire()
+        block()
+    }
 
     result.onSuccess {
         println("[RetryTelemetry::$operationName] Operation succeeded successfully.")

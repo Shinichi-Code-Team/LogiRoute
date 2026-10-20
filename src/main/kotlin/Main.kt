@@ -4,8 +4,10 @@ import com.example.logiroute.di.networkModule
 import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
-import com.example.logiroute.domain.usecase.crud.`package`.ReadPackageUseCase
-import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
+import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.usecase.DispatchPackageUseCase
+import com.example.logiroute.domain.usecase.OptimizeCargoByWeightUseCase
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 
@@ -15,61 +17,54 @@ suspend fun main() {
             networkModule,
             repositoryModule,
             validatorModule,
-            useCaseModule,
-
+            useCaseModule
         )
     }.koin
 
-    val readPackageUseCase = koin.get<ReadPackageUseCase>()
-    val readVehicleUseCase = koin.get<ReadVehicleUseCase>()
-    val optimizeCargoPackingUseCase =
-        koin.get<OptimizeCargoByWeightUseCase>()
-    val dispatchPackageUseCase =
-        koin.get<DispatchPackageUseCase>()
+    try {
+        val packageRepository = koin.get<PackageRepository>()
+        val vehicleRepository = koin.get<VehicleRepository>()
+        val optimizeCargoUseCase = koin.get<OptimizeCargoByWeightUseCase>()
+        val dispatchPackageUseCase = koin.get<DispatchPackageUseCase>()
 
-    val vehicle = readVehicleUseCase(VEHICLE_ID)
-        .getOrElse {
-            println("Failed to load vehicle: ${it.message}")
-            return
-        }
-        ?: run {
-            println("Vehicle $VEHICLE_ID was not found.")
-            return
-        }
-
-    val packages = PACKAGE_IDS.mapNotNull { packageId ->
-        readPackageUseCase(packageId)
-            .onFailure {
-                println("Failed to load package $packageId: ${it.message}")
+        val vehicle = vehicleRepository.getAllVehicles().firstOrNull()
+            ?: run {
+                println("No vehicles are available.")
+                return
             }
-            .getOrNull()
-    }
 
-    if (packages.isEmpty()) {
-        println("No packages available for optimization.")
-        return
-    }
+        val packages = packageRepository.getAllPackages()
 
-    println("Vehicle: ${vehicle.id}")
-    println("Weight capacity: ${vehicle.maxCapacityKg} kg")
-    println("Package pool size: ${packages.size}")
+        if (packages.isEmpty()) {
+            println("No packages are available for optimization.")
+            return
+        }
 
-    val selectedPackages = optimizeCargoPackingUseCase(
-        packages = packages,
-        maxCapacityKg = vehicle.maxCapacityKg
-    )
+        println("Vehicle: ${vehicle.id}")
+        println("Weight capacity: ${vehicle.maxCapacityKg} kg")
+        println("Package pool size: ${packages.size}")
 
-    printPayload("Selected cargo from Supabase", selectedPackages)
-
-    println("\nStartFing dispatch...")
-
-    selectedPackages.forEach { packageItem ->
-        println(
-            "\n${packageItem.id}: " +
-                    "${packageItem.state::class.simpleName}"
+        val selectedPackages = optimizeCargoUseCase(
+            packages = packages,
+            maxCapacityKg = vehicle.maxCapacityKg
         )
 
-        cli.run()
+        println("\nStarting dispatch...")
+
+        selectedPackages.forEach { packageItem ->
+            dispatchPackageUseCase(packageItem, vehicle)
+                .onSuccess { dispatchedPackage ->
+                    println(
+                        "${dispatchedPackage.id}: " +
+                                "${dispatchedPackage.state::class.simpleName}"
+                    )
+                }
+                .onFailure { error ->
+                    println(
+                        "Failed to dispatch ${packageItem.id}: ${error.message}"
+                    )
+                }
+        }
     } finally {
         stopKoin()
     }
