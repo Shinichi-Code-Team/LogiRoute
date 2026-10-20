@@ -8,6 +8,7 @@ import com.example.logiroute.data.remote.mapper.PackageDtoMapper
 import com.example.logiroute.data.remote.mapper.RouteDtoMapper
 import com.example.logiroute.data.remote.mapper.VehicleDtoMapper
 import com.example.logiroute.data.remote.mapper.WarehouseDtoMapper
+import com.example.logiroute.data.remote.ratelimit.RateLimiter
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
@@ -18,7 +19,7 @@ import org.koin.dsl.module
 val networkModule = module {
     singleOf(::setupSupabaseSpecs)
     singleOf(::setupSupabaseClient)
-
+    single { RateLimiter(maxBucketCapacity = 10, refillRatePerSecond = 5.0) }
 
     singleOf(::SupabaseWarehouseRemoteDataSource) {
         bind<RemoteWarehouseDataSource>()

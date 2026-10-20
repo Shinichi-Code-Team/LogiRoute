@@ -3,20 +3,24 @@ package com.example.logiroute.data.remote.datasource
 import com.example.logiroute.data.remote.dto.route.CreateRouteRequestDto
 import com.example.logiroute.data.remote.dto.route.RouteResponseDto
 import com.example.logiroute.data.remote.dto.route.UpdateRouteRequestDto
+import com.example.logiroute.data.remote.ratelimit.RateLimiter
 import com.example.logiroute.data.remote.retry.retryRemote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
+class SupabaseRouteRemoteDataSource(
+    private val client: SupabaseClient,
+    private val rateLimiter: RateLimiter
+
 ) : RemoteRouteDataSource {
 
     private val routeTable =
         client.postgrest.from("routes")
 
     override suspend fun getRoutes(): List<RouteResponseDto> = withContext(Dispatchers.IO) {
-        retryRemote(operationName = "Route.getRoutes") {
+        retryRemote(rateLimiter,operationName = "Route.getRoutes") {
             routeTable.select().decodeList<RouteResponseDto>()
         }
     }
@@ -24,7 +28,7 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
     override suspend fun getRouteById(
         id: String
     ): RouteResponseDto? = withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote (rateLimiter){
             routeTable
                 .select {
                     filter {
@@ -39,7 +43,7 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
     override suspend fun createRoute(
         request: CreateRouteRequestDto
     ): RouteResponseDto = withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote(rateLimiter) {
             routeTable
                 .insert(request) {
                     select()
@@ -52,7 +56,7 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
         id: String,
         request: UpdateRouteRequestDto
     ): RouteResponseDto = withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote (rateLimiter){
             routeTable
                 .update(request) {
                     filter {
@@ -68,7 +72,7 @@ class SupabaseRouteRemoteDataSource(private val client: SupabaseClient
         id: String
     ) {
         withContext(Dispatchers.IO) {
-            retryRemote {
+            retryRemote(rateLimiter) {
                 routeTable
                     .delete {
                         filter {
