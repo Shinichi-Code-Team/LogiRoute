@@ -115,4 +115,6 @@ val useCaseModule = module {
     factoryOf(::ReadWarehouseUseCase)
     factoryOf(::UpdateWarehouseUseCase)
     factoryOf(::DispatchPackageUseCase)
+
+    single { CircuitBreakerUseCase() }
 }
