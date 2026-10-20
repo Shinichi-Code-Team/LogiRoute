@@ -16,10 +16,12 @@ import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
+private const val MAX_BUCKET_CAPACITY = 10
+private const val REFILL_RATE_PER_SECOND = 5.0
 val networkModule = module {
     singleOf(::setupSupabaseSpecs)
     singleOf(::setupSupabaseClient)
-    single { RateLimiter(maxBucketCapacity = 10, refillRatePerSecond = 5.0) }
+    single { RateLimiter(maxBucketCapacity = MAX_BUCKET_CAPACITY, refillRatePerSecond = REFILL_RATE_PER_SECOND) }
 
     singleOf(::SupabaseWarehouseRemoteDataSource) {
         bind<RemoteWarehouseDataSource>()
