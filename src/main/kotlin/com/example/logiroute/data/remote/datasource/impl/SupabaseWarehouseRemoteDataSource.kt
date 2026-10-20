@@ -4,20 +4,23 @@ import com.example.logiroute.data.remote.datasource.RemoteWarehouseDataSource
 import com.example.logiroute.data.remote.dto.warehouse.CreateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.UpdateWarehouseRequestDto
 import com.example.logiroute.data.remote.dto.warehouse.WarehouseResponseDto
+import com.example.logiroute.data.remote.ratelimit.RateLimiter
 import com.example.logiroute.data.remote.retry.retryRemote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 class SupabaseWarehouseRemoteDataSource(
-    private val client: SupabaseClient
+    private val client: SupabaseClient,
+    private val rateLimiter: RateLimiter
+
 ) : RemoteWarehouseDataSource {
 
     private val warehouseTable =
         client.postgrest.from("warehouses")
 
     override suspend fun getWarehouses(): List<WarehouseResponseDto> {
-        return retryRemote(operationName = "Warehouse.getWarehouses") {
+        return retryRemote(rateLimiter,operationName = "Warehouse.getWarehouses") {
             warehouseTable.select().decodeList<WarehouseResponseDto>()
         }
     }
@@ -25,7 +28,7 @@ class SupabaseWarehouseRemoteDataSource(
     override suspend fun getWarehouseById(
         id: String
     ): WarehouseResponseDto? = withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote(rateLimiter) {
             warehouseTable
                 .select {
                     filter {
@@ -40,7 +43,7 @@ class SupabaseWarehouseRemoteDataSource(
     override suspend fun createWarehouse(
         request: CreateWarehouseRequestDto
     ): WarehouseResponseDto = withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote (rateLimiter){
             warehouseTable
                 .insert(request) {
                     select()
@@ -53,7 +56,7 @@ class SupabaseWarehouseRemoteDataSource(
         id: String,
         request: UpdateWarehouseRequestDto
     ): WarehouseResponseDto = withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote (rateLimiter){
             warehouseTable
                 .update(request) {
                     filter {
@@ -69,7 +72,7 @@ class SupabaseWarehouseRemoteDataSource(
         id: String
     ) {
         withContext(Dispatchers.IO) {
-        retryRemote {
+        retryRemote(rateLimiter) {
             warehouseTable.delete {
                 filter {
                     eq("id", id)
