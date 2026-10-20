@@ -34,7 +34,11 @@ val useCaseModule = module {
             }
         )
     }
-
+    factory {
+        TrackActiveFleetUseCase(
+            telemetryStreamingService = get()
+    )
+    }
     factoryOf(::FindFewestHopsRouteUseCase)
     factoryOf(::FindFewestHopsBidirectionalRouteUseCase)
 
@@ -42,7 +46,7 @@ val useCaseModule = module {
         SelectShipmentRouteUseCase(
             distancePathUseCase = get(),
             delayPathUseCase = get(named("delayRouter")),
-            fewestHopsRouteUseCase = get()
+            fewestHopsRouteUseCase = get() ,
         )
     }
 
@@ -111,5 +115,4 @@ val useCaseModule = module {
     factoryOf(::ReadWarehouseUseCase)
     factoryOf(::UpdateWarehouseUseCase)
     factoryOf(::DispatchPackageUseCase)
-    factoryOf(::TrackActiveFleetUseCase)
 }
