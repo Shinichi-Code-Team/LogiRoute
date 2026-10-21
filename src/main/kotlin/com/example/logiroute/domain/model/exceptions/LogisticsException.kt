@@ -102,4 +102,7 @@ open class LogisticsException(
         "$INVALID_PACKAGE_STATE_TRANSITION_EXCEPTION " +
                 "Package $packageId cannot $action from $fromState."
     )
+    class CallNotPermittedException(
+        message: String = "Circuit Breaker is OPEN. Network request not permitted."
+    ) : LogisticsException(message)
 }
