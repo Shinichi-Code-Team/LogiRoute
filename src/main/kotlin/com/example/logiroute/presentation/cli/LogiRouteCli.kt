@@ -7,6 +7,9 @@ import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.TrackActiveFleetUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
 import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
+import com.example.logiroute.domain.usecase.OptimizeLastMileRouteUseCase
+import com.example.logiroute.domain.model.LastMileWaypoint
+import com.example.logiroute.domain.model.request.OptimizeLastMileRouteRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,12 +24,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
+
 class LogiRouteCli(
     private val readWarehouseUseCase: ReadWarehouseUseCase,
     private val readVehicleUseCase: ReadVehicleUseCase,
     private val findOptimalPathUseCase: FindOptimalPathUseCase,
     private val classifyPackageSectorUseCase: ClassifyPackageSectorUseCase,
-    private val trackActiveFleetUseCase: TrackActiveFleetUseCase
+    private val trackActiveFleetUseCase: TrackActiveFleetUseCase ,
+    private val optimizeLastMileRouteUseCase: OptimizeLastMileRouteUseCase
 ) {
     suspend fun run() = coroutineScope {
         val shellScope = this
@@ -60,7 +66,12 @@ class LogiRouteCli(
                 telemetryJob = null
                 println("Telemetry streaming stopped.")
             },
-            "0" to {
+            "5" to {
+                safely {
+                    optimizeLastMileRoute()
+                }
+            },
+            "0" to{
                 isRunning = false
             }
         )
@@ -90,6 +101,7 @@ class LogiRouteCli(
         println("2. Classify package sector (KNN)")
         println("3. Start fleet delay-notification stream")
         println("4. Stop fleet stream")
+        println("5. Optimize last-mile route with 2-Opt")
         println("0. Exit")
     }
 
@@ -245,7 +257,85 @@ class LogiRouteCli(
                 null
             }
         )
+    private suspend fun optimizeLastMileRoute() {
+        val originId = readInput("Origin warehouse ID:") ?: return
 
+        val origin = readWarehouseUseCase(originId)
+            .getOrElse { error ->
+                println("Could not load origin warehouse: ${error.message}")
+                return
+            }
+            ?: run {
+                println("Origin warehouse was not found.")
+                return
+            }
+
+        val deliveryStops = readDeliveryStops()
+            ?: run {
+                println("Route optimization cancelled. Enter valid coordinates.")
+                return
+            }
+
+        val request = OptimizeLastMileRouteRequest(
+            origin = LastMileWaypoint(
+                id = origin.id,
+                latitude = origin.latitude,
+                longitude = origin.longitude
+            ),
+            deliveryStops = deliveryStops
+        )
+
+        val result = optimizeLastMileRouteUseCase(request)
+
+        println("Optimized route:")
+        println(result.route.joinToString(" -> ") { waypoint -> waypoint.id })
+        println("Distance before: ${result.distanceBeforeKm} km")
+        println("Distance after: ${result.distanceAfterKm} km")
+        println("Distance saved: ${result.distanceSavedKm} km")
+        println("Driving distance saved: ${result.distanceSavedPercent}%")
+        println("Estimated fuel saved: ${result.estimatedFuelSavedPercent}%")
+    }
+
+    private suspend fun readDeliveryStops(
+        stopNumber: Int = 1,
+        collectedStops: List<LastMileWaypoint> = emptyList()
+    ): List<LastMileWaypoint>? =
+        when {
+            stopNumber > 15 -> collectedStops
+
+            else -> readDeliveryStop(stopNumber)?.let { stop ->
+                readDeliveryStops(
+                    stopNumber = stopNumber + 1,
+                    collectedStops = collectedStops + stop
+                )
+            }
+        }
+
+    private suspend fun readDeliveryStop(
+        stopNumber: Int
+    ): LastMileWaypoint? {
+        val latitude = readFiniteDouble(
+            "Stop $stopNumber latitude:"
+        )?.takeIf { value -> value in -90.0..90.0 }
+            ?: run {
+                println("Latitude must be between -90 and 90.")
+                return null
+            }
+
+        val longitude = readFiniteDouble(
+            "Stop $stopNumber longitude:"
+        )?.takeIf { value -> value in -180.0..180.0 }
+            ?: run {
+                println("Longitude must be between -180 and 180.")
+                return null
+            }
+
+        return LastMileWaypoint(
+            id = "STOP-${stopNumber.toString().padStart(2, '0')}",
+            latitude = latitude,
+            longitude = longitude
+        )
+    }
     private suspend fun readFiniteDouble(label: String): Double? =
         readInput(label)
             ?.toDoubleOrNull()
@@ -294,4 +384,5 @@ class LogiRouteCli(
             println("Command failed: ${error.message}")
         }
     }
+
 }

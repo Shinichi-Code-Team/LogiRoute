@@ -94,6 +94,7 @@ val useCaseModule = module {
     factoryOf(::SortCargoQueueByWeightUseCase)
     factoryOf(::TraceHubLineageUseCase)
     factoryOf(::ValidatePackagesAgainstFinalRouteUseCase)
+    factoryOf(::OptimizeLastMileRouteUseCase)
 
     factoryOf(::CreatePackageUseCase)
     factoryOf(::DeletePackageUseCase)
