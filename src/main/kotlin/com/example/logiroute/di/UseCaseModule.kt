@@ -1,5 +1,8 @@
 package com.example.logiroute.di
 
+import com.example.logiroute.data.cache.LruRoutePathCache
+import com.example.logiroute.domain.cache.RouteCostMetric
+import com.example.logiroute.domain.cache.RoutePathCache
 import com.example.logiroute.domain.usecase.AddVehicleToHubUseCase
 import com.example.logiroute.domain.usecase.ValidatePackagesAgainstFinalRouteUseCase
 import com.example.logiroute.domain.usecase.TrackActiveFleetUseCase
@@ -17,11 +20,15 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val useCaseModule = module {
+    single<RoutePathCache> { LruRoutePathCache(capacity = 50) }
+
     factory {
         FindOptimalPathUseCase(
             warehousesRepository = get(),
             routeRepository = get(),
-            routeWeight = { route -> route.distanceKm }
+            routeWeight = { route -> route.distanceKm },
+            routePathCache = get(),
+            routeCostMetric = RouteCostMetric.DISTANCE
         )
     }
 
@@ -31,7 +38,9 @@ val useCaseModule = module {
             routeRepository = get(),
             routeWeight = { route ->
                 route.typicalDelayMin.toDouble()
-            }
+            },
+            routePathCache = get(),
+            routeCostMetric = RouteCostMetric.DELAY
         )
     }
     factory {
