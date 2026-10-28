@@ -6,6 +6,7 @@ import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import com.example.logiroute.domain.usecase.crud.`package`.CreatePackageUseCase
 import com.example.logiroute.domain.usecase.crud.route.ReadRouteUseCase
 import com.example.logiroute.domain.usecase.crud.vehicle.CreateVehicleUseCase
@@ -14,6 +15,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.dsl.module
+import org.koin.core.qualifier.named
 import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.junit5.KoinTestExtension
@@ -50,5 +52,7 @@ class UseCaseModuleTest : KoinTest {
         assertNotNull(get<ReadRouteUseCase>())
         assertNotNull(get<CreateVehicleUseCase>())
         assertNotNull(get<ReadWarehouseUseCase>())
+        assertNotNull(get<FindOptimalPathUseCase>())
+        assertNotNull(get<FindOptimalPathUseCase>(named("delayRouter")))
     }
 }
