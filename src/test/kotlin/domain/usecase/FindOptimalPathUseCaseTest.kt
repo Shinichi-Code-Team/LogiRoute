@@ -2,25 +2,32 @@ package domain.usecase
 
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.data.cache.LruRoutePathCache
+import com.example.logiroute.domain.cache.RouteCostMetric
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class FindOptimalPathUseCaseTest {
 
     private val warehouseRepository: WarehouseRepository = mockk()
     private val routeRepository: RouteRepository = mockk()
+    private val routeCache = LruRoutePathCache(capacity = 50)
 
     private val useCase = FindOptimalPathUseCase(
         warehousesRepository = warehouseRepository,
         routeRepository = routeRepository,
-        routeWeight = { route -> route.distanceKm }
+        routeWeight = { route -> route.distanceKm },
+        routePathCache = routeCache,
+        routeCostMetric = RouteCostMetric.DISTANCE
     )
 
     private val warehouseA =
@@ -104,12 +111,37 @@ class FindOptimalPathUseCaseTest {
             routeRepository = routeRepository,
             routeWeight = { route ->
                 route.typicalDelayMin.toDouble()
-            }
+            },
+            routePathCache = routeCache,
+            routeCostMetric = RouteCostMetric.DELAY
         )
 
         val path = delayUseCase(warehouseA, warehouseC)
 
         assertEquals(listOf(warehouseA, warehouseC), path)
+    }
+
+    @Test
+    fun `should keep distance and delay routes in separate cache entries`() = runTest {
+        givenGraph(
+            routes = listOf(
+                Route("RT-00001", warehouseA, warehouseC, 10.0, 1),
+                Route("RT-00002", warehouseA, warehouseB, 2.0, 4),
+                Route("RT-00003", warehouseB, warehouseC, 3.0, 4)
+            )
+        )
+        val delayUseCase = FindOptimalPathUseCase(
+            warehousesRepository = warehouseRepository,
+            routeRepository = routeRepository,
+            routeWeight = { route -> route.typicalDelayMin.toDouble() },
+            routePathCache = routeCache,
+            routeCostMetric = RouteCostMetric.DELAY
+        )
+
+        val distancePath = useCase(warehouseA, warehouseC)
+        val delayPath = delayUseCase(warehouseA, warehouseC)
+
+        assertNotEquals(distancePath, delayPath)
     }
 
     @Test
@@ -167,5 +199,22 @@ class FindOptimalPathUseCaseTest {
         val path = useCase(warehouseB, warehouseA)
 
         assertTrue(path.isEmpty())
+    }
+
+    @Test
+    fun `should reuse cached route without reloading repositories`() = runTest {
+        givenGraph(
+            routes = listOf(
+                Route("RT-00001", warehouseA, warehouseB, 2.0, 1),
+                Route("RT-00002", warehouseB, warehouseC, 3.0, 1)
+            )
+        )
+
+        useCase(warehouseA, warehouseC)
+        useCase(warehouseA, warehouseC)
+
+        coVerify(exactly = 1) { warehouseRepository.getAllWarehouses() }
+        coVerify(exactly = 1) { routeRepository.getAllRoutes() }
+        assertEquals(1L, useCase.metricsSnapshot().executions)
     }
 }

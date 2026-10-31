@@ -1,28 +1,66 @@
 package com.example.logiroute.domain.usecase
 
+import com.example.logiroute.domain.cache.RouteCacheKey
+import com.example.logiroute.domain.cache.RouteCostMetric
+import com.example.logiroute.domain.cache.RoutePathCache
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.time.TimeSource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+
 
 class FindOptimalPathUseCase(
     private val warehousesRepository: WarehouseRepository,
     private val routeRepository: RouteRepository,
-    private val routeWeight: (Route) -> Double
+    private val routeWeight: (Route) -> Double,
+    private val routePathCache: RoutePathCache,
+    private val routeCostMetric: RouteCostMetric
 ) {
+    private val metricsMutex = Mutex()
+    private var dijkstraExecutions = 0L
+    private var dijkstraElapsedNanos = 0L
+
+    suspend fun metricsSnapshot(): DijkstraMetricsSnapshot =
+        metricsMutex.withLock {
+            DijkstraMetricsSnapshot(
+                executions = dijkstraExecutions,
+                elapsedNanos = dijkstraElapsedNanos
+            )
+        }
+
+    private suspend fun recordDijkstra(elapsedNanos: Long) {
+        metricsMutex.withLock {
+            dijkstraExecutions += 1
+            dijkstraElapsedNanos += elapsedNanos
+        }
+    }
 
     suspend operator fun invoke(
         source: Warehouse,
         destination: Warehouse
     ): List<Warehouse> {
+        val cacheKey = RouteCacheKey(
+            sourceWarehouseId = source.id,
+            destinationWarehouseId = destination.id,
+            costMetric = routeCostMetric
+        )
+
+        routePathCache.get(cacheKey)?.let { cachedPath ->
+            return cachedPath
+        }
+
+        if (source.id == destination.id) {
+            return listOf(source).also { path ->
+                routePathCache.put(cacheKey, path)
+            }
+        }
 
         val adjacencyMap = buildWeightedAdjacencyMap()
-
-        if (source == destination) {
-            return listOf(source)
-        }
 
         val state = createInitialState(adjacencyMap)
 
@@ -30,22 +68,28 @@ class FindOptimalPathUseCase(
             source !in state.distances ||
             destination !in state.distances
         ) {
-            return emptyList()
+            return emptyList<Warehouse>().also { path ->
+                routePathCache.put(cacheKey, path)
+            }
         }
 
         state.distances[source] = 0.0
 
+        val dijkstraTimer = TimeSource.Monotonic.markNow()
         runDijkstra(
             destination = destination,
             state = state,
             adjacencyMap = adjacencyMap
         )
+        recordDijkstra(dijkstraTimer.elapsedNow().inWholeNanoseconds)
 
-        return reconstructPath(
+        val path = reconstructPath(
             parentMap = state.parents,
             source = source,
             destination = destination
         )
+        routePathCache.put(cacheKey, path)
+        return path
     }
 
     private suspend fun buildWeightedAdjacencyMap():
@@ -108,7 +152,6 @@ class FindOptimalPathUseCase(
         state: DijkstraState,
         adjacencyMap: Map<Warehouse, List<Route>>
     ) {
-
         while (hasReachableWarehouse(state)) {
             val current = findLowestCostWarehouse(state)
 
@@ -209,4 +252,9 @@ class FindOptimalPathUseCase(
         val visited: MutableSet<Warehouse>,
         val parents: MutableMap<Warehouse, Warehouse>
     )
+    data class DijkstraMetricsSnapshot(
+        val executions: Long,
+        val elapsedNanos: Long
+    )
+
 }

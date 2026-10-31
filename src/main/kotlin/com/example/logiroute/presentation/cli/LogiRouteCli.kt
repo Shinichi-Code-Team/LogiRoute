@@ -1,5 +1,8 @@
 package com.example.logiroute.presentation.cli
 
+import com.example.logiroute.domain.cache.RouteCacheKey
+import com.example.logiroute.domain.cache.RouteCostMetric
+import com.example.logiroute.domain.cache.RoutePathCache
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.usecase.ClassifyPackageSectorUseCase
 import com.example.logiroute.domain.usecase.ClassifySectorRequest
@@ -23,6 +26,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.TimeSource
 
 
 
@@ -32,7 +36,8 @@ class LogiRouteCli(
     private val findOptimalPathUseCase: FindOptimalPathUseCase,
     private val classifyPackageSectorUseCase: ClassifyPackageSectorUseCase,
     private val trackActiveFleetUseCase: TrackActiveFleetUseCase ,
-    private val optimizeLastMileRouteUseCase: OptimizeLastMileRouteUseCase
+    private val optimizeLastMileRouteUseCase: OptimizeLastMileRouteUseCase,
+    private val routePathCache: RoutePathCache
 ) {
     suspend fun run() = coroutineScope {
         val shellScope = this
@@ -71,6 +76,11 @@ class LogiRouteCli(
                     optimizeLastMileRoute()
                 }
             },
+            "6" to {
+                safely {
+                    benchmarkRouteCache()
+                }
+            },
             "0" to{
                 isRunning = false
             }
@@ -102,8 +112,84 @@ class LogiRouteCli(
         println("3. Start fleet delay-notification stream")
         println("4. Stop fleet stream")
         println("5. Optimize last-mile route with 2-Opt")
+        println("6. Benchmark LRU route cache (1,000 repeated lookups)")
         println("0. Exit")
     }
+
+    private suspend fun benchmarkRouteCache() {
+        val originId = readInput("Origin warehouse ID:") ?: return
+        val destinationId = readInput("Destination warehouse ID:") ?: return
+        val origin = loadWarehouse(originId, "Origin") ?: return
+        val destination = loadWarehouse(destinationId, "Destination") ?: return
+
+        if (origin.id == destination.id) {
+            println("Choose two different warehouses for the cache benchmark.")
+            return
+        }
+
+        val key = RouteCacheKey(
+            sourceWarehouseId = origin.id,
+            destinationWarehouseId = destination.id,
+            costMetric = RouteCostMetric.DISTANCE
+        )
+        routePathCache.invalidate(key)
+
+        val initialCacheStats = routePathCache.statistics()
+        val initialSearchStats = findOptimalPathUseCase.metricsSnapshot()
+        val coldTimer = TimeSource.Monotonic.markNow()
+        findOptimalPathUseCase(origin, destination)
+        val coldElapsedNanos = coldTimer.elapsedNow().inWholeNanoseconds
+        val coldCacheStats = routePathCache.statistics()
+        val coldSearchStats = findOptimalPathUseCase.metricsSnapshot()
+
+        val repetitions = 1_000
+        val warmTimer = TimeSource.Monotonic.markNow()
+        repeat(repetitions) {
+            findOptimalPathUseCase(origin, destination)
+        }
+        val warmElapsedNanos = warmTimer.elapsedNow().inWholeNanoseconds
+        val finalCacheStats = routePathCache.statistics()
+        val finalSearchStats = findOptimalPathUseCase.metricsSnapshot()
+
+        val cacheHits = finalCacheStats.hits - coldCacheStats.hits
+        val repeatedDijkstraRuns =
+            finalSearchStats.executions - coldSearchStats.executions
+        val coldDijkstraNanos =
+            coldSearchStats.elapsedNanos - initialSearchStats.elapsedNanos
+        val estimatedSavedNanos =
+            (coldDijkstraNanos * repetitions - warmElapsedNanos).coerceAtLeast(0L)
+
+        println("LRU route cache benchmark")
+        println("Cold lookup: ${coldElapsedNanos / 1_000_000} ms")
+        println(
+            "Cold lookup Dijkstra runs: " +
+                    "${coldSearchStats.executions - initialSearchStats.executions}"
+        )
+        println("Repeated lookups: $repetitions")
+        println("Cache hits: $cacheHits")
+        println("Dijkstra runs during repeated lookups: $repeatedDijkstraRuns")
+        println("Repeated lookup elapsed: ${warmElapsedNanos / 1_000_000} ms")
+        println(
+            "Estimated Dijkstra CPU time saved: " +
+                    "${estimatedSavedNanos / 1_000_000} ms " +
+                    "(measured cold Dijkstra cost projected across $repetitions requests)"
+        )
+        println("Cache misses for the cold lookup: ${coldCacheStats.misses - initialCacheStats.misses}")
+    }
+
+    private suspend fun loadWarehouse(id: String, label: String) =
+        readWarehouseUseCase(id).fold(
+            onSuccess = { warehouse ->
+                warehouse ?: run {
+                    println("$label warehouse $id was not found.")
+                    null
+                }
+            },
+            onFailure = { error ->
+                println("Could not load $label warehouse: ${error.message}")
+                null
+            }
+        )
 
     private suspend fun calculateRoute() {
         val originId = readInput("Origin warehouse ID:") ?: return
