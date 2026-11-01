@@ -48,7 +48,7 @@ class CircuitBreakerUseCase(
                     throw LogisticsException.CallNotPermittedException("Circuit Breaker is HALF_OPEN. Probe request already in progress.")
                 }
             }
-            CircuitBreakerState.CLOSED -> { /* Normal execution allowed */ }
+            CircuitBreakerState.CLOSED -> Unit
         }
 
         return try {

@@ -21,7 +21,7 @@ class SupabasePackageRemoteDataSource(
 
     override suspend fun getPackages(): List<PackageResponseDto> =
         withContext(Dispatchers.IO) {
-            retryRemote(rateLimiter, operationName = "Package.getPackages") {
+            retryRemote(rateLimiter) {
                 packageTable
                     .select()
                     .decodeList<PackageResponseDto>()

@@ -20,7 +20,7 @@ class SupabaseVehicleRemoteDataSource(
         client.postgrest.from("vehicles")
 
     override suspend fun getVehicles(): List<VehicleResponseDto> = withContext(Dispatchers.IO) {
-        retryRemote(rateLimiter, operationName = "Vehicle.getVehicles") {
+        retryRemote(rateLimiter) {
             vehicleTable.select().decodeList<VehicleResponseDto>()
         }
     }
