@@ -149,6 +149,6 @@ class RouteCli(
             print("\r")
         }
         println("$message completed.")
-        return result
+        result
     }
 }
