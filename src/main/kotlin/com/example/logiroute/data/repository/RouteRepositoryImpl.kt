@@ -78,17 +78,11 @@ class RouteRepositoryImpl(
     ): Route? {
         val origin = warehouseMap[dto.originHubId]
             ?: run {
-                System.err.println(
-                    "Skipping route ${dto.id}: origin warehouse ${dto.originHubId} not found"
-                )
                 return null
             }
 
         val destination = warehouseMap[dto.destinationHubId]
             ?: run {
-                System.err.println(
-                    "Skipping route ${dto.id}: destination warehouse ${dto.destinationHubId} not found"
-                )
                 return null
             }
 

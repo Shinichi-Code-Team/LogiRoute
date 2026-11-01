@@ -20,7 +20,7 @@ class SupabaseWarehouseRemoteDataSource(
         client.postgrest.from("warehouses")
 
     override suspend fun getWarehouses(): List<WarehouseResponseDto> {
-        return retryRemote(rateLimiter,operationName = "Warehouse.getWarehouses") {
+        return retryRemote(rateLimiter) {
             warehouseTable.select().decodeList<WarehouseResponseDto>()
         }
     }
