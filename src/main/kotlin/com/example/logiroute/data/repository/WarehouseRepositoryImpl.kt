@@ -16,7 +16,6 @@ class WarehouseRepositoryImpl(
         return remoteDataSource.getWarehouses().mapNotNull { dto ->
             val missing = missingFields(dto)
             if (missing.isNotEmpty()) {
-                System.err.println("Skipping warehouse ${dto.id}: missing ${missing.joinToString()}")
                 null
             } else {
                 dtoMapper.toDomain(dto)

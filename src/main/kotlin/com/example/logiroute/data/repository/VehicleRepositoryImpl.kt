@@ -24,9 +24,6 @@ class VehicleRepositoryImpl(
             .mapNotNull { dto ->
                 val warehouse = warehouses[dto.currentHubId]
                     ?: run {
-                        System.err.println(
-                            "Skipping vehicle ${dto.id}: warehouse ${dto.currentHubId} not found"
-                        )
                         return@mapNotNull null
                     }
 
@@ -47,9 +44,6 @@ class VehicleRepositoryImpl(
         val warehouse = warehouseRepository
             .getWarehouseById(dto.currentHubId)
             ?: run {
-                System.err.println(
-                    "Cannot load vehicle ${dto.id}: warehouse ${dto.currentHubId} not found"
-                )
                 return null
             }
 

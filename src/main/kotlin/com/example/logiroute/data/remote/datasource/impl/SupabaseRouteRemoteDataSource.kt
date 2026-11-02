@@ -20,7 +20,7 @@ class SupabaseRouteRemoteDataSource(
         client.postgrest.from("routes")
 
     override suspend fun getRoutes(): List<RouteResponseDto> = withContext(Dispatchers.IO) {
-        retryRemote(rateLimiter,operationName = "Route.getRoutes") {
+        retryRemote(rateLimiter) {
             routeTable.select().decodeList<RouteResponseDto>()
         }
     }
