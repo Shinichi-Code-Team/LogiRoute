@@ -1,36 +1,35 @@
-package com.example.logiroute.domain.usecase.crud.`package`
+package com.example.logiroute.domain.util.crud.vehicle
 
-import com.example.logiroute.domain.model.Package
-import com.example.logiroute.domain.model.request.UpdatePackageInput
-import com.example.logiroute.domain.repository.PackageRepository
+import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.exceptions.LogisticsException
-import com.example.logiroute.domain.model.request.UpdatePackageRequest
+import com.example.logiroute.domain.model.request.UpdateVehicleInput
+import com.example.logiroute.domain.model.request.UpdateVehicleRequest
+import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validation.ValidationResult
-import com.example.logiroute.domain.validator.PackageUpdateValidator
+import com.example.logiroute.domain.validator.VehicleUpdateValidator
 
-class UpdatePackageUseCase(
-    private val packageRepository: PackageRepository,
-    private val packageUpdateValidator: PackageUpdateValidator
+class UpdateVehicleUseCase(
+    private val vehicleRepository: VehicleRepository,
+    private val vehicleUpdateValidator: VehicleUpdateValidator
 ) {
 
     suspend operator fun invoke(
         id: String,
-        input: UpdatePackageInput
-    ): Result<Package> {
+        input: UpdateVehicleInput
+    ): Result<Vehicle> {
 
-        val validationInput = UpdatePackageRequest(
+        val validationInput = UpdateVehicleRequest(
             id = id,
             update = input
         )
 
         return when (
-            val validationResult =
-                packageUpdateValidator.validate(validationInput)
+            val validationResult = vehicleUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
                 suspendRunCatching {
-                    packageRepository.updatePackage(
+                    vehicleRepository.updateVehicle(
                         id = id,
                         input = input
                     )

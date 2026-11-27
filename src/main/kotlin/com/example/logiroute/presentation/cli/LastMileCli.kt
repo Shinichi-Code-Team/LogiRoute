@@ -3,10 +3,10 @@ package com.example.logiroute.presentation.cli
 import com.example.logiroute.domain.model.LastMileWaypoint
 import com.example.logiroute.domain.model.request.OptimizeLastMileRouteRequest
 import com.example.logiroute.domain.usecase.OptimizeLastMileRouteUseCase
-import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
+import com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase
 
 class LastMileCli(
-    private val readWarehouseUseCase: ReadWarehouseUseCase,
+    private val readWarehouseUseCase: com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase,
     private val optimizeLastMileRouteUseCase: OptimizeLastMileRouteUseCase
 ) {
     suspend fun run() {

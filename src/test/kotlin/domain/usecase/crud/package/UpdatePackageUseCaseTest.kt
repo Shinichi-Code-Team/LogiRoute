@@ -5,7 +5,7 @@ import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdatePackageInput
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.usecase.crud.`package`.UpdatePackageUseCase
+import com.example.logiroute.domain.util.crud.`package`.UpdatePackageUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
@@ -25,7 +25,11 @@ class UpdatePackageUseCaseTest {
         validationRules = ValidationRules(),
         validationResultMapper = ValidationResultMapper()
     )
-    private val useCase = UpdatePackageUseCase(repository, validator)
+    private val useCase =
+        _root_ide_package_.com.example.logiroute.domain.util.crud.`package`.UpdatePackageUseCase(
+            repository,
+            validator
+        )
 
     private val id = "PKG-123456"
     private val warehouse = Warehouse("WH-123", "Main Hub", "WEST", 31.5, 34.5)

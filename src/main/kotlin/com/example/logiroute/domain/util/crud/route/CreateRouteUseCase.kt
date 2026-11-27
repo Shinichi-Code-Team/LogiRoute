@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase.crud.route
+package com.example.logiroute.domain.util.crud.route
 
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.repository.RouteRepository

@@ -2,7 +2,7 @@ package domain.usecase.crud.warehouse
 
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.crud.warehouse.CreateWarehouseUseCase
+import com.example.logiroute.domain.util.crud.warehouse.CreateWarehouseUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -14,7 +14,8 @@ import kotlin.test.assertTrue
 class CreateWarehouseUseCaseTest {
 
     private val repository = mockk<WarehouseRepository>()
-    private val useCase = CreateWarehouseUseCase(repository)
+    private val useCase =
+        _root_ide_package_.com.example.logiroute.domain.util.crud.warehouse.CreateWarehouseUseCase(repository)
 
     @Test
     fun `repository success returns successful result`() = runTest {

@@ -1,35 +1,36 @@
-package com.example.logiroute.domain.usecase.crud.vehicle
+package com.example.logiroute.domain.util.crud.route
 
-import com.example.logiroute.domain.model.Vehicle
+import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.exceptions.LogisticsException
-import com.example.logiroute.domain.model.request.UpdateVehicleInput
-import com.example.logiroute.domain.model.request.UpdateVehicleRequest
-import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.model.request.UpdateRouteInput
+import com.example.logiroute.domain.model.request.UpdateRouteRequest
+import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.util.suspendRunCatching
+import com.example.logiroute.domain.validator.RouteUpdateValidator
 import com.example.logiroute.domain.validation.ValidationResult
-import com.example.logiroute.domain.validator.VehicleUpdateValidator
 
-class UpdateVehicleUseCase(
-    private val vehicleRepository: VehicleRepository,
-    private val vehicleUpdateValidator: VehicleUpdateValidator
+class UpdateRouteUseCase(
+    private val routeRepository: RouteRepository,
+    private val routeUpdateValidator: RouteUpdateValidator
 ) {
 
     suspend operator fun invoke(
         id: String,
-        input: UpdateVehicleInput
-    ): Result<Vehicle> {
+        input: UpdateRouteInput
+    ): Result<Route> {
 
-        val validationInput = UpdateVehicleRequest(
+        val validationInput = UpdateRouteRequest(
             id = id,
             update = input
         )
 
         return when (
-            val validationResult = vehicleUpdateValidator.validate(validationInput)
+            val validationResult =
+                routeUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
                 suspendRunCatching {
-                    vehicleRepository.updateVehicle(
+                    routeRepository.updateRoute(
                         id = id,
                         input = input
                     )

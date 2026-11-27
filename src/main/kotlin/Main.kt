@@ -5,7 +5,7 @@ import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
 import com.example.logiroute.domain.cache.RoutePathCache
-import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
+import com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase
 import com.example.logiroute.presentation.cli.FleetCli
 import com.example.logiroute.presentation.cli.LastMileCli
 import com.example.logiroute.presentation.cli.LogiRouteCli
@@ -25,7 +25,7 @@ suspend fun main() {
     }.koin
 
     try {
-        val warehouseUseCase = koin.get<ReadWarehouseUseCase>()
+        val warehouseUseCase = koin.get<com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase>()
         LogiRouteCli(
             routeCli = RouteCli(
                 readWarehouseUseCase = warehouseUseCase,

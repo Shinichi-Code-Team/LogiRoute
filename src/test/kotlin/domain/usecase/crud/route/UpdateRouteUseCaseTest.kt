@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateRouteInput
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.usecase.crud.route.UpdateRouteUseCase
+import com.example.logiroute.domain.util.crud.route.UpdateRouteUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
@@ -24,7 +24,8 @@ class UpdateRouteUseCaseTest {
         validationRules = ValidationRules(),
         validationResultMapper = ValidationResultMapper()
     )
-    private val useCase = UpdateRouteUseCase(repository, validator)
+    private val useCase =
+        _root_ide_package_.com.example.logiroute.domain.util.crud.route.UpdateRouteUseCase(repository, validator)
 
     private val id = "RT-12345"
     private val warehouse = Warehouse("WH-123", "Main Hub", "WEST", 31.5, 34.5)

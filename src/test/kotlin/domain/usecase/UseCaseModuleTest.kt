@@ -7,10 +7,10 @@ import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.repository.VehicleRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
-import com.example.logiroute.domain.usecase.crud.`package`.CreatePackageUseCase
-import com.example.logiroute.domain.usecase.crud.route.ReadRouteUseCase
-import com.example.logiroute.domain.usecase.crud.vehicle.CreateVehicleUseCase
-import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
+import com.example.logiroute.domain.util.crud.`package`.CreatePackageUseCase
+import com.example.logiroute.domain.util.crud.route.ReadRouteUseCase
+import com.example.logiroute.domain.util.crud.vehicle.CreateVehicleUseCase
+import com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.RegisterExtension
@@ -48,10 +48,10 @@ class UseCaseModuleTest : KoinTest {
 
     @Test
     fun `Koin resolves registered use cases`() {
-        assertNotNull(get<CreatePackageUseCase>())
-        assertNotNull(get<ReadRouteUseCase>())
-        assertNotNull(get<CreateVehicleUseCase>())
-        assertNotNull(get<ReadWarehouseUseCase>())
+        assertNotNull(get<com.example.logiroute.domain.util.crud.`package`.CreatePackageUseCase>())
+        assertNotNull(get<com.example.logiroute.domain.util.crud.route.ReadRouteUseCase>())
+        assertNotNull(get<com.example.logiroute.domain.util.crud.vehicle.CreateVehicleUseCase>())
+        assertNotNull(get<com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase>())
         assertNotNull(get<FindOptimalPathUseCase>())
         assertNotNull(get<FindOptimalPathUseCase>(named("delayRouter")))
     }

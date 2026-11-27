@@ -3,7 +3,7 @@ package domain.usecase.crud.route
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.usecase.crud.route.CreateRouteUseCase
+import com.example.logiroute.domain.util.crud.route.CreateRouteUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -14,7 +14,8 @@ import kotlin.test.assertTrue
 
 class CreateRouteUseCaseTest {
     private val repository = mockk<RouteRepository>()
-    private val useCase = CreateRouteUseCase(repository)
+    private val useCase =
+        _root_ide_package_.com.example.logiroute.domain.util.crud.route.CreateRouteUseCase(repository)
 
     private val warehouse = Warehouse("WH-123", "Main Hub", "WEST", 31.5, 34.5)
     private val route = Route(

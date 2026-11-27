@@ -5,7 +5,7 @@ import com.example.logiroute.domain.cache.RouteCostMetric
 import com.example.logiroute.domain.cache.RoutePathCache
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.usecase.FindOptimalPathUseCase
-import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
+import com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 import kotlin.time.TimeSource
 
 class RouteCli(
-    private val readWarehouseUseCase: ReadWarehouseUseCase,
+    private val readWarehouseUseCase: com.example.logiroute.domain.util.crud.warehouse.ReadWarehouseUseCase,
     private val findOptimalPathUseCase: FindOptimalPathUseCase,
     private val routePathCache: RoutePathCache
 ) {

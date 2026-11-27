@@ -1,4 +1,4 @@
-package com.example.logiroute.domain.usecase.crud.`package`
+package com.example.logiroute.domain.util.crud.`package`
 
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.repository.PackageRepository

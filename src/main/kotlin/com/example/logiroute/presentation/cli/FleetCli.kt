@@ -2,7 +2,7 @@ package com.example.logiroute.presentation.cli
 
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.usecase.TrackActiveFleetUseCase
-import com.example.logiroute.domain.usecase.crud.vehicle.ReadVehicleUseCase
+import com.example.logiroute.domain.util.crud.vehicle.ReadVehicleUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -13,7 +13,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class FleetCli(
-    private val readVehicleUseCase: ReadVehicleUseCase,
+    private val readVehicleUseCase: com.example.logiroute.domain.util.crud.vehicle.ReadVehicleUseCase,
     private val trackActiveFleetUseCase: TrackActiveFleetUseCase
 ) {
     suspend fun run() = coroutineScope {

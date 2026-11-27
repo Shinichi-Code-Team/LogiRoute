@@ -3,7 +3,7 @@ package domain.usecase.crud.warehouse
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateWarehouseInput
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.crud.warehouse.UpdateWarehouseUseCase
+import com.example.logiroute.domain.util.crud.warehouse.UpdateWarehouseUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
@@ -25,7 +25,7 @@ class UpdateWarehouseUseCaseTest {
         validationResultMapper = ValidationResultMapper()
     )
 
-    private val useCase = UpdateWarehouseUseCase(
+    private val useCase = _root_ide_package_.com.example.logiroute.domain.util.crud.warehouse.UpdateWarehouseUseCase(
         repository,
         validator
     )

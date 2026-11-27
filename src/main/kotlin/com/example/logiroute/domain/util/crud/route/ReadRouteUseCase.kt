@@ -1,5 +1,6 @@
-package com.example.logiroute.domain.usecase.crud.route
+package com.example.logiroute.domain.util.crud.route
 
+import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.RouteRepository
 import com.example.logiroute.domain.util.suspendRunCatching
@@ -7,20 +8,20 @@ import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 
-class DeleteRouteUseCase(
+class ReadRouteUseCase(
     private val routeRepository: RouteRepository,
     private val validationRules: ValidationRules,
     private val validationResultMapper: ValidationResultMapper
 ) {
 
-    suspend operator fun invoke(id: String): Result<Unit> {
+    suspend operator fun invoke(id: String): Result<Route?> {
         val errors = listOfNotNull(
             validationRules.validateRouteId(id)
         )
         return when (val validationResult = validationResultMapper.map(errors)) {
             ValidationResult.Valid ->
                 suspendRunCatching {
-                    routeRepository.deleteRoute(id)
+                    routeRepository.getRouteById(id)
                 }
 
             is ValidationResult.Invalid ->

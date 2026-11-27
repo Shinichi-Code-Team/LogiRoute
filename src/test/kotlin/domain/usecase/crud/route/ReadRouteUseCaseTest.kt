@@ -3,7 +3,7 @@ package domain.usecase.crud.route
 import com.example.logiroute.domain.model.Route
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.usecase.crud.route.ReadRouteUseCase
+import com.example.logiroute.domain.util.crud.route.ReadRouteUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 
 class ReadRouteUseCaseTest {
     private val repository = mockk<RouteRepository>()
-    private val useCase = ReadRouteUseCase(
+    private val useCase = _root_ide_package_.com.example.logiroute.domain.util.crud.route.ReadRouteUseCase(
         repository,
         ValidationRules(),
         ValidationResultMapper()
