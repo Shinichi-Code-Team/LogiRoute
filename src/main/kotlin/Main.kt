@@ -1,10 +1,10 @@
-package com.example.logiroute
-
 import com.example.logiroute.di.networkModule
 import com.example.logiroute.di.repositoryModule
 import com.example.logiroute.di.useCaseModule
 import com.example.logiroute.di.validatorModule
 import com.example.logiroute.domain.cache.RoutePathCache
+import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.usecase.SpatialWarehouseLookupUseCase
 import com.example.logiroute.domain.usecase.crud.warehouse.ReadWarehouseUseCase
 import com.example.logiroute.presentation.cli.FleetCli
 import com.example.logiroute.presentation.cli.LastMileCli
@@ -25,25 +25,44 @@ suspend fun main() {
     }.koin
 
     try {
-        val warehouseUseCase = koin.get<ReadWarehouseUseCase>()
-        LogiRouteCli(
-            routeCli = RouteCli(
-                readWarehouseUseCase = warehouseUseCase,
-                findOptimalPathUseCase = koin.get(),
-                routePathCache = koin.get<RoutePathCache>()
-            ),
-            packageCli = PackageCli(
-                classifyPackageSectorUseCase = koin.get()
-            ),
-            fleetCli = FleetCli(
-                readVehicleUseCase = koin.get(),
-                trackActiveFleetUseCase = koin.get()
-            ),
-            lastMileCli = LastMileCli(
-                readWarehouseUseCase = warehouseUseCase,
-                optimizeLastMileRouteUseCase = koin.get()
+
+        fun runGeohashDemo(warehouses: List<Warehouse>) {
+            val lookupUseCase = SpatialWarehouseLookupUseCase()
+
+            // مثال تجربة بإحداثيات ودقة مختلفة (مثلاً precision = 5 ثم 7)
+            val result = lookupUseCase(
+                latitude = 31.5017,
+                longitude = 34.4668,
+                warehouses = warehouses,
+                precision = 5,
+                includeNeighbors = true
             )
-        ).run()
+
+            println("=== Geohash Spatial Lookup Demo ===")
+            println("Target Geohash: ${result.targetGeohash}")
+            println("8 Neighbors: ${result.neighborGeohashes}")
+            println("Nearby Warehouses (${result.nearbyWarehouses.size}): ${result.nearbyWarehouses}")
+        }
+
+//        val warehouseUseCase = koin.get<ReadWarehouseUseCase>()
+//        LogiRouteCli(
+//            routeCli = RouteCli(
+//                readWarehouseUseCase = warehouseUseCase,
+//                findOptimalPathUseCase = koin.get(),
+//                routePathCache = koin.get<RoutePathCache>()
+//            ),
+//            packageCli = PackageCli(
+//                classifyPackageSectorUseCase = koin.get()
+//            ),
+//            fleetCli = FleetCli(
+//                readVehicleUseCase = koin.get(),
+//                trackActiveFleetUseCase = koin.get()
+//            ),
+//            lastMileCli = LastMileCli(
+//                readWarehouseUseCase = warehouseUseCase,
+//                optimizeLastMileRouteUseCase = koin.get()
+//            )
+//        ).run()
     } finally {
         stopKoin()
     }
