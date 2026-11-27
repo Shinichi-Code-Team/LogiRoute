@@ -6,11 +6,11 @@ import kotlin.math.min
 
 data class SpatialLookupResult(
     val targetGeohash: String,
-    val neighborGeohashes: Map<NeighborDirection, String>,
+    val neighborGeohashes: Map<SpatialDirection, String>,
     val nearbyWarehouses: List<Warehouse>
 )
 
-enum class NeighborDirection(val latStep: Int, val lonStep: Int) {
+enum class SpatialDirection(val latitudeOffset: Int, val longitudeOffset: Int) {
     NORTH(1, 0),
     SOUTH(-1, 0),
     EAST(0, 1),
@@ -24,183 +24,235 @@ enum class NeighborDirection(val latStep: Int, val lonStep: Int) {
 class SpatialWarehouseLookupUseCase {
 
     companion object {
-        private const val MIN_LAT = -90.0
-        private const val MAX_LAT = 90.0
-        private const val MIN_LON = -180.0
-        private const val MAX_LON = 180.0
-        private const val BITS_PER_CHAR = 5
+        private const val MIN_LATITUDE = -90.0
+        private const val MAX_LATITUDE = 90.0
+        private const val MIN_LONGITUDE = -180.0
+        private const val MAX_LONGITUDE = 180.0
+        private const val FULL_LONGITUDE_SPAN = 360.0
+        private const val POLAR_CLAMP_EPSILON = 1e-6
+        private const val MIDPOINT_DIVISOR = 2.0
+        private const val BITS_PER_BASE32_CHAR = 5
+        private const val MIN_PRECISION = 1
+        private const val MAX_PRECISION = 12
+        private const val DEFAULT_PRECISION = 5
+        private const val HIGH_BIT_SET_FLAG = 1
+        private const val ZERO_BIT_VALUE = 0
+        private const val INITIAL_BIT_ACCUMULATOR = 0
+        private const val INITIAL_BIT_COUNT = 0
+        private const val INITIAL_TURN_IS_LONGITUDE = true
         private const val BASE32_ALPHABET = "0123456789bcdefghjkmnpqrstuvwxyz"
+        private val BASE32_BIT_MASKS = intArrayOf(16, 8, 4, 2, 1)
     }
 
-    /**
-     * نقطة الدخول المختصرة:
-     * 1) تشفير الموقع المستهدف إلى Geohash حسب الدقة المطلوبة
-     * 2) حساب المربعات المجاورة الـ 8
-     * 3) فهرسة المستودعات حسب الـ prefix والبحث السريع عبر البادئات
-     */
     operator fun invoke(
         latitude: Double,
         longitude: Double,
         warehouses: List<Warehouse>,
-        precision: Int = 5,
+        precision: Int = DEFAULT_PRECISION,
         includeNeighbors: Boolean = true
     ): SpatialLookupResult {
-        validateInputs(latitude, longitude, precision)
+        ensureValidCoordinatesAndPrecision(latitude, longitude, precision)
 
-        val targetHash = encodeGeohash(latitude, longitude, precision)
-        val neighbors = if (includeNeighbors) computeEightNeighbors(targetHash) else emptyMap()
-        val searchPrefixes = buildSearchPrefixes(targetHash, neighbors)
-        val prefixIndex = indexWarehousesByPrefix(warehouses, precision)
-        val matchedWarehouses = queryWarehousesByPrefixes(prefixIndex, searchPrefixes)
+        val targetGeohash = encodeCoordinatesToGeohash(latitude, longitude, precision)
+        val neighbors = findSurroundingGeohashes(targetGeohash, includeNeighbors)
+        val spatialIndex = groupWarehousesByGeohashPrefix(warehouses, precision)
+        val searchPrefixes = collectSearchPrefixes(targetGeohash, neighbors)
+        val matchedWarehouses = findWarehousesMatchingPrefixes(spatialIndex, searchPrefixes)
 
         return SpatialLookupResult(
-            targetGeohash = targetHash,
+            targetGeohash = targetGeohash,
             neighborGeohashes = neighbors,
             nearbyWarehouses = matchedWarehouses
         )
     }
 
-    // 1. Binary Interleaving + 2. Base-32 Encoding + 3. Precision Levels
-    private fun encodeGeohash(latitude: Double, longitude: Double, precision: Int): String {
-        var latLow = MIN_LAT
-        var latHigh = MAX_LAT
-        var lonLow = MIN_LON
-        var lonHigh = MAX_LON
+    private fun ensureValidCoordinatesAndPrecision(
+        latitude: Double,
+        longitude: Double,
+        precision: Int
+    ) {
+        require(latitude in MIN_LATITUDE..MAX_LATITUDE) {
+            "Latitude must be between $MIN_LATITUDE and $MAX_LATITUDE"
+        }
+        require(longitude in MIN_LONGITUDE..MAX_LONGITUDE) {
+            "Longitude must be between $MIN_LONGITUDE and $MAX_LONGITUDE"
+        }
+        require(precision in MIN_PRECISION..MAX_PRECISION) {
+            "Precision must be between $MIN_PRECISION and $MAX_PRECISION"
+        }
+    }
 
-        var isLongitudeTurn = true // even bits -> longitude, odd bits -> latitude
-        var bitCounter = 0
-        var fiveBitValue = 0
-        val result = StringBuilder(precision)
+    private fun encodeCoordinatesToGeohash(
+        latitude: Double,
+        longitude: Double,
+        precision: Int
+    ): String {
+        var latitudeBounds = MIN_LATITUDE to MAX_LATITUDE
+        var longitudeBounds = MIN_LONGITUDE to MAX_LONGITUDE
+        var isLongitudeBit = INITIAL_TURN_IS_LONGITUDE
+        var bitCount = INITIAL_BIT_COUNT
+        var bitAccumulator = INITIAL_BIT_ACCUMULATOR
+        val encodedBuilder = StringBuilder(precision)
 
-        while (result.length < precision) {
-            val bit: Int
-            if (isLongitudeTurn) {
-                val mid = (lonLow + lonHigh) / 2.0
-                if (longitude >= mid) {
-                    bit = 1
-                    lonLow = mid
-                } else {
-                    bit = 0
-                    lonHigh = mid
-                }
+        while (encodedBuilder.length < precision) {
+            val nextBit = if (isLongitudeBit) {
+                val (bit, updatedLongitudeBounds) = bisectRange(longitudeBounds, longitude)
+                longitudeBounds = updatedLongitudeBounds
+                bit
             } else {
-                val mid = (latLow + latHigh) / 2.0
-                if (latitude >= mid) {
-                    bit = 1
-                    latLow = mid
+                val (bit, updatedLatitudeBounds) = bisectRange(latitudeBounds, latitude)
+                latitudeBounds = updatedLatitudeBounds
+                bit
+            }
+
+            bitAccumulator = appendBit(bitAccumulator, nextBit)
+            bitCount++
+            isLongitudeBit = !isLongitudeBit
+
+            if (bitCount == BITS_PER_BASE32_CHAR) {
+                encodedBuilder.append(mapFiveBitsToBase32Char(bitAccumulator))
+                bitCount = INITIAL_BIT_COUNT
+                bitAccumulator = INITIAL_BIT_ACCUMULATOR
+            }
+        }
+
+        return encodedBuilder.toString()
+    }
+
+    private fun bisectRange(
+        bounds: Pair<Double, Double>,
+        targetValue: Double
+    ): Pair<Int, Pair<Double, Double>> {
+        val midpoint = (bounds.first + bounds.second) / MIDPOINT_DIVISOR
+        return if (targetValue >= midpoint) {
+            HIGH_BIT_SET_FLAG to (midpoint to bounds.second)
+        } else {
+            ZERO_BIT_VALUE to (bounds.first to midpoint)
+        }
+    }
+
+    private fun appendBit(accumulator: Int, bit: Int): Int =
+        (accumulator shl HIGH_BIT_SET_FLAG) or bit
+
+    private fun mapFiveBitsToBase32Char(fiveBitValue: Int): Char =
+        BASE32_ALPHABET[fiveBitValue]
+
+    private fun findSurroundingGeohashes(
+        geohash: String,
+        includeNeighbors: Boolean
+    ): Map<SpatialDirection, String> {
+        if (!includeNeighbors) return emptyMap()
+
+        val cellBounds = decodeGeohashToBounds(geohash)
+        val centerLatitude = (cellBounds.minLatitude + cellBounds.maxLatitude) / MIDPOINT_DIVISOR
+        val centerLongitude = (cellBounds.minLongitude + cellBounds.maxLongitude) / MIDPOINT_DIVISOR
+        val latitudeStep = cellBounds.maxLatitude - cellBounds.minLatitude
+        val longitudeStep = cellBounds.maxLongitude - cellBounds.minLongitude
+
+        return SpatialDirection.entries.associateWith { direction ->
+            val shiftedLatitude = clampLatitude(
+                centerLatitude + direction.latitudeOffset * latitudeStep
+            )
+            val shiftedLongitude = wrapLongitude(
+                centerLongitude + direction.longitudeOffset * longitudeStep
+            )
+            encodeCoordinatesToGeohash(shiftedLatitude, shiftedLongitude, geohash.length)
+        }
+    }
+
+    private fun decodeGeohashToBounds(geohash: String): GeohashBounds {
+        var latitudeBounds = MIN_LATITUDE to MAX_LATITUDE
+        var longitudeBounds = MIN_LONGITUDE to MAX_LONGITUDE
+        var isLongitudeBit = INITIAL_TURN_IS_LONGITUDE
+
+        for (character in geohash.lowercase()) {
+            val characterCode = BASE32_ALPHABET.indexOf(character)
+            require(characterCode >= ZERO_BIT_VALUE) {
+                "Invalid Base-32 Geohash character: $character"
+            }
+
+            for (mask in BASE32_BIT_MASKS) {
+                val bit = if ((characterCode and mask) != ZERO_BIT_VALUE) {
+                    HIGH_BIT_SET_FLAG
                 } else {
-                    bit = 0
-                    latHigh = mid
+                    ZERO_BIT_VALUE
                 }
-            }
 
-            fiveBitValue = (fiveBitValue shl 1) or bit
-            bitCounter++
-            isLongitudeTurn = !isLongitudeTurn
-
-            if (bitCounter == BITS_PER_CHAR) {
-                result.append(BASE32_ALPHABET[fiveBitValue])
-                bitCounter = 0
-                fiveBitValue = 0
-            }
-        }
-
-        return result.toString()
-    }
-
-    // فك حدود المربع لحساب المربعات المجاورة بدقة
-    private fun decodeBoundingBox(geohash: String): BoundingBox {
-        var latLow = MIN_LAT
-        var latHigh = MAX_LAT
-        var lonLow = MIN_LON
-        var lonHigh = MAX_LON
-        var isLongitudeTurn = true
-
-        for (ch in geohash.lowercase()) {
-            val charIndex = BASE32_ALPHABET.indexOf(ch)
-            require(charIndex != -1) { "Invalid Geohash character: $ch" }
-
-            for (mask in intArrayOf(16, 8, 4, 2, 1)) {
-                val bit = if ((charIndex and mask) != 0) 1 else 0
-                if (isLongitudeTurn) {
-                    val mid = (lonLow + lonHigh) / 2.0
-                    if (bit == 1) lonLow = mid else lonHigh = mid
+                if (isLongitudeBit) {
+                    longitudeBounds = applyDecodedBitToBounds(longitudeBounds, bit)
                 } else {
-                    val mid = (latLow + latHigh) / 2.0
-                    if (bit == 1) latLow = mid else latHigh = mid
+                    latitudeBounds = applyDecodedBitToBounds(latitudeBounds, bit)
                 }
-                isLongitudeTurn = !isLongitudeTurn
+                isLongitudeBit = !isLongitudeBit
             }
         }
 
-        return BoundingBox(latLow, latHigh, lonLow, lonHigh)
+        return GeohashBounds(
+            minLatitude = latitudeBounds.first,
+            maxLatitude = latitudeBounds.second,
+            minLongitude = longitudeBounds.first,
+            maxLongitude = longitudeBounds.second
+        )
     }
 
-    // 4. Neighboring Bounding Boxes (8 adjacent boxes)
-    private fun computeEightNeighbors(geohash: String): Map<NeighborDirection, String> {
-        val box = decodeBoundingBox(geohash)
-        val centerLat = (box.minLat + box.maxLat) / 2.0
-        val centerLon = (box.minLon + box.maxLon) / 2.0
-        val latSpan = box.maxLat - box.minLat
-        val lonSpan = box.maxLon - box.minLon
-
-        return NeighborDirection.entries.associateWith { dir ->
-            val nextLat = clampLatitude(centerLat + dir.latStep * latSpan)
-            val nextLon = wrapLongitude(centerLon + dir.lonStep * lonSpan)
-            encodeGeohash(nextLat, nextLon, geohash.length)
+    private fun applyDecodedBitToBounds(
+        bounds: Pair<Double, Double>,
+        bit: Int
+    ): Pair<Double, Double> {
+        val midpoint = (bounds.first + bounds.second) / MIDPOINT_DIVISOR
+        return if (bit == HIGH_BIT_SET_FLAG) {
+            midpoint to bounds.second
+        } else {
+            bounds.first to midpoint
         }
     }
 
-    // 5. Spatial Lookup Query (Indexing by prefix & prefix-based lookup)
-    private fun buildSearchPrefixes(
-        targetHash: String,
-        neighbors: Map<NeighborDirection, String>
-    ): Set<String> = buildSet {
-        add(targetHash)
-        addAll(neighbors.values)
+    private fun clampLatitude(latitude: Double): Double =
+        max(
+            MIN_LATITUDE + POLAR_CLAMP_EPSILON,
+            min(MAX_LATITUDE - POLAR_CLAMP_EPSILON, latitude)
+        )
+
+    private fun wrapLongitude(longitude: Double): Double = when {
+        longitude > MAX_LONGITUDE -> longitude - FULL_LONGITUDE_SPAN
+        longitude < MIN_LONGITUDE -> longitude + FULL_LONGITUDE_SPAN
+        else -> longitude
     }
 
-    private fun indexWarehousesByPrefix(
+    private fun groupWarehousesByGeohashPrefix(
         warehouses: List<Warehouse>,
         precision: Int
     ): Map<String, List<Warehouse>> =
         warehouses.groupBy { warehouse ->
-            encodeGeohash(warehouse.latitude, warehouse.longitude, precision)
+            encodeCoordinatesToGeohash(warehouse.latitude, warehouse.longitude, precision)
         }
 
-    private fun queryWarehousesByPrefixes(
-        prefixIndex: Map<String, List<Warehouse>>,
+    private fun collectSearchPrefixes(
+        targetGeohash: String,
+        neighbors: Map<SpatialDirection, String>
+    ): Set<String> = buildSet {
+        add(targetGeohash)
+        addAll(neighbors.values)
+    }
+
+    private fun findWarehousesMatchingPrefixes(
+        spatialIndex: Map<String, List<Warehouse>>,
         searchPrefixes: Set<String>
     ): List<Warehouse> =
-        prefixIndex
+        spatialIndex
             .filterKeys { indexedPrefix ->
-                searchPrefixes.any { queryPrefix ->
-                    indexedPrefix.startsWith(queryPrefix) || queryPrefix.startsWith(indexedPrefix)
+                searchPrefixes.any { prefix ->
+                    indexedPrefix.startsWith(prefix) || prefix.startsWith(indexedPrefix)
                 }
             }
             .values
             .flatten()
             .distinct()
 
-    private fun validateInputs(latitude: Double, longitude: Double, precision: Int) {
-        require(latitude in MIN_LAT..MAX_LAT) { "Latitude must be within [$MIN_LAT, $MAX_LAT]" }
-        require(longitude in MIN_LON..MAX_LON) { "Longitude must be within [$MIN_LON, $MAX_LON]" }
-        require(precision in 1..12) { "Precision must be between 1 and 12" }
-    }
-
-    private fun clampLatitude(lat: Double): Double =
-        max(MIN_LAT + 1e-6, min(MAX_LAT - 1e-6, lat))
-
-    private fun wrapLongitude(lon: Double): Double = when {
-        lon > MAX_LON -> lon - 360.0
-        lon < MIN_LON -> lon + 360.0
-        else -> lon
-    }
-
-    private data class BoundingBox(
-        val minLat: Double,
-        val maxLat: Double,
-        val minLon: Double,
-        val maxLon: Double
+    private data class GeohashBounds(
+        val minLatitude: Double,
+        val maxLatitude: Double,
+        val minLongitude: Double,
+        val maxLongitude: Double
     )
 }
