@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.PackageRepository
-import com.example.logiroute.domain.usecase.crud.`package`.CreatePackageUseCase
+import com.example.logiroute.domain.util.crud.`package`.CreatePackageUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -15,7 +15,8 @@ import kotlin.test.assertTrue
 
 class CreatePackageUseCaseTest {
     private val repository = mockk<PackageRepository>()
-    private val useCase = CreatePackageUseCase(repository)
+    private val useCase =
+        _root_ide_package_.com.example.logiroute.domain.util.crud.`package`.CreatePackageUseCase(repository)
 
     private val warehouse = Warehouse("WH-123", "Main Hub", "WEST", 31.5, 34.5)
     private val packageItem = Package(

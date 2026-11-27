@@ -1,7 +1,7 @@
 package domain.usecase.crud.route
 
 import com.example.logiroute.domain.repository.RouteRepository
-import com.example.logiroute.domain.usecase.crud.route.DeleteRouteUseCase
+import com.example.logiroute.domain.util.crud.route.DeleteRouteUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
@@ -14,7 +14,7 @@ import kotlin.test.assertTrue
 
 class DeleteRouteUseCaseTest {
     private val repository = mockk<RouteRepository>()
-    private val useCase = DeleteRouteUseCase(
+    private val useCase = _root_ide_package_.com.example.logiroute.domain.util.crud.route.DeleteRouteUseCase(
         repository,
         ValidationRules(),
         ValidationResultMapper()

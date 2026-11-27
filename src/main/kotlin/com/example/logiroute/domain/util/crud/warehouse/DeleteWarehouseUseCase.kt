@@ -1,33 +1,32 @@
-package com.example.logiroute.domain.usecase.crud.vehicle
+package com.example.logiroute.domain.util.crud.warehouse
 
-import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.exceptions.LogisticsException
-import com.example.logiroute.domain.repository.VehicleRepository
+import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.util.suspendRunCatching
 import com.example.logiroute.domain.validation.ValidationResult
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 
-class ReadVehicleUseCase(
-    private val vehicleRepository: VehicleRepository,
+class DeleteWarehouseUseCase(
+    private val warehouseRepository: WarehouseRepository,
     private val validationRules: ValidationRules,
     private val validationResultMapper: ValidationResultMapper
 ) {
 
-    suspend operator fun invoke(id: String): Result<Vehicle?> {
+    suspend operator fun invoke(id: String): Result<Unit> {
         val errors = listOfNotNull(
-            validationRules.validateVehicleId(id)
+            validationRules.validateWarehouseId(id)
         )
         return when (val validationResult = validationResultMapper.map(errors)) {
             ValidationResult.Valid ->
                 suspendRunCatching {
-                    vehicleRepository.getVehicleById(id)
+                    warehouseRepository.deleteWarehouse(id)
                 }
 
             is ValidationResult.Invalid ->
                 Result.failure(
                     LogisticsException.EntityValidationException(validationResult.errors)
                 )
-            }
         }
     }
+}

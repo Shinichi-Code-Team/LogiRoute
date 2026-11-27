@@ -3,6 +3,7 @@ package domain.usecase
 import com.example.logiroute.domain.model.Package
 import com.example.logiroute.domain.model.Priority
 import com.example.logiroute.domain.model.Warehouse
+import com.example.logiroute.domain.model.exceptions.LogisticsException
 import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.repository.WarehouseRepository
 import com.example.logiroute.domain.usecase.RoutePackageUseCase
@@ -10,8 +11,8 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class RoutePackageUseCaseTest {
 
@@ -46,7 +47,7 @@ class RoutePackageUseCaseTest {
         coEvery { packageRepository.getAllPackages() } returns emptyList()
 
         // When & Then
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<LogisticsException.WarehouseNotFoundException> {
             useCase("PKG-999999", "WH-003")
         }
     }
@@ -58,7 +59,7 @@ class RoutePackageUseCaseTest {
         coEvery { warehouseRepository.getAllWarehouses() } returns listOf(warehouseA, warehouseB)
 
         // When & Then
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<LogisticsException.WarehouseNotFoundException> {
             useCase("PKG-000001", "WH-999")
         }
     }
@@ -70,7 +71,7 @@ class RoutePackageUseCaseTest {
         coEvery { warehouseRepository.getAllWarehouses() } returns listOf(warehouseA, warehouseB)
 
         // When & Then
-        assertThrows<IllegalArgumentException> {
+        assertFailsWith<LogisticsException.WarehouseNotFoundException> {
             useCase("PKG-000001", "WH-002")
         }
     }

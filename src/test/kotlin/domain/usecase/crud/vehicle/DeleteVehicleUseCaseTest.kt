@@ -1,7 +1,7 @@
 package domain.usecase.vehicle
 
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.usecase.crud.vehicle.DeleteVehicleUseCase
+import com.example.logiroute.domain.util.crud.vehicle.DeleteVehicleUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 class DeleteVehicleUseCaseTest {
 
     private val repository = mockk<VehicleRepository>()
-    private val useCase = DeleteVehicleUseCase(
+    private val useCase = _root_ide_package_.com.example.logiroute.domain.util.crud.vehicle.DeleteVehicleUseCase(
         repository,
         ValidationRules(),
         ValidationResultMapper()

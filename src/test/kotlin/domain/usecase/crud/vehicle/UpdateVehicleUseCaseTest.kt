@@ -4,7 +4,7 @@ import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.model.request.UpdateVehicleInput
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.usecase.crud.vehicle.UpdateVehicleUseCase
+import com.example.logiroute.domain.util.crud.vehicle.UpdateVehicleUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import com.example.logiroute.domain.validator.AtLeastOneFieldValidator
@@ -26,7 +26,7 @@ class UpdateVehicleUseCaseTest {
         validationResultMapper = ValidationResultMapper()
     )
 
-    private val useCase = UpdateVehicleUseCase(
+    private val useCase = _root_ide_package_.com.example.logiroute.domain.util.crud.vehicle.UpdateVehicleUseCase(
         repository,
         validator
     )

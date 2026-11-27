@@ -1,36 +1,36 @@
-package com.example.logiroute.domain.usecase.crud.route
+package com.example.logiroute.domain.util.crud.`package`
 
-import com.example.logiroute.domain.model.Route
+import com.example.logiroute.domain.model.Package
+import com.example.logiroute.domain.model.request.UpdatePackageInput
+import com.example.logiroute.domain.repository.PackageRepository
 import com.example.logiroute.domain.model.exceptions.LogisticsException
-import com.example.logiroute.domain.model.request.UpdateRouteInput
-import com.example.logiroute.domain.model.request.UpdateRouteRequest
-import com.example.logiroute.domain.repository.RouteRepository
+import com.example.logiroute.domain.model.request.UpdatePackageRequest
 import com.example.logiroute.domain.util.suspendRunCatching
-import com.example.logiroute.domain.validator.RouteUpdateValidator
 import com.example.logiroute.domain.validation.ValidationResult
+import com.example.logiroute.domain.validator.PackageUpdateValidator
 
-class UpdateRouteUseCase(
-    private val routeRepository: RouteRepository,
-    private val routeUpdateValidator: RouteUpdateValidator
+class UpdatePackageUseCase(
+    private val packageRepository: PackageRepository,
+    private val packageUpdateValidator: PackageUpdateValidator
 ) {
 
     suspend operator fun invoke(
         id: String,
-        input: UpdateRouteInput
-    ): Result<Route> {
+        input: UpdatePackageInput
+    ): Result<Package> {
 
-        val validationInput = UpdateRouteRequest(
+        val validationInput = UpdatePackageRequest(
             id = id,
             update = input
         )
 
         return when (
             val validationResult =
-                routeUpdateValidator.validate(validationInput)
+                packageUpdateValidator.validate(validationInput)
         ) {
             ValidationResult.Valid -> {
                 suspendRunCatching {
-                    routeRepository.updateRoute(
+                    packageRepository.updatePackage(
                         id = id,
                         input = input
                     )

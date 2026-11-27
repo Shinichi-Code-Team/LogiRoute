@@ -3,7 +3,7 @@ package domain.usecase.crud.vehicle
 import com.example.logiroute.domain.model.Vehicle
 import com.example.logiroute.domain.model.Warehouse
 import com.example.logiroute.domain.repository.VehicleRepository
-import com.example.logiroute.domain.usecase.crud.vehicle.CreateVehicleUseCase
+import com.example.logiroute.domain.util.crud.vehicle.CreateVehicleUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -15,7 +15,8 @@ import kotlin.test.assertTrue
 class CreateVehicleUseCaseTest {
 
     private val repository = mockk<VehicleRepository>()
-    private val useCase = CreateVehicleUseCase(repository)
+    private val useCase =
+        _root_ide_package_.com.example.logiroute.domain.util.crud.vehicle.CreateVehicleUseCase(repository)
 
     @Test
     fun `repository success returns successful result`() = runTest {

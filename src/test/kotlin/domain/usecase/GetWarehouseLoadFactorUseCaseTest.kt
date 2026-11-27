@@ -61,7 +61,7 @@ class GetWarehouseLoadFactorUseCaseTest {
         coEvery {
             warehouseRepository.getAllWarehouses()
         } returns emptyList()
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<LogisticsException.WarehouseNotFoundException> {
             useCase(GetWarehouseLoadFactorRequest("WH-123"))
         }
     }

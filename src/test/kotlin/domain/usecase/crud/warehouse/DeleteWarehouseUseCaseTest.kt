@@ -2,7 +2,7 @@ package domain.usecase.crud.warehouse
 
 
 import com.example.logiroute.domain.repository.WarehouseRepository
-import com.example.logiroute.domain.usecase.crud.warehouse.DeleteWarehouseUseCase
+import com.example.logiroute.domain.util.crud.warehouse.DeleteWarehouseUseCase
 import com.example.logiroute.domain.validation.ValidationResultMapper
 import com.example.logiroute.domain.validation.ValidationRules
 import io.mockk.coEvery
@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 class DeleteWarehouseUseCaseTest {
 
     private val repository = mockk<WarehouseRepository>()
-    private val useCase = DeleteWarehouseUseCase(
+    private val useCase = _root_ide_package_.com.example.logiroute.domain.util.crud.warehouse.DeleteWarehouseUseCase(
         repository,
         ValidationRules(),
         ValidationResultMapper()
